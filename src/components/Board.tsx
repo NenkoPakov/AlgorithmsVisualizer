@@ -3,6 +3,9 @@ import React, {  useEffect, useState} from 'react';
 import styled from 'styled-components';
 import breadthFirstSearch from '../services/breadthFirstSearch';
 
+import {MatrixKey,Matrix,MatrixRow} from '../interfaces/Board.interface';
+import {Node} from '../interfaces/Cell.interface';
+
 const Center = styled.div`
 position:absolute;
 left: 50%;
@@ -25,11 +28,11 @@ function Board() {
     const rows = 20;
     const cols = 20;
 
-    const [matrix, setMatrix] = useState([]);
-    const [startNode, setStartNode] = useState({ row: 0, col: 0 });
-    const [finishNode, setFinishNode] = useState({ row: rows - 1, col: cols - 1 });
+    const [matrix, setMatrix] = useState<Matrix>([]);
+    const [startNode, setStartNode] = useState<Node>({ row: 0, col: 0 });
+    const [finishNode, setFinishNode] = useState<Node>({ row: rows - 1, col: cols - 1 });
 
-    const markCellAsWall = (row, col) => {
+    const markCellAsWall = (row:number, col:number) => {
         updateMatrixNode(row, col,'isWall');
     };
 
@@ -37,11 +40,11 @@ function Board() {
         breadthFirstSearch(matrix,startNode,finishNode,updateMatrixNode);
     };
 
-    const updateMatrixNode = (targetRow, targetCol,properyKey ) => {
+    const updateMatrixNode = (targetRow:number, targetCol:number,properyKey:MatrixKey ) => {
         setMatrix((m)=>{
             
-        const newMatrix = [...m];
-        const newTargetRow = [...newMatrix[targetRow]];
+        const newMatrix :Matrix = [...m];
+        const newTargetRow :MatrixRow= [...newMatrix[targetRow]];
 
         const currentIsVisitedValue = newTargetRow[targetCol][`${properyKey}`];
         newTargetRow[targetCol]={...newTargetRow[targetCol],[`${properyKey}`]:!currentIsVisitedValue};
@@ -85,7 +88,7 @@ function Board() {
     // }, [matrix])
 
     return (<React.Fragment>
-        <button onClick={(e) => getPathToFinishNode(e)}>Find</button>
+        <button onClick={() => getPathToFinishNode()}>Find</button>
         <BoardWrapper>
             {matrix.map((row) => (
                 row.map((node) => (

@@ -1,3 +1,5 @@
+import { Matrix } from '../interfaces/Board.interface';
+import {Node} from '../interfaces/Cell.interface';
 
 const _setDelay = (millis) => {
     return new Promise((resolve) => setTimeout(resolve, millis));
@@ -11,19 +13,19 @@ const _checkIfIsValidCell = (matrix, row, col) => {
     return true;
 }
 
-const breadthFirstSearch = async (matrix, startNode, targetNode, updateNodeFunc) => {
-    const frontier = [];
+const breadthFirstSearch = async (matrix:Matrix, startNode:Node, targetNode:Node, updateNodeFunc:any) => {
+    const frontier:Node[] = [];
     frontier.push(startNode);
 
     const comeFrom = {};
     comeFrom[`${startNode.row}-${startNode.col}`] = undefined;
 
     while (frontier.length) {
-        const currentNode = frontier.shift();
+        const currentNode:Node = frontier.shift()!;
 
         updateNodeFunc(currentNode.row, currentNode.col, 'isVisited');
         await _setDelay(5);
-        const graphNeighbors = [];
+        const graphNeighbors:Node[] = [];
 
         if (_checkIfIsValidCell(matrix, currentNode.row - 1, currentNode.col)) {
             graphNeighbors.push({ row: currentNode.row - 1, col: currentNode.col });
@@ -52,8 +54,8 @@ const breadthFirstSearch = async (matrix, startNode, targetNode, updateNodeFunc)
     }
 
     // let currentNode = `${targetNode.row}-${targetNode.col}`;
-    let currentNode = comeFrom[`${targetNode.row}-${targetNode.col}`];
-    const path = [];
+    let currentNode:string = comeFrom[`${targetNode.row}-${targetNode.col}`];
+    const path:string[] = [];
     while (currentNode) {
         path.push(currentNode);
 
