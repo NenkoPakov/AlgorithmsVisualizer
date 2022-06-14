@@ -1,5 +1,6 @@
 import React from 'react';
 import styled, { css } from 'styled-components'
+import { CellType } from '../interfaces/Cell.interface';
 
 const cellBase = css`
 position:relative;
@@ -59,7 +60,7 @@ ${cellText};
 background-color:black;
 `;
 
-function Cell({ isVisited, isWall, isPartOfThePath, row, col, type, handleClick }) {
+function Cell({ isVisited, isWall, isPartOfThePath, row, col, type, handleClick }:{isVisited:boolean, isWall:boolean, isPartOfThePath:boolean, row:number, col:number, type:CellType, handleClick:any}) {
   const key = `${row}-${col}`;
 
   switch (type) {

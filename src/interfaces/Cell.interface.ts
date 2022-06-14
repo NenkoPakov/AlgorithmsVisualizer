@@ -4,8 +4,10 @@ export interface Cell  {
     isPartOfThePath:boolean,
     row: number,
     col: number,
-    type: "start"|"finish"|undefined,
+    type: CellType
 }
+
+export type CellType = "start"|"finish"|undefined;
 
 export interface Node { 
     row: number,

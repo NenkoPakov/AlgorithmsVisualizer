@@ -1,11 +1,11 @@
 import { Matrix } from '../interfaces/Board.interface';
 import {Node} from '../interfaces/Cell.interface';
 
-const _setDelay = (millis) => {
+const _setDelay = (millis:number) => {
     return new Promise((resolve) => setTimeout(resolve, millis));
 };    
 
-const _checkIfIsValidCell = (matrix, row, col) => {
+const _checkIfIsValidCell = (matrix:Matrix, row:number, col:number) => {
     if (row < 0 || col < 0 || row >= matrix.length || col >= matrix[row].length) {
         return false;
     }
@@ -17,7 +17,7 @@ const breadthFirstSearch = async (matrix:Matrix, startNode:Node, targetNode:Node
     const frontier:Node[] = [];
     frontier.push(startNode);
 
-    const comeFrom = {};
+    const comeFrom:{ [name: string]: string|undefined} = {};
     comeFrom[`${startNode.row}-${startNode.col}`] = undefined;
 
     while (frontier.length) {
@@ -54,7 +54,7 @@ const breadthFirstSearch = async (matrix:Matrix, startNode:Node, targetNode:Node
     }
 
     // let currentNode = `${targetNode.row}-${targetNode.col}`;
-    let currentNode:string = comeFrom[`${targetNode.row}-${targetNode.col}`];
+    let currentNode:string|undefined = comeFrom[`${targetNode.row}-${targetNode.col}`];
     const path:string[] = [];
     while (currentNode) {
         path.push(currentNode);
