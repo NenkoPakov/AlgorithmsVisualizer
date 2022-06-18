@@ -1,6 +1,6 @@
-import {Cell} from './Cell.interface';
+import {ICell} from './Cell.interface';
 
-export type MatrixKey = "isWall" | "isPartOfThePath" | "isVisited";
+export type MatrixKey = "isWall" | "isPartOfThePath" | "isVisited"| "isStart"| "isFinish";
 
-export type MatrixRow=Cell[];
+export type MatrixRow=ICell[];
 export type Matrix=MatrixRow[];
