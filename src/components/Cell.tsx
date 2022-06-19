@@ -1,10 +1,11 @@
-import React from 'react';
+import React, { MouseEventHandler } from 'react';
 import styled, { css } from 'styled-components'
 import { ICell } from '../interfaces/Cell.interface';
 
 const cellBase = css`
 position:relative;
 border:1px solid black;
+cursor:pointer;
 
 grid-row: ${(props: any) => props.row + 1};
 grid-column: ${(props: any) => props.col + 1};
@@ -34,14 +35,14 @@ const StartCell = styled.div<any>`
 ${cellBase};
 ${cellText};
 background-color:green;
-cursor:pointer;
+z-index:1000;
 `;
 
 const FinishCell = styled.div<any>`
 ${cellBase};
 ${cellText};
 background-color:blue;
-cursor:pointer;
+z-index:1000;
 `;
 
 const VisitedCell = styled.div<any>`
@@ -62,62 +63,76 @@ ${cellText};
 background-color:black;
 `;
 
-function Cell({ isVisited, isWall, isPartOfThePath,isStart,isFinish, row, col, handleClick }:ICell) {
-  const key:string = `${row}-${col}`;
-  type paramsType ={
-    row:any,
-    col:any,
-    id:any,
-    key:any,
-    onClick:Function,
-    onMouseDown:Function,
-    onMouseUp:Function,
-    onMouseOver:Function,
-    onMouseEnter:Function,
-    onMouseOut:Function,
-    // onMouseOut:Function,
+function Cell({ isVisited, isWall, isPartOfThePath, isStart, isFinish, row, col, handleClick }: ICell) {
+  const key: string = `${row}-${col}`;
+
+  type ordinaryNodeParamsType = {
+    row: any,
+    col: any,
+    id: any,
+    key: any,
+    onClick: Function,
+    onMouseEnter: Function,
   }
-  const params:paramsType = {
-        row:{row}, 
-        col:{col}, 
-        id:{key}, 
-        key:{key}, 
-        onClick:(e: Event) => handleClick(e, row, col), 
-        onMouseDown:(e: Event) => handleClick(e, row, col), 
-        onMouseUp:(e: Event) => handleClick(e, row, col),
-        onMouseEnter:(e: Event) => handleClick(e, row, col),
-        onMouseOut:(e: Event) => handleClick(e, row, col),
-        onMouseOver:(e: Event) => handleClick(e, row, col),
+
+  type targetNodeParamsType = {
+    row: any,
+    col: any,
+    id: any,
+    key: any,
+    onMouseDown: Function,
+    onMouseUp: Function,
+    onMouseEnter: Function,
+  }
+
+  const targetNodeParams: targetNodeParamsType = {
+    row: { row },
+    col: { col },
+    id: { key },
+    key: { key },
+    onMouseDown: (e: MouseEvent) => handleClick(e, row, col),
+    onMouseUp: (e: MouseEvent) => handleClick(e, row, col),
+    onMouseEnter: (e: MouseEvent) => handleClick(e, row, col),
   };
 
-      return isWall
-        ? <WallCell  
-          {...params}
-        />
-        : isPartOfThePath
-          ? <PathCell  
-          {...params}
-          />
+  const ordinaryNodeParams: ordinaryNodeParamsType = {
+    row: { row },
+    col: { col },
+    id: { key },
+    key: { key },
+    onClick: (e: MouseEvent) => handleClick(e, row, col),
+    onMouseEnter: (e: MouseEvent) => handleClick(e, row, col),
+  };
+
+  return isWall
+    ? <WallCell
+      {...ordinaryNodeParams}
+    />
+    : isPartOfThePath
+      ? <PathCell
+        {...ordinaryNodeParams}
+      />
+
+      : isStart
+        ? <StartCell
+          {...targetNodeParams}
+        >
+          {/* S */}
+        </StartCell>
+        : isFinish
+          ? <FinishCell
+            {...targetNodeParams}
+          >
+            {/* F */}
+          </FinishCell>
           : isVisited
-            ? <VisitedCell 
-              {...params}
-              />
-            : isStart
-            ? <StartCell 
-            {...params}
-            >
-                  {/* S */}
-                </StartCell>
-            : isFinish
-            ? <FinishCell 
-              {...params}
-              >
-                  {/* F */}
-                </FinishCell>
-            : <FreeCell 
-                {...params}
-                />
-  
+            ? <VisitedCell
+              {...ordinaryNodeParams}
+            />
+            : <FreeCell
+              {...ordinaryNodeParams}
+            />
+
 }
 
 export default Cell;

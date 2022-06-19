@@ -1,7 +1,8 @@
+import { start } from 'repl';
 import { Matrix } from '../interfaces/Board.interface';
 import {Node} from '../interfaces/Cell.interface';
 
-const _setDelay = (millis:number) => {
+export const _setDelay = (millis:number) => {
     return new Promise((resolve) => setTimeout(resolve, millis));
 };    
 
@@ -13,7 +14,7 @@ const _checkIfIsValidCell = (matrix:Matrix, row:number, col:number) => {
     return true;
 }
 
-const breadthFirstSearch = async (matrix:Matrix, startNode:Node, targetNode:Node, updateNodeFunc:any) => {
+const breadthFirstSearch = async (matrix:Matrix, startNode:Node, targetNode:Node, updateNodeFunc:Function, setComeFrom:Function) => {
     const frontier:Node[] = [];
     frontier.push(startNode);
 
@@ -44,7 +45,8 @@ const breadthFirstSearch = async (matrix:Matrix, startNode:Node, targetNode:Node
         }
 
         graphNeighbors.forEach(neighbor => {
-            if (comeFrom.hasOwnProperty(`${neighbor.row}-${neighbor.col}`)) {
+            const neighborNode = matrix[neighbor.row][neighbor.col];
+            if (comeFrom.hasOwnProperty(`${neighbor.row}-${neighbor.col}`) || neighborNode.isVisited||neighborNode.isWall||neighborNode.isFinish||neighborNode.isStart) {
                 return;
             }
 
@@ -53,24 +55,7 @@ const breadthFirstSearch = async (matrix:Matrix, startNode:Node, targetNode:Node
         });
     }
 
-    // let currentNode = `${targetNode.row}-${targetNode.col}`;
-    let currentNode:string|undefined = comeFrom[`${targetNode.row}-${targetNode.col}`];
-    const path:string[] = [];
-    while (currentNode) {
-        path.push(currentNode);
-
-        let currentNodeDate = currentNode.split('-');
-        console.log(currentNodeDate);
-        let row = currentNodeDate[0];
-        let col = currentNodeDate[1];
-
-        updateNodeFunc(row, col, 'isPartOfThePath');
-        await _setDelay(80);
-
-        currentNode = comeFrom[currentNode];
-    }
-
-    path.push(`${startNode.row}-${startNode.col}`);
+    setComeFrom(comeFrom);
 };
 
 export default breadthFirstSearch

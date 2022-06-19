@@ -9,6 +9,8 @@ export interface ICell  {
     handleClick:any
 }
 
+export type CellType="start"|"finish"|"wall"|"free"
+
 
 export interface Node { 
     row: number,
