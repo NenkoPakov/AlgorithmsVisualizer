@@ -1,6 +1,6 @@
 import { start } from 'repl';
 import { Matrix } from '../interfaces/Board.interface';
-import {Node} from '../interfaces/Cell.interface';
+import {Node,ICell} from '../interfaces/Cell.interface';
 
 export const _setDelay = (millis:number) => {
     return new Promise((resolve) => setTimeout(resolve, millis));
@@ -14,7 +14,9 @@ const _checkIfIsValidCell = (matrix:Matrix, row:number, col:number) => {
     return true;
 }
 
-const breadthFirstSearch = async (matrix:Matrix, startNode:Node, targetNode:Node, updateNodeFunc:Function, setComeFrom:Function) => {
+const breadthFirstSearch = async (matrix:Matrix, startNode:Node, isFirstExecution:boolean, updateNodeFunc:Function, setComeFrom:Function) => {
+    let tempMatrix:any= matrix.map((row:ICell[])=> row.map((node:ICell)=> {return {row:node.row,col:node.col,isVisited:false,isWall:node.isWall}}));
+    
     const frontier:Node[] = [];
     frontier.push(startNode);
 
@@ -24,8 +26,7 @@ const breadthFirstSearch = async (matrix:Matrix, startNode:Node, targetNode:Node
     while (frontier.length) {
         const currentNode:Node = frontier.shift()!;
 
-        updateNodeFunc(currentNode.row, currentNode.col, 'isVisited');
-        await _setDelay(5);
+        tempMatrix[currentNode.row][currentNode.col].isVisited = true;
         const graphNeighbors:Node[] = [];
 
         if (_checkIfIsValidCell(matrix, currentNode.row - 1, currentNode.col)) {
@@ -45,7 +46,7 @@ const breadthFirstSearch = async (matrix:Matrix, startNode:Node, targetNode:Node
         }
 
         graphNeighbors.forEach(neighbor => {
-            const neighborNode = matrix[neighbor.row][neighbor.col];
+            const neighborNode = tempMatrix[neighbor.row][neighbor.col];
             if (comeFrom.hasOwnProperty(`${neighbor.row}-${neighbor.col}`) || neighborNode.isVisited||neighborNode.isWall||neighborNode.isFinish||neighborNode.isStart) {
                 return;
             }

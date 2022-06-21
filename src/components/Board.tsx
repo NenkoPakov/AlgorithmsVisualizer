@@ -1,7 +1,7 @@
 import Cell from './Cell';
 import React, { MouseEventHandler, useEffect, useState } from 'react';
 import styled from 'styled-components';
-import breadthFirstSearch,{_setDelay} from '../services/breadthFirstSearch';
+import breadthFirstSearch, { _setDelay } from '../services/breadthFirstSearch';
 
 import { MatrixKey, Matrix, MatrixRow } from '../interfaces/Board.interface';
 import { CellType, Node, } from '../interfaces/Cell.interface';
@@ -32,16 +32,16 @@ function Board() {
     const [startNode, setStartNode] = useState<Node>({ row: 0, col: 0 });
     const [finishNode, setFinishNode] = useState<Node>({ row: rows - 1, col: cols - 1 });
     const [isMousePressed, setIsMousePressed] = useState<boolean>(false);
-    const [wallSelectionStartNode, setWallSelectionStartNode] = useState<Node>({row:-1,col:-1});
+    const [wallSelectionStartNode, setWallSelectionStartNode] = useState<Node>({ row: -1, col: -1 });
     const [pressedCellType, setPressedCellType] = useState<string>("");
-    const [comeFrom,setComeFrom]=useState<{[name: string]: string|undefined}>({});
-    const [foundPath,setFoundPath]=useState<Node[]>([]);
-    const [isExecuted,setIsExecuted] = useState<boolean>(false);
+    const [comeFrom, setComeFrom] = useState<{ [name: string]: string | undefined }>({});
+    const [foundPath, setFoundPath] = useState<Node[]>([]);
+    const [isFirstExecution, setIsFirstExecution] = useState<boolean>(true);
 
-    const getPathToFinishNode = () => {
-        breadthFirstSearch(matrix, startNode, finishNode, updateMatrixNode,setComeFrom);
+    const getPathToFinishNode = async () => {
+        await breadthFirstSearch(matrix, startNode, isFirstExecution, updateMatrixNode, setComeFrom);
 
-        setIsExecuted(true);
+        setIsFirstExecution(false);
     };
 
     const handleMouseClick = (event: MouseEvent, row: number, col: number) => {
@@ -66,13 +66,13 @@ function Board() {
                 let currentNode: Node = { row: row, col: col };
 
                 if (wallSelectionStartNode && wallSelectionStartNode.row === row && wallSelectionStartNode.col === col) {
-                    setWallSelectionStartNode({row:-1,col:-1});
+                    setWallSelectionStartNode({ row: -1, col: -1 });
                     break;
                 }
 
-                if (wallSelectionStartNode.row<0||wallSelectionStartNode.col<0) {
+                if (wallSelectionStartNode.row < 0 || wallSelectionStartNode.col < 0) {
                     updateMatrixNode(row, col, 'isWall');
-                } else{
+                } else {
                     generateWall(row, col);
                 }
 
@@ -131,37 +131,61 @@ function Board() {
         setMatrix(newMatrix);
     }, [])
 
-     useEffect(() => {
-        //unmark previous path
-        foundPath.forEach(node => {
-            updateMatrixNode(node.row,node.col,"isPartOfThePath");
-        });
+    useEffect(() => {
+        const markNodesAsVisited = async () => {
+            const visitedNodes = Object.keys(comeFrom);
+            if (isFirstExecution) {
+                for (const node of visitedNodes) {
+                    let currentNodeData = node.split('-');
+                    let row = parseInt(currentNodeData[0]);
+                    let col = parseInt(currentNodeData[1]);
 
-        let currentNode:string|undefined = comeFrom[`${finishNode.row}-${finishNode.col}`];
-        let startNodeText:string= `${startNode.row}-${startNode.col}`;
-        const path:Node[] = [];
-        while (currentNode!=startNodeText&&currentNode) {
-    
-            let currentNodeDate = currentNode.split('-');
-            let row = parseInt(currentNodeDate[0]);
-            let col = parseInt(currentNodeDate[1]);
+                    updateMatrixNode(row, col, 'isVisited');
+                    if (isFirstExecution) {
+                        await _setDelay(5);
+                    }
+                }
+            }
 
-            updateMatrixNode(row,col,"isPartOfThePath");
+            //unmark previous path
+            foundPath.forEach(node => {
+                updateMatrixNode(node.row, node.col, "isPartOfThePath");
+            });
 
-            path.push({row:row,col:col});
-    
-            currentNode = comeFrom[currentNode];
+            let currentNode: string | undefined = comeFrom[`${finishNode.row}-${finishNode.col}`];
+            let startNodeText: string = `${startNode.row}-${startNode.col}`;
+            const path: Node[] = [];
+
+            while (currentNode != startNodeText && currentNode) {
+                let currentNodeData = currentNode.split('-');
+                let row = parseInt(currentNodeData[0]);
+                let col = parseInt(currentNodeData[1]);
+
+                updateMatrixNode(row, col, "isPartOfThePath");
+                if (isFirstExecution) {
+                    await _setDelay(5);
+                }
+
+                path.push({ row: row, col: col });
+
+                currentNode = comeFrom[currentNode];
+            }
+
+            setFoundPath(path);
+        };
+
+        markNodesAsVisited();
+    }, [comeFrom]);
+
+    useEffect(() => {
+        if (!isFirstExecution) {
+            breadthFirstSearch(matrix, startNode, isFirstExecution, updateMatrixNode, setComeFrom);
         }
+    }, [startNode, finishNode])
 
-        setFoundPath(path);
+    useEffect(() => {
 
-        
-
-     }, [comeFrom,startNode,finishNode]);
-
-     useEffect(()=>{
-
-     },[foundPath])
+    }, [foundPath])
 
 
     return (<React.Fragment>
