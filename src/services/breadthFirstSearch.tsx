@@ -1,10 +1,5 @@
-import { start } from 'repl';
 import { Matrix } from '../interfaces/Board.interface';
 import {Node,ICell2} from '../interfaces/Cell.interface';
-
-export const _setDelay = (milliseconds:number) => {
-    return new Promise((resolve) => setTimeout(resolve, milliseconds));
-};    
 
 const _checkIfIsValidCell = (matrix:Matrix, row:number, col:number) => {
     if (row < 0 || col < 0 || row >= matrix.length || col >= matrix[row].length) {
