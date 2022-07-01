@@ -1,9 +1,9 @@
 import { start } from 'repl';
 import { Matrix } from '../interfaces/Board.interface';
-import {Node,ICell} from '../interfaces/Cell.interface';
+import {Node,ICell2} from '../interfaces/Cell.interface';
 
-export const _setDelay = (millis:number) => {
-    return new Promise((resolve) => setTimeout(resolve, millis));
+export const _setDelay = (milliseconds:number) => {
+    return new Promise((resolve) => setTimeout(resolve, milliseconds));
 };    
 
 const _checkIfIsValidCell = (matrix:Matrix, row:number, col:number) => {
@@ -14,8 +14,9 @@ const _checkIfIsValidCell = (matrix:Matrix, row:number, col:number) => {
     return true;
 }
 
-const breadthFirstSearch = async (matrix:Matrix, startNode:Node, isFirstExecution:boolean, updateNodeFunc:Function, setComeFrom:Function) => {
-    let tempMatrix:any= matrix.map((row:ICell[])=> row.map((node:ICell)=> {return {row:node.row,col:node.col,isVisited:false,isWall:node.isWall}}));
+//Clear whole matrix if start or finish nodes are over new area or over wall
+const breadthFirstSearch = (matrix:Matrix, startNode:Node) => {
+    let tempMatrix:any= matrix.map((row:ICell2[])=> row.map((node:ICell2)=> {return {row:node.row,col:node.col,isVisited:false,isWall:node.isWall}}));
     
     const frontier:Node[] = [];
     frontier.push(startNode);
@@ -56,7 +57,7 @@ const breadthFirstSearch = async (matrix:Matrix, startNode:Node, isFirstExecutio
         });
     }
 
-    setComeFrom(comeFrom);
+    return comeFrom;
 };
 
 export default breadthFirstSearch

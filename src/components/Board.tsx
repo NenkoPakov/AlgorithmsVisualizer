@@ -1,10 +1,9 @@
 import Cell from './Cell';
-import React, { MouseEventHandler, useEffect, useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import styled from 'styled-components';
 import breadthFirstSearch, { _setDelay } from '../services/breadthFirstSearch';
-
 import { MatrixKey, Matrix, MatrixRow } from '../interfaces/Board.interface';
-import { CellType, Node, } from '../interfaces/Cell.interface';
+import { CellType, ICell2, Node, } from '../interfaces/Cell.interface';
 
 const Center = styled.div`
 position:absolute;
@@ -32,56 +31,100 @@ function Board() {
     const [startNode, setStartNode] = useState<Node>({ row: 0, col: 0 });
     const [finishNode, setFinishNode] = useState<Node>({ row: rows - 1, col: cols - 1 });
     const [isMousePressed, setIsMousePressed] = useState<boolean>(false);
+    const [proposedWall, setProposedWall] = useState<Node[]>([]);
     const [wallSelectionStartNode, setWallSelectionStartNode] = useState<Node>({ row: -1, col: -1 });
-    const [pressedCellType, setPressedCellType] = useState<string>("");
+    const [pressedCellType, setPressedCellType] = useState<CellType>('free');
     const [comeFrom, setComeFrom] = useState<{ [name: string]: string | undefined }>({});
     const [foundPath, setFoundPath] = useState<Node[]>([]);
-    const [isFirstExecution, setIsFirstExecution] = useState<boolean>(true);
+    const [visitedNodes, setVisitedNodes] = useState<Node[]>([]);
 
-    const getPathToFinishNode = async () => {
-        await breadthFirstSearch(matrix, startNode, isFirstExecution, updateMatrixNode, setComeFrom);
+    const executeAlgorithm = () => {
+        setComeFrom(breadthFirstSearch(matrix, startNode));
+    };
 
-        setIsFirstExecution(false);
+    const cleanBoard = () => {
+        setMatrix(generateClearBoard());
+        setIsMousePressed(false);
+        setWallSelectionStartNode({ row: -1, col: -1 });
+        setComeFrom({});
+        setFoundPath([]);
+        setVisitedNodes([]);
     };
 
     const handleMouseClick = (event: MouseEvent, row: number, col: number) => {
         switch (event.type) {
+            //set isMousePressed to true and set currently pressedCellType
             case "mousedown":
+                console.log("mousedown")
                 const selectedNode = matrix[row][col];
-                const selectedNodeType = selectedNode.isWall
-                    ? "wall"
-                    : startNode.row == row && startNode.col == col
-                        ? "start"
-                        : finishNode.row == row && finishNode.col == col
-                            ? "finish"
+                const selectedNodeType = startNode.row == row && startNode.col == col
+                    ? "start"
+                    : finishNode.row == row && finishNode.col == col
+                        ? "finish"
+                        : selectedNode.isWall
+                            ? "wall"
                             : "free";
 
                 setPressedCellType(selectedNodeType);
                 setIsMousePressed(true);
                 break;
+            //set isMousePressed to false. If current startNode or finishNode are placed in new area - clear all visited and path cells
             case "mouseup":
                 setIsMousePressed(false);
+
+                //if is not visited(could be wall or not visited cell)
+                if (!matrix[row][col].isVisited && ['start', 'finish'].includes(pressedCellType)) {
+                    setMatrix(matrix.map((row: ICell2[]) => row.map((node: ICell2) => { return { ...node, isVisited: false, isPartOfThePath: false } })));
+                }
+
+                //update startNode or finishNode and fulfill the condition is useEffect[startNode,finishNode]
+                switch (pressedCellType) {
+                    case "start":
+                        let currentStartNode: Node = { row: row, col: col };
+                        setStartNode(() => currentStartNode);
+                        break;
+                    case "finish":
+                        let currentFinishNode: Node = { row: row, col: col };
+                        setFinishNode(() => currentFinishNode);
+                        break;
+                }
+
                 break;
+            //generate a new wall
             case "click":
                 let currentNode: Node = { row: row, col: col };
 
+                //cancel wall generation if click at last created cell as wall
                 if (wallSelectionStartNode && wallSelectionStartNode.row === row && wallSelectionStartNode.col === col) {
                     setWallSelectionStartNode({ row: -1, col: -1 });
                     break;
                 }
 
-                if (wallSelectionStartNode.row < 0 || wallSelectionStartNode.col < 0) {
+                //Create a wall
+                // if (wallSelectionStartNode.row < 0 && wallSelectionStartNode.col < 0) {
+                if (!proposedWall.length) {
+                    //If start new wall selection, then mark pressed node as wall
                     updateMatrixNode(row, col, 'isWall');
                 } else {
+                    // setProposedWall([]);
                     generateWall(row, col);
                 }
 
                 setWallSelectionStartNode(currentNode);
                 break;
+            //interactive wall, startNode and finishNode updating
             default:
-                if (!isMousePressed)
-                    return;
+                //generate proposal walls
+                if (!isMousePressed) {
+                    if ((pressedCellType == 'wall' || pressedCellType == 'free') && wallSelectionStartNode.row >= 0 && wallSelectionStartNode.col >= 0) {
+                        proposedWall.forEach(node => updateMatrixNode(node.row, node.col, 'isWall'))
+                        setProposedWall(generateWall(row, col));
+                    }
 
+                    return;
+                }
+
+                //move start or finish node while holding mouse left button 
                 switch (pressedCellType) {
                     case "start":
                         let currentStartNode: Node = { row: row, col: col };
@@ -92,13 +135,13 @@ function Board() {
                         setFinishNode(() => currentFinishNode);
                         break;
                     default:
-                        updateMatrixNode(row, col, 'isWall');
                         break;
                 }
                 break;
         }
     }
 
+    //change property of a node
     const updateMatrixNode = (targetRow: number, targetCol: number, properyKey: MatrixKey) => {
         setMatrix((m) => {
 
@@ -113,45 +156,60 @@ function Board() {
         });
     };
 
-    useEffect(() => {
-        let newMatrix = Array(rows);
-        for (let row = 0; row < rows; row++) {
-            newMatrix[row] = Array(cols);
-            for (let col = 0; col < cols; col++) {
-                newMatrix[row][col] = {
-                    isVisited: false,
-                    isWall: false,
-                    isPartOfThePath: false,
-                    row: row,
-                    col: col,
-                }
-            }
-        }
+    //set a specific property of each node to false(unmark it)
+    const clearPerviousStateMatrixProperty = (propertyKey: MatrixKey) => {
+        setMatrix(matrix.map(row => row.map(node => { return { ...node, [`${propertyKey}`]: false } })));
+    };
 
-        setMatrix(newMatrix);
+    //initialize the matrix
+    useEffect(() => {
+        setMatrix(generateClearBoard());
     }, [])
 
+    //execute the algorithm if startNode or finishNode change its position
     useEffect(() => {
-        const markNodesAsVisited = async () => {
-            const visitedNodes = Object.keys(comeFrom);
-            if (isFirstExecution) {
-                for (const node of visitedNodes) {
+        if (visitedNodes.length && !isMousePressed) {
+            setComeFrom(breadthFirstSearch(matrix, startNode));
+        }
+    }, [startNode, finishNode])
+
+    //marks all visited nodes and update the state of setFoundPath
+    useEffect(() => {
+        (async () => {
+            //the algorithm has been updated again, so we have to clear the last found path
+            if (visitedNodes.length) {
+                clearPerviousStateMatrixProperty('isPartOfThePath');
+            }
+
+            //if the startNode is placed outside of the already visited area, then the algorithm will be executed again with a _setDelay
+            if (!visitedNodes.length || !visitedNodes.some(node => node.row === startNode.row && node.col === startNode.col)) {
+                const recentlyVisitedNodes: Node[] = Object.keys(comeFrom).map(node => {
                     let currentNodeData = node.split('-');
                     let row = parseInt(currentNodeData[0]);
                     let col = parseInt(currentNodeData[1]);
 
-                    updateMatrixNode(row, col, 'isVisited');
-                    if (isFirstExecution) {
-                        await _setDelay(5);
-                    }
+                    return { row: row, col: col };
+                });
+
+                //TODO: check if this is needed
+                if (visitedNodes.length) {
+                    clearPerviousStateMatrixProperty('isVisited');
+                }
+
+                setVisitedNodes(recentlyVisitedNodes);
+                for (const node of recentlyVisitedNodes) {
+                    updateMatrixNode(node.row, node.col, 'isVisited');
+                    await _setDelay(5);
                 }
             }
 
+            //TODO: check if this is needed
             //unmark previous path
-            foundPath.forEach(node => {
-                updateMatrixNode(node.row, node.col, "isPartOfThePath");
-            });
+            // foundPath.forEach(node => {
+            //     updateMatrixNode(node.row, node.col, "isPartOfThePath");
+            // });
 
+            //go through each node from comeFrom until the startNode is not reached
             let currentNode: string | undefined = comeFrom[`${finishNode.row}-${finishNode.col}`];
             let startNodeText: string = `${startNode.row}-${startNode.col}`;
             const path: Node[] = [];
@@ -161,10 +219,10 @@ function Board() {
                 let row = parseInt(currentNodeData[0]);
                 let col = parseInt(currentNodeData[1]);
 
-                updateMatrixNode(row, col, "isPartOfThePath");
-                if (isFirstExecution) {
-                    await _setDelay(5);
-                }
+                // updateMatrixNode(row, col, "isPartOfThePath");
+                // if (!visitedNodes.length) {
+                //     await _setDelay(5);
+                // }
 
                 path.push({ row: row, col: col });
 
@@ -172,24 +230,26 @@ function Board() {
             }
 
             setFoundPath(path);
-        };
-
-        markNodesAsVisited();
+        })();
     }, [comeFrom]);
 
+    //mark the path
     useEffect(() => {
-        if (!isFirstExecution) {
-            breadthFirstSearch(matrix, startNode, isFirstExecution, updateMatrixNode, setComeFrom);
-        }
-    }, [startNode, finishNode])
+        (async () => {
+            for (const node of foundPath) {
+                updateMatrixNode(node.row, node.col, "isPartOfThePath");
 
-    useEffect(() => {
+                if (!visitedNodes.length) {
+                    await _setDelay(5);
+                }
+            }
+        })();
 
-    }, [foundPath])
-
+    }, [foundPath]);
 
     return (<React.Fragment>
-        <button onClick={() => getPathToFinishNode()}>Find</button>
+        <button onClick={() => executeAlgorithm()}>Execute</button>
+        <button onClick={() => cleanBoard()}>Clear board</button>
         <BoardWrapper>
             {matrix.map((row, rowIndex) => (
                 row.map((node, colIndex) => {
@@ -201,13 +261,12 @@ function Board() {
                         isVisited={node.isVisited}
                         isWall={node.isWall}
                         isPartOfThePath={node.isPartOfThePath}
-                        // isStart={node.isStart}
-                        // isFinish={node.isFinish}
                         isStart={isStartNode}
                         isFinish={isFinishNode}
                         row={node.row}
                         col={node.col}
                         handleClick={handleMouseClick}
+                        pressedCellType={pressedCellType}
                     ></Cell>
                 })
             ))}
@@ -215,7 +274,25 @@ function Board() {
     </React.Fragment>
     );
 
+    function generateClearBoard() {
+        let newMatrix = Array(rows);
+        for (let row = 0; row < rows; row++) {
+            newMatrix[row] = Array(cols);
+            for (let col = 0; col < cols; col++) {
+                newMatrix[row][col] = {
+                    isVisited: false,
+                    isWall: false,
+                    isPartOfThePath: false,
+                    row: row,
+                    col: col,
+                };
+            }
+        }
+        return newMatrix;
+    }
+
     function generateWall(row: number, col: number) {
+        const changedCells: Node[] = [];
         let previousNodeRow = wallSelectionStartNode.row;
         let previousNodeCol = wallSelectionStartNode.col;
 
@@ -226,18 +303,25 @@ function Board() {
             previousNodeRow += verticalDirectionSign;
             previousNodeCol += horizontalDirectionSign;
 
+            changedCells.push({ row: previousNodeRow, col: previousNodeCol });
             updateMatrixNode(previousNodeRow, previousNodeCol, 'isWall');
         }
 
         while (previousNodeRow != row) {
             previousNodeRow += verticalDirectionSign;
+
+            changedCells.push({ row: previousNodeRow, col: previousNodeCol });
             updateMatrixNode(previousNodeRow, previousNodeCol, 'isWall');
         }
 
         while (previousNodeCol != col) {
             previousNodeCol += horizontalDirectionSign;
+
+            changedCells.push({ row: previousNodeRow, col: previousNodeCol });
             updateMatrixNode(previousNodeRow, previousNodeCol, 'isWall');
         }
+
+        return changedCells;
     }
 }
 
