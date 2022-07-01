@@ -9,8 +9,8 @@ ${CellBase};
 ${CellText};
 grid-row: ${(props: IFreeCell) => props.row + 1};
 grid-column: ${(props: IFreeCell) => props.col + 1};
-background-color:${(props: IFreeCell) => props.isVisited?'lightgray':props.isPartOfThePath?'white':'lightblue'};
-transition: background-color 0.8s ease-out;
+background-color:${(props: IFreeCell) => props.isVisited?'yellow':props.isPartOfThePath?'white':'lightblue'};
+transition: background-color 0.3s ease-out ;
 
 :hover{
   background-color:black ;

@@ -1,9 +1,10 @@
 import Cell from './Cell';
 import React, { useEffect, useState } from 'react';
 import styled from 'styled-components';
-import breadthFirstSearch, { _setDelay } from '../services/breadthFirstSearch';
+import breadthFirstSearch from '../services/breadthFirstSearch';
 import { MatrixKey, Matrix, MatrixRow } from '../interfaces/Board.interface';
 import { CellType, ICell2, Node, } from '../interfaces/Cell.interface';
+import { resolve } from 'path';
 
 const Center = styled.div`
 position:absolute;
@@ -101,12 +102,10 @@ function Board() {
                 }
 
                 //Create a wall
-                // if (wallSelectionStartNode.row < 0 && wallSelectionStartNode.col < 0) {
                 if (!proposedWall.length) {
                     //If start new wall selection, then mark pressed node as wall
                     updateMatrixNode(row, col, 'isWall');
                 } else {
-                    // setProposedWall([]);
                     generateWall(row, col);
                 }
 
@@ -142,14 +141,13 @@ function Board() {
     }
 
     //change property of a node
-    const updateMatrixNode = (targetRow: number, targetCol: number, properyKey: MatrixKey) => {
+    const updateMatrixNode = (targetRow: number, targetCol: number, propertyKey: MatrixKey) => {
         setMatrix((m) => {
-
             const newMatrix: Matrix = [...m];
             const newTargetRow: MatrixRow = [...newMatrix[targetRow]];
 
-            const currentValue = newTargetRow[targetCol][`${properyKey}`];
-            newTargetRow[targetCol] = { ...newTargetRow[targetCol], [`${properyKey}`]: !currentValue };
+            const currentValue = newTargetRow[targetCol][`${propertyKey}`];
+            newTargetRow[targetCol] = { ...newTargetRow[targetCol], [`${propertyKey}`]: !currentValue };
 
             newMatrix[targetRow] = newTargetRow;
             return newMatrix;
@@ -159,6 +157,11 @@ function Board() {
     //set a specific property of each node to false(unmark it)
     const clearPerviousStateMatrixProperty = (propertyKey: MatrixKey) => {
         setMatrix(matrix.map(row => row.map(node => { return { ...node, [`${propertyKey}`]: false } })));
+    };
+
+    //set a specific property of each node to false(unmark it)
+    const clearPreviousSolution = () => {
+        setMatrix(matrix.map(row => row.map(node => { return { ...node, isPartOfThePath: false, isVisited: false } })));
     };
 
     //initialize the matrix
@@ -175,76 +178,55 @@ function Board() {
 
     //marks all visited nodes and update the state of setFoundPath
     useEffect(() => {
-        (async () => {
-            //the algorithm has been updated again, so we have to clear the last found path
-            if (visitedNodes.length) {
-                clearPerviousStateMatrixProperty('isPartOfThePath');
-            }
 
-            //if the startNode is placed outside of the already visited area, then the algorithm will be executed again with a _setDelay
-            if (!visitedNodes.length || !visitedNodes.some(node => node.row === startNode.row && node.col === startNode.col)) {
-                const recentlyVisitedNodes: Node[] = Object.keys(comeFrom).map(node => {
-                    let currentNodeData = node.split('-');
-                    let row = parseInt(currentNodeData[0]);
-                    let col = parseInt(currentNodeData[1]);
+        //the algorithm has been updated again, so we have to clear the last found path
+        if (visitedNodes.length) {
+            clearPreviousSolution();
+        }
 
-                    return { row: row, col: col };
-                });
+        const recentlyVisitedNodes: Node[] = Object.keys(comeFrom).map(node => {
+            let currentNodeData = node.split('-');
+            let row = parseInt(currentNodeData[0]);
+            let col = parseInt(currentNodeData[1]);
 
-                //TODO: check if this is needed
-                if (visitedNodes.length) {
-                    clearPerviousStateMatrixProperty('isVisited');
-                }
+            return { row: row, col: col };
+        });
 
-                setVisitedNodes(recentlyVisitedNodes);
-                for (const node of recentlyVisitedNodes) {
-                    updateMatrixNode(node.row, node.col, 'isVisited');
-                    await _setDelay(5);
-                }
-            }
+        setVisitedNodes(recentlyVisitedNodes);
 
-            //TODO: check if this is needed
-            //unmark previous path
-            // foundPath.forEach(node => {
-            //     updateMatrixNode(node.row, node.col, "isPartOfThePath");
-            // });
+        //go through each node from comeFrom until the startNode is not reached
+        let currentNode: string | undefined = comeFrom[`${finishNode.row}-${finishNode.col}`];
+        let startNodeText: string = `${startNode.row}-${startNode.col}`;
+        const path: Node[] = [];
 
-            //go through each node from comeFrom until the startNode is not reached
-            let currentNode: string | undefined = comeFrom[`${finishNode.row}-${finishNode.col}`];
-            let startNodeText: string = `${startNode.row}-${startNode.col}`;
-            const path: Node[] = [];
+        while (currentNode != startNodeText && currentNode) {
+            let currentNodeData = currentNode.split('-');
+            let row = parseInt(currentNodeData[0]);
+            let col = parseInt(currentNodeData[1]);
 
-            while (currentNode != startNodeText && currentNode) {
-                let currentNodeData = currentNode.split('-');
-                let row = parseInt(currentNodeData[0]);
-                let col = parseInt(currentNodeData[1]);
+            path.push({ row: row, col: col });
 
-                // updateMatrixNode(row, col, "isPartOfThePath");
-                // if (!visitedNodes.length) {
-                //     await _setDelay(5);
-                // }
+            currentNode = comeFrom[currentNode];
+        }
 
-                path.push({ row: row, col: col });
-
-                currentNode = comeFrom[currentNode];
-            }
-
-            setFoundPath(path);
-        })();
+        setFoundPath(path);
     }, [comeFrom]);
+
+    useEffect(() => {
+        visitedNodes.forEach((node, i) => {
+            setTimeout(() => {
+                updateMatrixNode(node.row, node.col, 'isVisited');
+            }, i * 30);
+        });
+    }, [visitedNodes]);
 
     //mark the path
     useEffect(() => {
-        (async () => {
-            for (const node of foundPath) {
-                updateMatrixNode(node.row, node.col, "isPartOfThePath");
-
-                if (!visitedNodes.length) {
-                    await _setDelay(5);
-                }
-            }
-        })();
-
+        foundPath.forEach((node, i) => {
+            setTimeout(() => {
+                updateMatrixNode(node.row, node.col, 'isPartOfThePath');
+            }, i * 30 + visitedNodes.length * 30);
+        });
     }, [foundPath]);
 
     return (<React.Fragment>
