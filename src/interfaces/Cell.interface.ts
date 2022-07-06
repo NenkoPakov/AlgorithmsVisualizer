@@ -1,38 +1,33 @@
-export interface ICell  {
+export interface INode {
     row: number,
     col: number,
-    dispatch:any,
+    dispatch: Function,
 }
 
-export interface IFreeCell extends ICell  {
-    isVisited?:boolean,
-    isPartOfThePath?:boolean,
+export interface ITargetNode extends INode {
+    // handleAlgorithm: Function
 }
 
-export interface ICell2  {
+export interface IFreeNode extends INode {
+    isVisited?: boolean,
+    isPartOfThePath?: boolean,
+}
+
+export interface INodeFactory extends INode {
     isVisited: boolean,
     isWall: boolean,
-    isPartOfThePath:boolean,
-    isStart:boolean,
-    isFinish:boolean,
-    row: number,
-    col: number,
-    dispatch:any,
+    isPartOfThePath: boolean,
+    isStart: boolean,
+    isFinish: boolean,
 }
 
-export type CellColor= 'black'|'green'|'blue'|'lightblue';
-
-export interface CellTypeColor {
-  wall:CellColor,
-  start:CellColor,
-  finish:CellColor,
-  free:CellColor,
+export enum NodeType {
+    'start', 'finish', 'wall', 'free'
 };
 
-export type CellType="start"|"finish"|"wall"|"free"
+export type NodeColor = 'black'| 'green'| 'blue'| 'lightblue'| 'lightgrey'| 'yellow';
 
-
-export interface Node { 
+export interface Node {
     row: number,
-    col: number 
+    col: number
 }

@@ -1,12 +1,12 @@
-import React, { memo, useEffect, useState } from 'react';
+import React, { useState } from 'react';
 import styled from 'styled-components'
-import { CellBase, CellText } from '../global';
-import { ICell } from '../interfaces/Cell.interface';
+import { NodeBase } from '../global';
+import {  ITargetNode } from '../interfaces/Cell.interface';
 import { ActionTypes } from './Board';
 
 
 const FinishNode = styled.div<any>`
-${CellBase};
+${NodeBase};
 background-color:blue;
 cursor:move;
 
@@ -17,7 +17,7 @@ opacity: ${(props: any) => props.isDragged?.5:1};
 } 
 `;
 
-const Finish = ({ row, col, dispatch }: ICell) => {
+const Finish = ({ row, col, dispatch }: ITargetNode) => {
   const key: string = `${row}-${col}`;
 
   const [isDragged, setIsDragged] = useState(false);
@@ -28,10 +28,6 @@ const Finish = ({ row, col, dispatch }: ICell) => {
     dispatch({ type: ActionTypes.SET_FINISH_NODE });
     setIsDragged(false);
   }
-  
-  useEffect(() => {
-    console.log(isDragged);
-  }, [isDragged])
 
   return <FinishNode
     draggable={true}
@@ -41,7 +37,7 @@ const Finish = ({ row, col, dispatch }: ICell) => {
     id={key}
     key={`finish-node-${key}`}
     onDragStart={() => setIsDragged(true)}
-    onDragEnd={(event: MouseEvent) => _onDragEnd(event)}
+    onDragEnd={(e: MouseEvent) => _onDragEnd(e)}
   />
 
 };

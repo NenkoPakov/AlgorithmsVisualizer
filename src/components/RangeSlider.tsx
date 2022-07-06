@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import styled from 'styled-components'
-import { CellBase } from '../global';
-import { IFreeCell } from '../interfaces/Cell.interface';
+import { NodeBase } from '../global';
+import { IFreeNode } from '../interfaces/Cell.interface';
 
 const Slider = styled.input`
 		outline: 0;

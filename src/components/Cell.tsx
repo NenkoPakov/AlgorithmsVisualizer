@@ -1,31 +1,29 @@
-import { ICell2 } from '../interfaces/Cell.interface';
+import { INodeFactory } from '../interfaces/Cell.interface';
 import { createNode } from '../factories/NodeFactory';
-import { memo, useEffect, useMemo } from 'react';
+import { memo } from 'react';
 
 
 const Cell =
-memo(
-  ({ isVisited, isWall, isPartOfThePath, isStart, isFinish, row, col, dispatch }: ICell2) =>{
-  const key: string = `${row}-${col}`;
+  memo(
+    ({ isVisited, isWall, isPartOfThePath, isStart, isFinish, row, col, dispatch }: INodeFactory) => {
+      const key: string = `${row}-${col}`;
 
-    const getCellType = () => {
-      return isStart
-        ? 'start'
-        : isFinish
-          ? 'finish'
-          : isWall
-            ? 'wall'
-            : isPartOfThePath
-              ? 'path'
-              : isVisited
-                ? 'visited'
-                : 'free';
+      const getCellType = () => {
+        return isStart
+          ? 'start'
+          : isFinish
+            ? 'finish'
+            : isWall
+              ? 'wall'
+              : isPartOfThePath
+                ? 'path'
+                : isVisited
+                  ? 'visited'
+                  : 'free';
+      }
+
+      return createNode(row, col, getCellType(), dispatch);
     }
-
-    // const memoizedValue = useMemo(() => getCellType(), [{ isVisited, isWall, isPartOfThePath, isStart, isFinish, row, col, handleClick }]);
-
-  return createNode(row, col, getCellType(), dispatch);
-}
-,(prevProps, nextProps) => JSON.stringify(prevProps) === JSON.stringify(nextProps));
+    , (prevProps, nextProps) => JSON.stringify(prevProps) === JSON.stringify(nextProps));
 
 export default Cell;

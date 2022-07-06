@@ -41,7 +41,7 @@ function App() {
       {/* <input  key='rows-input' name='rows-input' onChange={(e) => setBoardSize(e)} defaultValue={INITIAL_SIZE} type="number" />
       <input  key='cols-input'  name='cols-input' onChange={(e) => setBoardSize(e)} defaultValue={INITIAL_SIZE} type="number" /> */}
       <RangeSlider boardSize={boardSize} updateBoardSize={setBoardSize} />
-      <Board size={100} ></Board>
+      <Board size={INITIAL_SIZE} ></Board>
     </React.Fragment>
   );
 }

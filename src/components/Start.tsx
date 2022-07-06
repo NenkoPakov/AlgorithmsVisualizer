@@ -1,11 +1,11 @@
-import React, { memo, useEffect, useState } from 'react';
+import React, { useState } from 'react';
 import styled from 'styled-components'
-import { CellBase, CellText } from '../global';
-import { ICell } from '../interfaces/Cell.interface';
+import { NodeBase} from '../global';
+import { ITargetNode } from '../interfaces/Cell.interface';
 import { ActionTypes } from './Board';
 
 const StartNode = styled.div<any>`
-  ${CellBase};
+  ${NodeBase};
   background-color:green;
   cursor:move;
 
@@ -16,21 +16,17 @@ const StartNode = styled.div<any>`
   } 
   `;
 
-function Start({ row, col, dispatch }: ICell) {
+function Start({ row, col, dispatch }: ITargetNode) {
   const key: string = `${row}-${col}`;
 
   const [isDragged, setIsDragged] = useState(false);
 
-  const _onDragEnd = (e: MouseEvent) => {
+  const _onDragEnd = async (e: MouseEvent) => {
     e.preventDefault();
 
     dispatch({ type: ActionTypes.SET_START_NODE });
     setIsDragged(false);
   }
-
-  useEffect(() => {
-    console.log(isDragged);
-  }, [isDragged])
 
   return <StartNode
     draggable={true}
@@ -40,9 +36,7 @@ function Start({ row, col, dispatch }: ICell) {
     id={key}
     key={`start-node-${key}`}
     onDragStart={() => setIsDragged(true)}
-    onDragEnd={(event: MouseEvent) => _onDragEnd(event)}
-  // onMouseDown={(e: MouseEvent) =>handleClick(e, row, col)}
-  // onMouseUp={(e: MouseEvent) =>handleClick(e, row, col)}
+    onDragEnd={(e: MouseEvent) => _onDragEnd(e)}
   />
 }
 
