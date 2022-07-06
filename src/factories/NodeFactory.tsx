@@ -4,19 +4,19 @@ import Start from "../components/Start"
 import Finish from "../components/Finish"
 import Free from "../components/Free"
 
-export function createNode(row: number, col: number, type: string, handleClick: Function) {
+export function createNode(row: number, col: number, type: string, dispatch: Function) {
     switch (type) {
         case "wall":
-            return <Wall row={row} col={col} handleClick={handleClick} />;
+            return <Wall key={`cell-wall-${row}-${col}`} row={row} col={col} dispatch={dispatch} />;
         case "start":
-            return <Start row={row} col={col} handleClick={handleClick} />;
+            return <Start key={`cell-start-${row}-${col}`}  row={row} col={col} dispatch={dispatch} />;
         case "finish":
-            return <Finish row={row} col={col} handleClick={handleClick} />;
+            return <Finish key={`cell-finish-${row}-${col}`}  row={row} col={col} dispatch={dispatch} />;
         case "path":
-            return <Free row={row} col={col} handleClick={handleClick} isPartOfThePath={true} />;
+            return <Free key={`cell-free-${row}-${col}`}  row={row} col={col} dispatch={dispatch} isPartOfThePath={true} />;
         case "visited":
-            return <Free row={row} col={col} handleClick={handleClick} isVisited={true} />;
+            return <Free key={`cell-free-${row}-${col}`}  row={row} col={col} dispatch={dispatch} isVisited={true} />;
         default:
-            return <Free row={row} col={col} handleClick={handleClick} />;
+            return <Free key={`cell-free-${row}-${col}`}  row={row} col={col} dispatch={dispatch} />;
     }
 }

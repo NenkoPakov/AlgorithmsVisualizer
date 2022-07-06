@@ -1,33 +1,49 @@
-import React from 'react';
+import React, { memo, useEffect, useState } from 'react';
 import styled from 'styled-components'
-import { CellBase,CellText } from '../global';
-import {ICell} from '../interfaces/Cell.interface';
+import { CellBase, CellText } from '../global';
+import { ICell } from '../interfaces/Cell.interface';
+import { ActionTypes } from './Board';
 
 
 const FinishNode = styled.div<any>`
 ${CellBase};
-${CellText};
-grid-row: ${(props: ICell) => props.row + 1};
-grid-column: ${(props: ICell) => props.col + 1};
 background-color:blue;
+cursor:move;
+
+opacity: ${(props: any) => props.isDragged?.5:1};
 
 :hover{
   transform:scale(1.2);
 } 
 `;
 
-function Finish({ row, col, handleClick }: ICell) {
-    const key: string = `${row}-${col}`;
+const Finish = ({ row, col, dispatch }: ICell) => {
+  const key: string = `${row}-${col}`;
 
-    return <FinishNode
-        row={row}
-        col={col}
-        id={key}
-        key={key}
-        onMouseDown={(e: MouseEvent) =>handleClick(e, row, col)}
-        onMouseUp={(e: MouseEvent) =>handleClick(e, row, col)}
-    />
+  const [isDragged, setIsDragged] = useState(false);
 
-}
+  const _onDragEnd = (e: MouseEvent) => {
+    e.preventDefault();
+
+    dispatch({ type: ActionTypes.SET_FINISH_NODE });
+    setIsDragged(false);
+  }
+  
+  useEffect(() => {
+    console.log(isDragged);
+  }, [isDragged])
+
+  return <FinishNode
+    draggable={true}
+    isDragged={isDragged}
+    row={row}
+    col={col}
+    id={key}
+    key={`finish-node-${key}`}
+    onDragStart={() => setIsDragged(true)}
+    onDragEnd={(event: MouseEvent) => _onDragEnd(event)}
+  />
+
+};
 
 export default Finish;

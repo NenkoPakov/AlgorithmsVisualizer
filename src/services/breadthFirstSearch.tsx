@@ -1,7 +1,7 @@
 import { Matrix } from '../interfaces/Board.interface';
 import {Node,ICell2} from '../interfaces/Cell.interface';
 
-const _checkIfIsValidCell = (matrix:Matrix, row:number, col:number) => {
+const _checkIfIsValidCell = (matrix:boolean[][], row:number, col:number) => {
     if (row < 0 || col < 0 || row >= matrix.length || col >= matrix[row].length) {
         return false;
     }
@@ -10,8 +10,8 @@ const _checkIfIsValidCell = (matrix:Matrix, row:number, col:number) => {
 }
 
 //Clear whole matrix if start or finish nodes are over new area or over wall
-const breadthFirstSearch = (matrix:Matrix, startNode:Node) => {
-    let tempMatrix:any= matrix.map((row:ICell2[])=> row.map((node:ICell2)=> {return {row:node.row,col:node.col,isVisited:false,isWall:node.isWall}}));
+const breadthFirstSearch = async (wallMatrix:boolean[][], startNode:Node) => {
+    let tempMatrix:any= wallMatrix.map((row:boolean[],rowIndex:number)=> row.map((isWall:boolean,colIndex:number)=> {return {row:rowIndex,col:colIndex,isVisited:false,isWall:isWall}}));
     
     const frontier:Node[] = [];
     frontier.push(startNode);
@@ -25,19 +25,19 @@ const breadthFirstSearch = (matrix:Matrix, startNode:Node) => {
         tempMatrix[currentNode.row][currentNode.col].isVisited = true;
         const graphNeighbors:Node[] = [];
 
-        if (_checkIfIsValidCell(matrix, currentNode.row - 1, currentNode.col)) {
+        if (_checkIfIsValidCell(wallMatrix, currentNode.row - 1, currentNode.col)) {
             graphNeighbors.push({ row: currentNode.row - 1, col: currentNode.col });
         }
 
-        if (_checkIfIsValidCell(matrix, currentNode.row + 1, currentNode.col)) {
+        if (_checkIfIsValidCell(wallMatrix, currentNode.row + 1, currentNode.col)) {
             graphNeighbors.push({ row: currentNode.row + 1, col: currentNode.col });
         }
 
-        if (_checkIfIsValidCell(matrix, currentNode.row, currentNode.col - 1)) {
+        if (_checkIfIsValidCell(wallMatrix, currentNode.row, currentNode.col - 1)) {
             graphNeighbors.push({ row: currentNode.row, col: currentNode.col - 1 });
         }
 
-        if (_checkIfIsValidCell(matrix, currentNode.row, currentNode.col + 1)) {
+        if (_checkIfIsValidCell(wallMatrix, currentNode.row, currentNode.col + 1)) {
             graphNeighbors.push({ row: currentNode.row, col: currentNode.col + 1 });
         }
 

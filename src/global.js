@@ -2,8 +2,10 @@
 import { css } from 'styled-components'
 
 export const CellBase = css`
+
+flex-grow:1;
 position:relative;
-border:1px solid black;
+border:.5px solid lightgrey;
 cursor:pointer;
 `;
 

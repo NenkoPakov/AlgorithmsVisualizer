@@ -1,187 +1,233 @@
 import Cell from './Cell';
-import React, { useEffect, useState } from 'react';
+import React, { ReducerAction, useCallback, useEffect, useRef, useState } from 'react';
 import styled from 'styled-components';
 import breadthFirstSearch from '../services/breadthFirstSearch';
-import { MatrixKey, Matrix, MatrixRow } from '../interfaces/Board.interface';
+import { MatrixKey, MatrixRow, Props } from '../interfaces/Board.interface';
 import { CellType, ICell2, Node, } from '../interfaces/Cell.interface';
-import { resolve } from 'path';
+import Free from './Free';
+
+const TIMEOUT_MILLISECONDS = 10;
 
 const Center = styled.div`
-position:absolute;
 left: 50%;
 transform: translate(-50%, 0%);
 `;
 
 const BoardWrapper = styled(Center)`
-width:80vw;
-height:80vh;
+width:90vw;
+height:90vh;
 position:relative;
 
-display: grid;
-grid-template-rows:repeat(20,1fr);
-grid-template-columns: repeat(20, 1fr);
+display: flex;
+flex-direction:column;
+align-content:stretch;
+
 
 border:5px solid black;
 `;
 
-function Board() {
-    const rows = 20;
-    const cols = 20;
+const RowWrapper = styled.div`
+width:100%;
+position:relative;
 
-    const [matrix, setMatrix] = useState<Matrix>([]);
-    const [startNode, setStartNode] = useState<Node>({ row: 0, col: 0 });
-    const [finishNode, setFinishNode] = useState<Node>({ row: rows - 1, col: cols - 1 });
-    const [isMousePressed, setIsMousePressed] = useState<boolean>(false);
-    const [proposedWall, setProposedWall] = useState<Node[]>([]);
-    const [wallSelectionStartNode, setWallSelectionStartNode] = useState<Node>({ row: -1, col: -1 });
-    const [pressedCellType, setPressedCellType] = useState<CellType>('free');
-    const [comeFrom, setComeFrom] = useState<{ [name: string]: string | undefined }>({});
-    const [foundPath, setFoundPath] = useState<Node[]>([]);
-    const [visitedNodes, setVisitedNodes] = useState<Node[]>([]);
+display: flex;
+flex-grow:1;
+flex-direction:row;
+`;
 
-    const executeAlgorithm = () => {
-        setComeFrom(breadthFirstSearch(matrix, startNode));
-    };
+const NodeTest = styled.div`
+min-width:1px;
+min-height:1px;
+background-color:pink;
+border:1px solid black;
+flex-grow:1;
+`;
 
-    const cleanBoard = () => {
-        setMatrix(generateClearBoard());
-        setIsMousePressed(false);
-        setWallSelectionStartNode({ row: -1, col: -1 });
-        setComeFrom({});
-        setFoundPath([]);
-        setVisitedNodes([]);
-    };
+enum NodeTypes {
+    'wall', 'visited', 'path', 'free',
+};
 
-    const handleMouseClick = (event: MouseEvent, row: number, col: number) => {
-        switch (event.type) {
-            //set isMousePressed to true and set currently pressedCellType
-            case "mousedown":
-                console.log("mousedown")
-                const selectedNode = matrix[row][col];
-                const selectedNodeType = startNode.row == row && startNode.col == col
-                    ? "start"
-                    : finishNode.row == row && finishNode.col == col
-                        ? "finish"
-                        : selectedNode.isWall
-                            ? "wall"
-                            : "free";
+const getMatrixInitValue = (size: number) => {
+    let initMatrix: boolean[][] = Array(size);
 
-                setPressedCellType(selectedNodeType);
-                setIsMousePressed(true);
-                break;
-            //set isMousePressed to false. If current startNode or finishNode are placed in new area - clear all visited and path cells
-            case "mouseup":
-                setIsMousePressed(false);
-
-                //if is not visited(could be wall or not visited cell)
-                if (!matrix[row][col].isVisited && ['start', 'finish'].includes(pressedCellType)) {
-                    setMatrix(matrix.map((row: ICell2[]) => row.map((node: ICell2) => { return { ...node, isVisited: false, isPartOfThePath: false } })));
-                }
-
-                //update startNode or finishNode and fulfill the condition is useEffect[startNode,finishNode]
-                switch (pressedCellType) {
-                    case "start":
-                        let currentStartNode: Node = { row: row, col: col };
-                        setStartNode(() => currentStartNode);
-                        break;
-                    case "finish":
-                        let currentFinishNode: Node = { row: row, col: col };
-                        setFinishNode(() => currentFinishNode);
-                        break;
-                }
-
-                break;
-            //generate a new wall
-            case "click":
-                let currentNode: Node = { row: row, col: col };
-
-                //cancel wall generation if click at last created cell as wall
-                if (wallSelectionStartNode && wallSelectionStartNode.row === row && wallSelectionStartNode.col === col) {
-                    setWallSelectionStartNode({ row: -1, col: -1 });
-                    break;
-                }
-
-                //Create a wall
-                if (!proposedWall.length) {
-                    //If start new wall selection, then mark pressed node as wall
-                    updateMatrixNode(row, col, 'isWall');
-                } else {
-                    generateWall(row, col);
-                }
-
-                setWallSelectionStartNode(currentNode);
-                break;
-            //interactive wall, startNode and finishNode updating
-            default:
-                //generate proposal walls
-                if (!isMousePressed) {
-                    if ((pressedCellType == 'wall' || pressedCellType == 'free') && wallSelectionStartNode.row >= 0 && wallSelectionStartNode.col >= 0) {
-                        proposedWall.forEach(node => updateMatrixNode(node.row, node.col, 'isWall'))
-                        setProposedWall(generateWall(row, col));
-                    }
-
-                    return;
-                }
-
-                //move start or finish node while holding mouse left button 
-                switch (pressedCellType) {
-                    case "start":
-                        let currentStartNode: Node = { row: row, col: col };
-                        setStartNode(() => currentStartNode);
-                        break;
-                    case "finish":
-                        let currentFinishNode: Node = { row: row, col: col };
-                        setFinishNode(() => currentFinishNode);
-                        break;
-                    default:
-                        break;
-                }
-                break;
+    for (let row = 0; row < size; row++) {
+        initMatrix[row] = Array(size);
+        for (let col = 0; col < size; col++) {
+            initMatrix[row][col] = false;
         }
     }
 
-    //change property of a node
-    const updateMatrixNode = (targetRow: number, targetCol: number, propertyKey: MatrixKey) => {
-        setMatrix((m) => {
-            const newMatrix: Matrix = [...m];
-            const newTargetRow: MatrixRow = [...newMatrix[targetRow]];
+    return initMatrix
+};
 
-            const currentValue = newTargetRow[targetCol][`${propertyKey}`];
-            newTargetRow[targetCol] = { ...newTargetRow[targetCol], [`${propertyKey}`]: !currentValue };
+const generateWall = (targetNode: Node, wallStartNode: Node, wallNodesMatrix: boolean[][]) => {
+    const changedCells: Node[] = [];
 
-            newMatrix[targetRow] = newTargetRow;
-            return newMatrix;
-        });
-    };
+    let { row: targetRow, col: targetCol } = targetNode;
+    let { row: previousNodeRow, col: previousNodeCol } = wallStartNode;
 
-    //set a specific property of each node to false(unmark it)
-    const clearPerviousStateMatrixProperty = (propertyKey: MatrixKey) => {
-        setMatrix(matrix.map(row => row.map(node => { return { ...node, [`${propertyKey}`]: false } })));
-    };
+    let verticalDirectionSign = previousNodeRow > targetRow ? -1 : +1;
+    let horizontalDirectionSign = previousNodeCol > targetCol ? -1 : +1;
 
-    //set a specific property of each node to false(unmark it)
-    const clearPreviousSolution = () => {
-        setMatrix(matrix.map(row => row.map(node => { return { ...node, isPartOfThePath: false, isVisited: false } })));
-    };
+    while (previousNodeRow != targetRow && previousNodeCol != targetCol) {
+        previousNodeRow += verticalDirectionSign;
+        previousNodeCol += horizontalDirectionSign;
 
-    //initialize the matrix
-    useEffect(() => {
-        setMatrix(generateClearBoard());
-    }, [])
-
-    //execute the algorithm if startNode or finishNode change its position
-    useEffect(() => {
-        if (visitedNodes.length && !isMousePressed) {
-            setComeFrom(breadthFirstSearch(matrix, startNode));
+        if (!wallNodesMatrix[previousNodeRow][previousNodeCol]) {
+            changedCells.push({ row: previousNodeRow, col: previousNodeCol });
         }
-    }, [startNode, finishNode])
+    }
 
-    //marks all visited nodes and update the state of setFoundPath
-    useEffect(() => {
+    while (previousNodeRow != targetRow) {
+        previousNodeRow += verticalDirectionSign;
 
-        //the algorithm has been updated again, so we have to clear the last found path
-        if (visitedNodes.length) {
-            clearPreviousSolution();
+        if (!wallNodesMatrix[previousNodeRow][previousNodeCol]) {
+            changedCells.push({ row: previousNodeRow, col: previousNodeCol });
+        }
+    }
+
+    while (previousNodeCol != targetCol) {
+        previousNodeCol += horizontalDirectionSign;
+
+        if (!wallNodesMatrix[previousNodeRow][previousNodeCol]) {
+            changedCells.push({ row: previousNodeRow, col: previousNodeCol });
+        }
+    }
+
+    return changedCells;
+}
+
+const matrixDeepCopy = (matrix: boolean[][]) => {
+    return JSON.parse(JSON.stringify(matrix)) as boolean[][];
+}
+
+interface State {
+    startNode: Node,
+    finishNode: Node,
+    wallSelectionStartNode: Node,
+    pressedCellType: CellType,
+    wallNodesMatrix: boolean[][],
+    visitedNodesMatrix: boolean[][],
+    pathNodesMatrix: boolean[][],
+    proposedWall: Node[],
+    comeFrom: { [name: string]: string | undefined },
+    foundPath: Node[],
+    draggedNodePosition: Node,
+}
+
+export const ActionTypes = {
+    CLEAR_MATRIX: 'clearMatrix',
+    CLEAR_SOLUTION: 'clearSolution',
+    SET_VISITED_NODE: 'setVisitedNode',
+    SET_PATH_NODE: 'setPathNode',
+    SET_COME_FROM: 'setComeFrom',
+    SET_DRAGGED_NODE_POSITION: 'setDraggedNodePosition',
+    SET_START_NODE: 'setStartNode',
+    SET_FINISH_NODE: 'setFinishNode',
+    SET_WALL_START_NODE: 'setWallStartNode',
+    STOP_WALL_SELECTION: 'stopWallSelection',
+    SET_PRESSED_CELL_TYPE: 'setPressedCellType',
+    GENERATE_PROPOSAL_WALL: 'generateProposalWall',
+}
+
+function reducer(state: State, action: any) {
+    switch (action.type) {
+        case ActionTypes.CLEAR_MATRIX:
+            return { ...state, visitedNodesMatrix: matrixDeepCopy(action.payload), pathNodesMatrix: matrixDeepCopy(action.payload), wallNodesMatrix: matrixDeepCopy(action.payload) };
+
+        case ActionTypes.CLEAR_SOLUTION:
+            return { ...state, visitedNodesMatrix: matrixDeepCopy(action.payload), pathNodesMatrix: matrixDeepCopy(action.payload) };
+
+        case ActionTypes.SET_VISITED_NODE:
+            let { row: visitedRow, col: visitedCol }: Node = action.payload;
+
+            state.visitedNodesMatrix[visitedRow][visitedCol] = true;
+
+            return { ...state, visitedNodesMatrix: state.visitedNodesMatrix };
+
+        case ActionTypes.SET_PATH_NODE:
+            let { row: pathRow, col: pathCol }: Node = action.payload;
+
+            state.pathNodesMatrix[pathRow][pathCol] = true;
+
+            return { ...state, pathNodesMatrix: state.pathNodesMatrix };
+
+        case ActionTypes.SET_COME_FROM:
+            return { ...state, comeFrom: action.payload };
+
+        case ActionTypes.SET_DRAGGED_NODE_POSITION:
+            if (state.draggedNodePosition.row != action.payload.row || state.draggedNodePosition.col != action.payload.col) {
+                return { ...state, draggedNodePosition: action.payload };
+            }
+
+            return state;
+
+        case ActionTypes.SET_START_NODE:
+            return { ...state, startNode: state.draggedNodePosition };
+
+        case ActionTypes.SET_FINISH_NODE:
+            return { ...state, finishNode: state.draggedNodePosition };
+
+        case ActionTypes.SET_WALL_START_NODE:
+            let { row, col } = action.payload;
+
+            if (state.wallSelectionStartNode.row == row && state.wallSelectionStartNode.col == col) {
+                return { ...state, wallSelectionStartNode: { row: -1, col: -1 } };
+            }
+
+            if (state.proposedWall.length) {
+                return { ...state, wallSelectionStartNode: action.payload, proposedWall: [] };
+            }
+
+            state.wallNodesMatrix[row][col] = true;
+
+            return { ...state, wallSelectionStartNode: action.payload, wallNodesMatrix: state.wallNodesMatrix };
+
+        case ActionTypes.STOP_WALL_SELECTION:
+            return { ...state, wallSelectionStartNode: { row: -1, col: -1 } };
+
+        case ActionTypes.SET_PRESSED_CELL_TYPE:
+            return { ...state, pressedCellType: action.payload };
+
+        case ActionTypes.GENERATE_PROPOSAL_WALL:
+            if (state.proposedWall.length) {
+                state.proposedWall.map(node => state.wallNodesMatrix[node.row][node.col] = false);
+            }
+
+            if (state.wallSelectionStartNode.row != -1 && state.wallSelectionStartNode.col != -1) {
+                const changedNodes: Node[] = generateWall(action.payload, state.wallSelectionStartNode, state.wallNodesMatrix);
+
+                changedNodes.map(node => state.wallNodesMatrix[node.row][node.col] = true);
+                return { ...state, proposedWall: changedNodes, wallNodeMatrix: state.wallNodesMatrix };
+            }
+
+        default:
+            return state;
+    }
+}
+
+function Board({ size }: Props) {
+    const initState = {
+        wallNodesMatrix: getMatrixInitValue(size),
+        visitedNodesMatrix: getMatrixInitValue(size),
+        pathNodesMatrix: getMatrixInitValue(size),
+        startNode: { row: 0, col: 0 },
+        finishNode: { row: size - 1, col: size - 1 },
+        isMousePressed: false,
+        proposedWall: [],
+        wallSelectionStartNode: { row: -1, col: -1 },
+        pressedCellType: NodeTypes.free,
+        comeFrom: {},
+        foundPath: [],
+        draggedNodePosition: { row: -1, col: -1 },
+    }
+
+    const [state, dispatch] = React.useReducer(reducer, initState);
+
+    const extractSolutionData = (comeFrom: { [name: string]: string | undefined }, startNode: Node, finishNode: Node) => {
+        // the algorithm has been updated again, so we have to clear the latest found path
+        if (state.visitedNodesMatrix.some(row => row.includes(true))) {
+            dispatch({ type: ActionTypes.CLEAR_SOLUTION, payload: getMatrixInitValue(size) });
         }
 
         const recentlyVisitedNodes: Node[] = Object.keys(comeFrom).map(node => {
@@ -192,7 +238,13 @@ function Board() {
             return { row: row, col: col };
         });
 
-        setVisitedNodes(recentlyVisitedNodes);
+        recentlyVisitedNodes.forEach((node, i) => {
+            setTimeout(
+                () => dispatch({ type: ActionTypes.SET_VISITED_NODE, payload: node }),
+                i * TIMEOUT_MILLISECONDS
+            )
+        });
+
 
         //go through each node from comeFrom until the startNode is not reached
         let currentNode: string | undefined = comeFrom[`${finishNode.row}-${finishNode.col}`];
@@ -208,102 +260,63 @@ function Board() {
 
             currentNode = comeFrom[currentNode];
         }
-
-        setFoundPath(path);
-    }, [comeFrom]);
-
-    useEffect(() => {
-        visitedNodes.forEach((node, i) => {
-            setTimeout(() => {
-                updateMatrixNode(node.row, node.col, 'isVisited');
-            }, i * 30);
+        path.forEach((node, i) => {
+            setTimeout(
+                () => dispatch({ type: ActionTypes.SET_PATH_NODE, payload: node }),
+                (recentlyVisitedNodes.length + i) * TIMEOUT_MILLISECONDS
+            )
         });
-    }, [visitedNodes]);
 
-    //mark the path
-    useEffect(() => {
-        foundPath.forEach((node, i) => {
-            setTimeout(() => {
-                updateMatrixNode(node.row, node.col, 'isPartOfThePath');
-            }, i * 30 + visitedNodes.length * 30);
-        });
-    }, [foundPath]);
+    }
+
+
+    const executeAlgorithm = async () => {
+        clearTimers();
+
+        const comeFrom = await breadthFirstSearch(state.wallNodesMatrix, state.startNode);
+        dispatch({ type: ActionTypes.SET_COME_FROM, payload: comeFrom });
+        extractSolutionData(comeFrom, state.startNode, state.finishNode);
+    };
+
+    const clearMatrix = () => {
+        clearTimers();
+        dispatch({ type: ActionTypes.CLEAR_MATRIX, payload: getMatrixInitValue(size) })
+    };
 
     return (<React.Fragment>
-        <button onClick={() => executeAlgorithm()}>Execute</button>
-        <button onClick={() => cleanBoard()}>Clear board</button>
+        <button key={'execute'} onClick={() => executeAlgorithm()}>Execute</button>
+        <button key={'clear'} onClick={() => clearMatrix()}>Clear board</button>
         <BoardWrapper>
-            {matrix.map((row, rowIndex) => (
-                row.map((node, colIndex) => {
+            {/* visitedNodesMatrix is used just for the iteration through all rows and cols */}
+            {state.visitedNodesMatrix.map((row, rowIndex) => (
+                <RowWrapper>
+                    {row.map((_, colIndex) => {
+                        let isStartNode = rowIndex === state.startNode.row && colIndex === state.startNode.col;
+                        let isFinishNode = rowIndex === state.finishNode.row && colIndex === state.finishNode.col;
 
-                    let isStartNode = rowIndex === startNode.row && colIndex === startNode.col;
-                    let isFinishNode = rowIndex === finishNode.row && colIndex === finishNode.col;
-
-                    return <Cell
-                        isVisited={node.isVisited}
-                        isWall={node.isWall}
-                        isPartOfThePath={node.isPartOfThePath}
-                        isStart={isStartNode}
-                        isFinish={isFinishNode}
-                        row={node.row}
-                        col={node.col}
-                        handleClick={handleMouseClick}
-                        pressedCellType={pressedCellType}
-                    ></Cell>
-                })
+                        return <Cell
+                            key={`board-cell-${rowIndex}-${colIndex}`}
+                            isVisited={state.visitedNodesMatrix[rowIndex][colIndex]}
+                            isWall={state.wallNodesMatrix[rowIndex][colIndex]}
+                            isPartOfThePath={state.pathNodesMatrix[rowIndex][colIndex]}
+                            isStart={isStartNode}
+                            isFinish={isFinishNode}
+                            row={rowIndex}
+                            col={colIndex}
+                            dispatch={dispatch} />
+                    })}
+                </RowWrapper>
             ))}
         </BoardWrapper>
     </React.Fragment>
     );
 
-    function generateClearBoard() {
-        let newMatrix = Array(rows);
-        for (let row = 0; row < rows; row++) {
-            newMatrix[row] = Array(cols);
-            for (let col = 0; col < cols; col++) {
-                newMatrix[row][col] = {
-                    isVisited: false,
-                    isWall: false,
-                    isPartOfThePath: false,
-                    row: row,
-                    col: col,
-                };
-            }
+    function clearTimers() {
+        //stop previous execution if there is one
+        let highestTimeoutId = setTimeout(";");
+        for (var i = 0; i < highestTimeoutId; i++) {
+            clearTimeout(i);
         }
-        return newMatrix;
-    }
-
-    function generateWall(row: number, col: number) {
-        const changedCells: Node[] = [];
-        let previousNodeRow = wallSelectionStartNode.row;
-        let previousNodeCol = wallSelectionStartNode.col;
-
-        let verticalDirectionSign = previousNodeRow > row ? -1 : +1;
-        let horizontalDirectionSign = previousNodeCol > col ? -1 : +1;
-
-        while (previousNodeRow != row && previousNodeCol != col) {
-            previousNodeRow += verticalDirectionSign;
-            previousNodeCol += horizontalDirectionSign;
-
-            changedCells.push({ row: previousNodeRow, col: previousNodeCol });
-            updateMatrixNode(previousNodeRow, previousNodeCol, 'isWall');
-        }
-
-        while (previousNodeRow != row) {
-            previousNodeRow += verticalDirectionSign;
-
-            changedCells.push({ row: previousNodeRow, col: previousNodeCol });
-            updateMatrixNode(previousNodeRow, previousNodeCol, 'isWall');
-        }
-
-        while (previousNodeCol != col) {
-            previousNodeCol += horizontalDirectionSign;
-
-            changedCells.push({ row: previousNodeRow, col: previousNodeCol });
-            updateMatrixNode(previousNodeRow, previousNodeCol, 'isWall');
-        }
-
-        return changedCells;
     }
 }
 

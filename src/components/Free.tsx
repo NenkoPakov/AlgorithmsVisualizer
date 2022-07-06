@@ -1,35 +1,46 @@
-import React from 'react';
+import React, { memo, useCallback, useEffect } from 'react';
 import styled from 'styled-components'
-import { CellBase,CellText } from '../global';
-import {IFreeCell} from '../interfaces/Cell.interface';
+import { CellBase } from '../global';
+import { IFreeCell } from '../interfaces/Cell.interface';
+import { ActionTypes } from './Board';
 
+// const FreeNode = styled.div.attrs((props: IFreeCell) => ({ 'color': props.isVisited ? 'yellow' : props.isPartOfThePath ? 'white' : 'lightblue' }))`
+//  ${CellBase};
+//  transition: background-color 0.3s ease-out ;
+
+// :hover{
+//   background-color:black ;
+// } 
+// `
 
 const FreeNode = styled.div<any>`
 ${CellBase};
-${CellText};
-grid-row: ${(props: IFreeCell) => props.row + 1};
-grid-column: ${(props: IFreeCell) => props.col + 1};
-background-color:${(props: IFreeCell) => props.isVisited?'yellow':props.isPartOfThePath?'white':'lightblue'};
-transition: background-color 0.3s ease-out ;
+background-color:${(props: IFreeCell) => props.isVisited ? 'yellow' : props.isPartOfThePath ? 'white' : 'lightblue'};
+transition: background-color 1s ease-out ;
 
 :hover{
   background-color:black ;
 } 
 `;
 
-function Free({ row, col, handleClick,isVisited, isPartOfThePath }: IFreeCell) {
+
+
+function Free({ row, col,isVisited, isPartOfThePath,dispatch }: IFreeCell) {
     const key: string = `${row}-${col}`;
 
+    const _onDragOver = (e:MouseEvent)=>{
+      e.preventDefault();
+      dispatch({ type: ActionTypes.SET_DRAGGED_NODE_POSITION, payload:{row,col}})
+    }
+
     return <FreeNode
-        row={row}
-        col={col}
         id={key}
-        key={key}
+        key={`free-node-${key}`}
         isVisited={isVisited}
         isPartOfThePath={isPartOfThePath}
-        // onMouseDown={(e: MouseEvent) => handleClick(e, row, col)}
-        onClick={(e: MouseEvent) => handleClick(e, row, col)}
-        onMouseEnter={(e: MouseEvent) => { handleClick(e, row, col)}}
+        onDragOver={(e: MouseEvent) => _onDragOver(e)}
+        onClick={(e: MouseEvent) => dispatch({ type: ActionTypes.SET_WALL_START_NODE, payload:{row,col}})}
+        onMouseEnter={(e: MouseEvent) => dispatch({ type: ActionTypes.GENERATE_PROPOSAL_WALL, payload:{row,col}})}
     />
 
 }

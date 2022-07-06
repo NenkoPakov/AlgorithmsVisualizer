@@ -1,7 +1,7 @@
 export interface ICell  {
     row: number,
     col: number,
-    handleClick:any,
+    dispatch:any,
 }
 
 export interface IFreeCell extends ICell  {
@@ -17,8 +17,7 @@ export interface ICell2  {
     isFinish:boolean,
     row: number,
     col: number,
-    handleClick:any,
-    pressedCellType:CellType,
+    dispatch:any,
 }
 
 export type CellColor= 'black'|'green'|'blue'|'lightblue';
