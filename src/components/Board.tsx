@@ -2,9 +2,10 @@ import Cell from './Cell';
 import React, { ReducerAction, useCallback, useEffect, useRef, useState } from 'react';
 import styled from 'styled-components';
 import breadthFirstSearch from '../services/breadthFirstSearch';
-import { MatrixKey, MatrixRow, Props } from '../interfaces/Board.interface';
-import { CellType, ICell2, Node, } from '../interfaces/Cell.interface';
+import { Props } from '../interfaces/Board.interface';
+import { NodeType, INodeFactory, Node, } from '../interfaces/Cell.interface';
 import Free from './Free';
+import BoardProvider, { useBoard, useBoardUpdate } from './BoardContext';
 
 const TIMEOUT_MILLISECONDS = 10;
 
@@ -17,19 +18,15 @@ const BoardWrapper = styled(Center)`
 width:90vw;
 height:90vh;
 position:relative;
-
 display: flex;
 flex-direction:column;
 align-content:stretch;
-
-
 border:5px solid black;
 `;
 
 const RowWrapper = styled.div`
 width:100%;
 position:relative;
-
 display: flex;
 flex-grow:1;
 flex-direction:row;
@@ -42,10 +39,6 @@ background-color:pink;
 border:1px solid black;
 flex-grow:1;
 `;
-
-enum NodeTypes {
-    'wall', 'visited', 'path', 'free',
-};
 
 const getMatrixInitValue = (size: number) => {
     let initMatrix: boolean[][] = Array(size);
@@ -60,8 +53,8 @@ const getMatrixInitValue = (size: number) => {
     return initMatrix
 };
 
-const generateWall = (targetNode: Node, wallStartNode: Node, wallNodesMatrix: boolean[][]) => {
-    const changedCells: Node[] = [];
+const generateWall = (targetNode: Node, wallStartNode: Node, wallNodes: boolean[][]) => {
+    const proposedNodes: Node[] = [];
 
     let { row: targetRow, col: targetCol } = targetNode;
     let { row: previousNodeRow, col: previousNodeCol } = wallStartNode;
@@ -73,28 +66,65 @@ const generateWall = (targetNode: Node, wallStartNode: Node, wallNodesMatrix: bo
         previousNodeRow += verticalDirectionSign;
         previousNodeCol += horizontalDirectionSign;
 
-        if (!wallNodesMatrix[previousNodeRow][previousNodeCol]) {
-            changedCells.push({ row: previousNodeRow, col: previousNodeCol });
+        if (!wallNodes[previousNodeRow][previousNodeCol]) {
+            proposedNodes.push({ row: previousNodeRow, col: previousNodeCol });
         }
     }
 
     while (previousNodeRow != targetRow) {
         previousNodeRow += verticalDirectionSign;
 
-        if (!wallNodesMatrix[previousNodeRow][previousNodeCol]) {
-            changedCells.push({ row: previousNodeRow, col: previousNodeCol });
+        if (!wallNodes[previousNodeRow][previousNodeCol]) {
+            proposedNodes.push({ row: previousNodeRow, col: previousNodeCol });
         }
     }
 
     while (previousNodeCol != targetCol) {
         previousNodeCol += horizontalDirectionSign;
 
-        if (!wallNodesMatrix[previousNodeRow][previousNodeCol]) {
-            changedCells.push({ row: previousNodeRow, col: previousNodeCol });
+        if (!wallNodes[previousNodeRow][previousNodeCol]) {
+            proposedNodes.push({ row: previousNodeRow, col: previousNodeCol });
         }
     }
 
-    return changedCells;
+    return proposedNodes;
+}
+
+const destroyWall = (targetNode: Node, wallStartNode: Node, wallNodes: boolean[][]) => {
+    const proposedNodes: Node[] = [];
+
+    let { row: targetRow, col: targetCol } = targetNode;
+    let { row: previousNodeRow, col: previousNodeCol } = wallStartNode;
+
+    let verticalDirectionSign = previousNodeRow > targetRow ? -1 : +1;
+    let horizontalDirectionSign = previousNodeCol > targetCol ? -1 : +1;
+
+    while (previousNodeRow != targetRow && previousNodeCol != targetCol) {
+        previousNodeRow += verticalDirectionSign;
+        previousNodeCol += horizontalDirectionSign;
+
+        if (wallNodes[previousNodeRow][previousNodeCol]) {
+            proposedNodes.push({ row: previousNodeRow, col: previousNodeCol });
+        }
+    }
+
+    while (previousNodeRow != targetRow) {
+        previousNodeRow += verticalDirectionSign;
+
+        if (wallNodes[previousNodeRow][previousNodeCol]) {
+            proposedNodes.push({ row: previousNodeRow, col: previousNodeCol });
+        }
+    }
+
+    while (previousNodeCol != targetCol) {
+        previousNodeCol += horizontalDirectionSign;
+
+        if (wallNodes[previousNodeRow][previousNodeCol]) {
+            proposedNodes.push({ row: previousNodeRow, col: previousNodeCol });
+        }
+    }
+
+    return proposedNodes;
 }
 
 const matrixDeepCopy = (matrix: boolean[][]) => {
@@ -105,10 +135,9 @@ interface State {
     startNode: Node,
     finishNode: Node,
     wallSelectionStartNode: Node,
-    pressedCellType: CellType,
-    wallNodesMatrix: boolean[][],
-    visitedNodesMatrix: boolean[][],
-    pathNodesMatrix: boolean[][],
+    wallNodes: boolean[][],
+    visitedNodes: boolean[][],
+    pathNodes: boolean[][],
     proposedWall: Node[],
     comeFrom: { [name: string]: string | undefined },
     foundPath: Node[],
@@ -125,32 +154,35 @@ export const ActionTypes = {
     SET_START_NODE: 'setStartNode',
     SET_FINISH_NODE: 'setFinishNode',
     SET_WALL_START_NODE: 'setWallStartNode',
+    SET_UNMARK_WALL_START_NODE: 'setUnmarkWallStartNode',
     STOP_WALL_SELECTION: 'stopWallSelection',
     SET_PRESSED_CELL_TYPE: 'setPressedCellType',
     GENERATE_PROPOSAL_WALL: 'generateProposalWall',
+    SET_WALL_NODE: 'setWallNode',
+    UNMARK_WALL_NODE: 'unmarkWallNode',
 }
 
 function reducer(state: State, action: any) {
     switch (action.type) {
         case ActionTypes.CLEAR_MATRIX:
-            return { ...state, visitedNodesMatrix: matrixDeepCopy(action.payload), pathNodesMatrix: matrixDeepCopy(action.payload), wallNodesMatrix: matrixDeepCopy(action.payload) };
+            return { ...state, visitedNodes: matrixDeepCopy(action.payload), pathNodes: matrixDeepCopy(action.payload), wallNodes: matrixDeepCopy(action.payload) };
 
         case ActionTypes.CLEAR_SOLUTION:
-            return { ...state, visitedNodesMatrix: matrixDeepCopy(action.payload), pathNodesMatrix: matrixDeepCopy(action.payload) };
+            return { ...state, visitedNodes: matrixDeepCopy(action.payload), pathNodes: matrixDeepCopy(action.payload) };
 
         case ActionTypes.SET_VISITED_NODE:
             let { row: visitedRow, col: visitedCol }: Node = action.payload;
 
-            state.visitedNodesMatrix[visitedRow][visitedCol] = true;
+            state.visitedNodes[visitedRow][visitedCol] = true;
 
-            return { ...state, visitedNodesMatrix: state.visitedNodesMatrix };
+            return { ...state, visitedNodes: state.visitedNodes };
 
         case ActionTypes.SET_PATH_NODE:
             let { row: pathRow, col: pathCol }: Node = action.payload;
 
-            state.pathNodesMatrix[pathRow][pathCol] = true;
+            state.pathNodes[pathRow][pathCol] = !state.pathNodes[pathRow][pathCol];
 
-            return { ...state, pathNodesMatrix: state.pathNodesMatrix };
+            return { ...state, pathNodes: state.pathNodes };
 
         case ActionTypes.SET_COME_FROM:
             return { ...state, comeFrom: action.payload };
@@ -166,12 +198,23 @@ function reducer(state: State, action: any) {
             return { ...state, startNode: state.draggedNodePosition };
 
         case ActionTypes.SET_FINISH_NODE:
-            return { ...state, finishNode: state.draggedNodePosition };
+            return { ...state, finishNode: state.draggedNodePosition, wallNodes: state.wallNodes };
+
+        case ActionTypes.SET_WALL_NODE:
+            let { row: wallNodeRow, col: wallNodeCol } = action.payload;
+            state.wallNodes[wallNodeRow][wallNodeCol] = true;
+
+            return { ...state, wallNodes: state.wallNodes };
+        case ActionTypes.UNMARK_WALL_NODE:
+            let { row: unmarkWallRow, col: unmarkWallCol } = action.payload;
+            state.wallNodes[unmarkWallRow][unmarkWallCol] = false;
+
+            return { ...state, wallNodes: state.wallNodes };
 
         case ActionTypes.SET_WALL_START_NODE:
-            let { row, col } = action.payload;
+            let { row: wallStartRow, col: wallStartCol } = action.payload;
 
-            if (state.wallSelectionStartNode.row == row && state.wallSelectionStartNode.col == col) {
+            if (state.wallSelectionStartNode.row == wallStartRow && state.wallSelectionStartNode.col == wallStartCol) {
                 return { ...state, wallSelectionStartNode: { row: -1, col: -1 } };
             }
 
@@ -179,26 +222,42 @@ function reducer(state: State, action: any) {
                 return { ...state, wallSelectionStartNode: action.payload, proposedWall: [] };
             }
 
-            state.wallNodesMatrix[row][col] = true;
+            state.wallNodes[wallStartRow][wallStartCol] = true;
 
-            return { ...state, wallSelectionStartNode: action.payload, wallNodesMatrix: state.wallNodesMatrix };
+            return { ...state, wallSelectionStartNode: action.payload, wallNodes: state.wallNodes };
+
+        case ActionTypes.SET_UNMARK_WALL_START_NODE:
+            let { row: unmarkWallStartRow, col: unmarkWallStartCol } = action.payload;
+
+            if (state.wallSelectionStartNode.row == unmarkWallStartRow && state.wallSelectionStartNode.col == unmarkWallStartCol) {
+                return { ...state, wallSelectionStartNode: { row: -1, col: -1 } };
+            }
+
+            if (state.proposedWall.length) {
+                return { ...state, wallSelectionStartNode: action.payload, proposedWall: [] };
+            }
+
+            state.wallNodes[unmarkWallStartRow][unmarkWallStartCol] = false;
+
+            return { ...state, wallSelectionStartNode: action.payload, wallNodes: state.wallNodes };
 
         case ActionTypes.STOP_WALL_SELECTION:
-            return { ...state, wallSelectionStartNode: { row: -1, col: -1 } };
+            return { ...state, wallSelectionStartNode: { row: -1, col: -1 }, proposedWall: [] };
 
         case ActionTypes.SET_PRESSED_CELL_TYPE:
             return { ...state, pressedCellType: action.payload };
 
         case ActionTypes.GENERATE_PROPOSAL_WALL:
+            //unmark previously proposed wall
             if (state.proposedWall.length) {
-                state.proposedWall.map(node => state.wallNodesMatrix[node.row][node.col] = false);
+                state.proposedWall.map(node => state.wallNodes[node.row][node.col] = false);
             }
 
             if (state.wallSelectionStartNode.row != -1 && state.wallSelectionStartNode.col != -1) {
-                const changedNodes: Node[] = generateWall(action.payload, state.wallSelectionStartNode, state.wallNodesMatrix);
+                const changedNodes: Node[] = generateWall(action.payload.node, state.wallSelectionStartNode, state.wallNodes);
 
-                changedNodes.map(node => state.wallNodesMatrix[node.row][node.col] = true);
-                return { ...state, proposedWall: changedNodes, wallNodeMatrix: state.wallNodesMatrix };
+                changedNodes.map(node => state.wallNodes[node.row][node.col] = action.payload.isUnmarkAction?false:true);
+                return { ...state, proposedWall: changedNodes, wallNodeMatrix: state.wallNodes };
             }
 
         default:
@@ -208,15 +267,14 @@ function reducer(state: State, action: any) {
 
 function Board({ size }: Props) {
     const initState = {
-        wallNodesMatrix: getMatrixInitValue(size),
-        visitedNodesMatrix: getMatrixInitValue(size),
-        pathNodesMatrix: getMatrixInitValue(size),
+        wallNodes: getMatrixInitValue(size),
+        visitedNodes: getMatrixInitValue(size),
+        pathNodes: getMatrixInitValue(size),
         startNode: { row: 0, col: 0 },
         finishNode: { row: size - 1, col: size - 1 },
         isMousePressed: false,
         proposedWall: [],
         wallSelectionStartNode: { row: -1, col: -1 },
-        pressedCellType: NodeTypes.free,
         comeFrom: {},
         foundPath: [],
         draggedNodePosition: { row: -1, col: -1 },
@@ -226,7 +284,7 @@ function Board({ size }: Props) {
 
     const extractSolutionData = (comeFrom: { [name: string]: string | undefined }, startNode: Node, finishNode: Node) => {
         // the algorithm has been updated again, so we have to clear the latest found path
-        if (state.visitedNodesMatrix.some(row => row.includes(true))) {
+        if (state.visitedNodes.some(row => row.includes(true))) {
             dispatch({ type: ActionTypes.CLEAR_SOLUTION, payload: getMatrixInitValue(size) });
         }
 
@@ -269,11 +327,10 @@ function Board({ size }: Props) {
 
     }
 
-
     const executeAlgorithm = async () => {
         clearTimers();
 
-        const comeFrom = await breadthFirstSearch(state.wallNodesMatrix, state.startNode);
+        const comeFrom = await breadthFirstSearch(state.wallNodes, state.startNode, state.finishNode);
         dispatch({ type: ActionTypes.SET_COME_FROM, payload: comeFrom });
         extractSolutionData(comeFrom, state.startNode, state.finishNode);
     };
@@ -283,32 +340,33 @@ function Board({ size }: Props) {
         dispatch({ type: ActionTypes.CLEAR_MATRIX, payload: getMatrixInitValue(size) })
     };
 
-    return (<React.Fragment>
-        <button key={'execute'} onClick={() => executeAlgorithm()}>Execute</button>
-        <button key={'clear'} onClick={() => clearMatrix()}>Clear board</button>
-        <BoardWrapper>
-            {/* visitedNodesMatrix is used just for the iteration through all rows and cols */}
-            {state.visitedNodesMatrix.map((row, rowIndex) => (
-                <RowWrapper>
-                    {row.map((_, colIndex) => {
-                        let isStartNode = rowIndex === state.startNode.row && colIndex === state.startNode.col;
-                        let isFinishNode = rowIndex === state.finishNode.row && colIndex === state.finishNode.col;
+    return (
+        <BoardProvider>
+            <button key={'execute'} onClick={() => executeAlgorithm()}>Execute</button>
+            <button key={'clear'} onClick={() => clearMatrix()}>Clear board</button>
+            <BoardWrapper>
+                {/* visitedNodes is used just for the iteration through all rows and cols */}
+                {state.visitedNodes.map((row, rowIndex) => (
+                    <RowWrapper>
+                        {row.map((_, colIndex) => {
+                            let isStartNode = rowIndex === state.startNode.row && colIndex === state.startNode.col;
+                            let isFinishNode = rowIndex === state.finishNode.row && colIndex === state.finishNode.col;
 
-                        return <Cell
-                            key={`board-cell-${rowIndex}-${colIndex}`}
-                            isVisited={state.visitedNodesMatrix[rowIndex][colIndex]}
-                            isWall={state.wallNodesMatrix[rowIndex][colIndex]}
-                            isPartOfThePath={state.pathNodesMatrix[rowIndex][colIndex]}
-                            isStart={isStartNode}
-                            isFinish={isFinishNode}
-                            row={rowIndex}
-                            col={colIndex}
-                            dispatch={dispatch} />
-                    })}
-                </RowWrapper>
-            ))}
-        </BoardWrapper>
-    </React.Fragment>
+                            return <Cell
+                                key={`board-cell-${rowIndex}-${colIndex}`}
+                                isVisited={state.visitedNodes[rowIndex][colIndex]}
+                                isWall={state.wallNodes[rowIndex][colIndex]}
+                                isPartOfThePath={state.pathNodes[rowIndex][colIndex]}
+                                isStart={isStartNode}
+                                isFinish={isFinishNode}
+                                row={rowIndex}
+                                col={colIndex}
+                                dispatch={dispatch} />
+                        })}
+                    </RowWrapper>
+                ))}
+            </BoardWrapper>
+        </BoardProvider>
     );
 
     function clearTimers() {
