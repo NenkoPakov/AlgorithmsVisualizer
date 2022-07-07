@@ -38,3 +38,12 @@ function isInside(row: number, col: number, matrix: any) {
         row < matrix.length &&
         col < matrix[row].length;
 }
+
+
+export const heuristic = (to: Node, from: Node) => {
+    let { row: targetRow, col: targetCol } = to;
+    let { row: currentRow, col: currentCol } = from;
+
+    // Manhattan distance on a square grid
+    return Math.abs(targetRow - currentRow) + Math.abs(targetCol - currentCol);
+}

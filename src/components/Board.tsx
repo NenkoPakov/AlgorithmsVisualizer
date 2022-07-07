@@ -1,27 +1,30 @@
 import Cell from './Cell';
-import React, { ReducerAction, useCallback, useEffect, useRef, useState } from 'react';
+import React from 'react';
 import styled from 'styled-components';
-import breadthFirstSearch from '../services/breadthFirstSearch';
 import { ComeFrom, ComeFromData, Props } from '../interfaces/Board.interface';
-import { NodeType, INodeFactory, Node, } from '../interfaces/Cell.interface';
-import Free from './Free';
-import BoardProvider, { useBoard, useBoardUpdate } from './BoardContext';
-import greedyBestFirstSearch from '../services/greedyBestFirstSearch';
+import { Node } from '../interfaces/Cell.interface';
+import BoardProvider from './BoardContext';
 
 const TIMEOUT_MILLISECONDS = 10;
 
-const Center = styled.div`
-left: 50%;
-transform: translate(-50%, 0%);
-`;
-
-const BoardWrapper = styled(Center)`
-width:90vw;
-height:90vh;
+const BoardSection = styled.section`
 position:relative;
 display: flex;
 flex-direction:column;
-align-content:stretch;
+width:100%;
+height:100%;
+`;
+
+const ButtonWrapper = styled.div`
+position:relative;
+margin:auto;
+`;
+
+const BoardWrapper = styled.div`
+position:relative;
+display: flex;
+flex-grow:1;
+flex-direction:column;
 border:5px solid black;
 `;
 
@@ -31,14 +34,6 @@ position:relative;
 display: flex;
 flex-grow:1;
 flex-direction:row;
-`;
-
-const NodeTest = styled.div`
-min-width:1px;
-min-height:1px;
-background-color:pink;
-border:1px solid black;
-flex-grow:1;
 `;
 
 const getBooleanMatrixInitValue = (size: number) => {
@@ -294,7 +289,7 @@ function reducer(state: State, action: any) {
     }
 }
 
-function Board({ size }: Props) {
+function Board({ size, algorithmFunc }: Props) {
     const initState = {
         startNode: { row: 0, col: 0 },
         finishNode: { row: size - 1, col: size - 1 },
@@ -364,9 +359,7 @@ function Board({ size }: Props) {
 
     const executeAlgorithm = async () => {
         clearTimers();
-        const comeFrom = await greedyBestFirstSearch(state.wallNodes, state.startNode, state.finishNode);
-        // const comeFrom = await breadthFirstSearch(state.wallNodes, state.startNode, state.finishNode);
-        // dispatch({ type: ActionTypes.SET_COME_FROM, payload: comeFrom });
+        const comeFrom = await algorithmFunc(state.wallNodes, state.startNode, state.finishNode);
         extractSolutionData(comeFrom, state.startNode, state.finishNode);
     };
 
@@ -377,31 +370,35 @@ function Board({ size }: Props) {
 
     return (
         <BoardProvider>
-            <button key={'execute'} onClick={() => executeAlgorithm()}>Execute</button>
-            <button key={'clear'} onClick={() => clearMatrix()}>Clear board</button>
-            <BoardWrapper>
-                {/* visitedNodes is used just for the iteration through all rows and cols */}
-                {state.visitedNodes.map((row, rowIndex) => (
-                    <RowWrapper>
-                        {row.map((_, colIndex) => {
-                            let isStartNode = rowIndex === state.startNode.row && colIndex === state.startNode.col;
-                            let isFinishNode = rowIndex === state.finishNode.row && colIndex === state.finishNode.col;
+            <BoardSection>
+                <ButtonWrapper>
+                    <button key={'execute'} onClick={() => executeAlgorithm()}>Execute</button>
+                    <button key={'clear'} onClick={() => clearMatrix()}>Clear board</button>
+                </ButtonWrapper>
+                <BoardWrapper>
+                    {/* visitedNodes is used just for the iteration through all rows and cols */}
+                    {state.visitedNodes.map((row, rowIndex) => (
+                        <RowWrapper>
+                            {row.map((_, colIndex) => {
+                                let isStartNode = rowIndex === state.startNode.row && colIndex === state.startNode.col;
+                                let isFinishNode = rowIndex === state.finishNode.row && colIndex === state.finishNode.col;
 
-                            return <Cell
-                                key={`board-cell-${rowIndex}-${colIndex}`}
-                                value={state.nodeValues[rowIndex][colIndex]}
-                                isVisited={state.visitedNodes[rowIndex][colIndex]}
-                                isWall={state.wallNodes[rowIndex][colIndex]}
-                                isPartOfThePath={state.pathNodes[rowIndex][colIndex]}
-                                isStart={isStartNode}
-                                isFinish={isFinishNode}
-                                row={rowIndex}
-                                col={colIndex}
-                                dispatch={dispatch} />
-                        })}
-                    </RowWrapper>
-                ))}
-            </BoardWrapper>
+                                return <Cell
+                                    key={`board-cell-${rowIndex}-${colIndex}`}
+                                    value={state.nodeValues[rowIndex][colIndex]}
+                                    isVisited={state.visitedNodes[rowIndex][colIndex]}
+                                    isWall={state.wallNodes[rowIndex][colIndex]}
+                                    isPartOfThePath={state.pathNodes[rowIndex][colIndex]}
+                                    isStart={isStartNode}
+                                    isFinish={isFinishNode}
+                                    row={rowIndex}
+                                    col={colIndex}
+                                    dispatch={dispatch} />
+                            })}
+                        </RowWrapper>
+                    ))}
+                </BoardWrapper>
+            </BoardSection>
         </BoardProvider>
     );
 

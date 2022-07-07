@@ -1,5 +1,6 @@
+import { ComeFrom } from '../interfaces/Board.interface';
 import { Node } from '../interfaces/Cell.interface';
-import { areEqual, getValidNeighbors } from './common';
+import { areEqual, getValidNeighbors, heuristic } from './common';
 
 const breadthFirstSearch = async (wallMatrix: boolean[][], startNode: Node, finishNode: Node) => {
     let tempMatrix: any = wallMatrix.map((row: boolean[], rowIndex: number) => row.map((isWall: boolean, colIndex: number) => {
@@ -12,24 +13,26 @@ const breadthFirstSearch = async (wallMatrix: boolean[][], startNode: Node, fini
         }
     }));
 
-    const frontier: Node[] = [];
-    frontier.push(startNode);
+    const frontier: { node: Node, priority: number }[] = [];
+    frontier.push({ node: startNode, priority: 0 });
 
-    const comeFrom: { [name: string]: string | undefined } = {};
-    comeFrom[`${startNode.row}-${startNode.col}`] = undefined;
+    const comeFrom: ComeFrom = {};
+    comeFrom[`${startNode.row}-${startNode.col}`] = { parent: undefined, value: heuristic(startNode, finishNode) };
 
     let isTargetFound = false;
 
     while (frontier.length && !isTargetFound) {
-        const currentNode: Node = frontier.shift()!;
+        const currentNode: { node: Node, priority: number } = frontier.shift()!;
 
-        tempMatrix[currentNode.row][currentNode.col].isVisited = true;
-        const graphNeighbors: Node[] = getValidNeighbors(tempMatrix, currentNode);
+        tempMatrix[currentNode.node.row][currentNode.node.col].isVisited = true;
+        const graphNeighbors: Node[] = getValidNeighbors(tempMatrix, currentNode.node);
 
         graphNeighbors.forEach(neighbor => {
-            frontier.push(neighbor);
             tempMatrix[neighbor.row][neighbor.col].isVisited = true;
-            comeFrom[`${neighbor.row}-${neighbor.col}`] = `${currentNode.row}-${currentNode.col}`
+            
+            const priority = heuristic(startNode, neighbor);
+            frontier.push({ node: neighbor, priority });
+            comeFrom[`${neighbor.row}-${neighbor.col}`] = { parent: `${currentNode.node.row}-${currentNode.node.col}`, value: priority }
 
             if (areEqual(neighbor, finishNode)) isTargetFound = true;
         });

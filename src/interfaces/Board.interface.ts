@@ -1,5 +1,6 @@
 export interface Props {
-    size: number
+    size: number,
+    algorithmFunc:Function,
 };
 
 export interface ComeFromData {

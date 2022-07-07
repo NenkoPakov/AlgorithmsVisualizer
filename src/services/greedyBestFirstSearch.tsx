@@ -1,14 +1,7 @@
 import { ComeFrom } from '../interfaces/Board.interface';
 import { Node } from '../interfaces/Cell.interface';
-import { getValidNeighbors, areEqual } from './common';
+import { getValidNeighbors, areEqual, heuristic } from './common';
 
-const heuristic = (targetNode: Node, currentNode: Node) => {
-    let { row: targetRow, col: targetCol } = targetNode;
-    let { row: currentRow, col: currentCol } = currentNode;
-
-    // Manhattan distance on a square grid
-    return Math.abs(targetRow - currentRow) + Math.abs(targetCol - currentCol);
-}
 
 const greedyBestFirstSearch = async (wallMatrix: boolean[][], startNode: Node, finishNode: Node) => {
     let tempMatrix: any = wallMatrix.map((row: boolean[], rowIndex: number) => row.map((isWall: boolean, colIndex: number) => {
