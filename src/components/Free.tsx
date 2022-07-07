@@ -1,12 +1,13 @@
 import React from 'react';
 import styled from 'styled-components'
-import { NodeBase } from '../global';
+import { NodeBase, NodeText } from '../global';
 import { IFreeNode, } from '../interfaces/Cell.interface';
 import { ActionTypes } from './Board';
 import { useBoard, useBoardUpdate } from './BoardContext';
 
 const FreeNode = styled.div<any>`
 ${NodeBase};
+${NodeText}
 background-color:${(props: IFreeNode) => props.isVisited ? 'yellow' : props.isPartOfThePath ? 'white' : 'lightblue'};
 transition: background-color 1s ease-out ;
 
@@ -15,7 +16,7 @@ transition: background-color 1s ease-out ;
 } 
 `;
 
-function Free({ row, col, isVisited, isPartOfThePath, dispatch }: IFreeNode) {
+function Free({ value, row, col, isVisited, isPartOfThePath, dispatch }: IFreeNode) {
   const { isDrawingWall, isUnmarkAction } = useBoard();
   const { handleWallDrawingEvent, handleUnmarkEvent } = useBoardUpdate();
 
@@ -34,7 +35,7 @@ function Free({ row, col, isVisited, isPartOfThePath, dispatch }: IFreeNode) {
         dispatch({ type: ActionTypes.UNMARK_WALL_NODE, payload: { row, col } });
       } else if (e.button === 2) {
         handleWallDrawingEvent();
-        dispatch({ type: ActionTypes.STOP_WALL_SELECTION});
+        dispatch({ type: ActionTypes.STOP_WALL_SELECTION });
       }
     } else {
       if (e.button === 0) {
@@ -53,10 +54,12 @@ function Free({ row, col, isVisited, isPartOfThePath, dispatch }: IFreeNode) {
     isVisited={isVisited}
     isPartOfThePath={isPartOfThePath}
     onDragOver={(e: MouseEvent) => onDragOver(e)}
-    onContextMenu = {(e: MouseEvent) => handleClick(e)}
-    onClick={(e: MouseEvent) =>handleClick(e)}
+    onContextMenu={(e: MouseEvent) => handleClick(e)}
+    onClick={(e: MouseEvent) => handleClick(e)}
     onMouseEnter={() => dispatch({ type: ActionTypes.GENERATE_PROPOSAL_WALL, payload: { node: { row, col }, isUnmarkAction } })}
-  />
+  >
+    {value}
+  </FreeNode>
 
 };
 

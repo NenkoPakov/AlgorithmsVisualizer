@@ -2,10 +2,11 @@ import Cell from './Cell';
 import React, { ReducerAction, useCallback, useEffect, useRef, useState } from 'react';
 import styled from 'styled-components';
 import breadthFirstSearch from '../services/breadthFirstSearch';
-import { Props } from '../interfaces/Board.interface';
+import { ComeFrom, ComeFromData, Props } from '../interfaces/Board.interface';
 import { NodeType, INodeFactory, Node, } from '../interfaces/Cell.interface';
 import Free from './Free';
 import BoardProvider, { useBoard, useBoardUpdate } from './BoardContext';
+import greedyBestFirstSearch from '../services/greedyBestFirstSearch';
 
 const TIMEOUT_MILLISECONDS = 10;
 
@@ -40,13 +41,26 @@ border:1px solid black;
 flex-grow:1;
 `;
 
-const getMatrixInitValue = (size: number) => {
+const getBooleanMatrixInitValue = (size: number) => {
     let initMatrix: boolean[][] = Array(size);
 
     for (let row = 0; row < size; row++) {
         initMatrix[row] = Array(size);
         for (let col = 0; col < size; col++) {
             initMatrix[row][col] = false;
+        }
+    }
+
+    return initMatrix
+};
+
+const getNumericMatrixInitValue = (size: number) => {
+    let initMatrix: number[][] = Array(size);
+
+    for (let row = 0; row < size; row++) {
+        initMatrix[row] = Array(size);
+        for (let col = 0; col < size; col++) {
+            initMatrix[row][col] = 0;
         }
     }
 
@@ -91,40 +105,52 @@ const generateWall = (targetNode: Node, wallStartNode: Node, wallNodes: boolean[
 }
 
 const destroyWall = (targetNode: Node, wallStartNode: Node, wallNodes: boolean[][]) => {
-    const proposedNodes: Node[] = [];
+    const destroyedNodes: Node[] = [];
 
-    let { row: targetRow, col: targetCol } = targetNode;
-    let { row: previousNodeRow, col: previousNodeCol } = wallStartNode;
+    // let { row: targetRow, col: targetCol } = targetNode;
+    // let { row: previousNodeRow, col: previousNodeCol } = wallStartNode;
 
-    let verticalDirectionSign = previousNodeRow > targetRow ? -1 : +1;
-    let horizontalDirectionSign = previousNodeCol > targetCol ? -1 : +1;
+    // let colDifference = previousNodeCol - targetCol;
+    // let rowDifference = previousNodeRow - targetRow;
 
-    while (previousNodeRow != targetRow && previousNodeCol != targetCol) {
-        previousNodeRow += verticalDirectionSign;
-        previousNodeCol += horizontalDirectionSign;
+    // let verticalDirectionSign = rowDifference > 0 ? -1 : +1;
+    // let horizontalDirectionSign = colDifference > 0 ? -1 : +1;
 
-        if (wallNodes[previousNodeRow][previousNodeCol]) {
-            proposedNodes.push({ row: previousNodeRow, col: previousNodeCol });
-        }
-    }
+    // if(Math.abs(colDifference)>Math.abs(rowDifference)){
+    //     previousNodeCol += horizontalDirectionSign;
+    // }
 
-    while (previousNodeRow != targetRow) {
-        previousNodeRow += verticalDirectionSign;
 
-        if (wallNodes[previousNodeRow][previousNodeCol]) {
-            proposedNodes.push({ row: previousNodeRow, col: previousNodeCol });
-        }
-    }
 
-    while (previousNodeCol != targetCol) {
-        previousNodeCol += horizontalDirectionSign;
 
-        if (wallNodes[previousNodeRow][previousNodeCol]) {
-            proposedNodes.push({ row: previousNodeRow, col: previousNodeCol });
-        }
-    }
 
-    return proposedNodes;
+
+    // while (previousNodeRow != targetRow && previousNodeCol != targetCol) {
+    //     previousNodeRow += verticalDirectionSign;
+    //     previousNodeCol += horizontalDirectionSign;
+
+    //     if (wallNodes[previousNodeRow][previousNodeCol]) {
+    //         proposedNodes.push({ row: previousNodeRow, col: previousNodeCol });
+    //     }
+    // }
+
+    // while (previousNodeRow != targetRow) {
+    //     previousNodeRow += verticalDirectionSign;
+
+    //     if (wallNodes[previousNodeRow][previousNodeCol]) {
+    //         proposedNodes.push({ row: previousNodeRow, col: previousNodeCol });
+    //     }
+    // }
+
+    // while (previousNodeCol != targetCol) {
+    //     previousNodeCol += horizontalDirectionSign;
+
+    //     if (wallNodes[previousNodeRow][previousNodeCol]) {
+    //         proposedNodes.push({ row: previousNodeRow, col: previousNodeCol });
+    //     }
+    // }
+
+    // return proposedNodes;
 }
 
 const matrixDeepCopy = (matrix: boolean[][]) => {
@@ -134,12 +160,12 @@ const matrixDeepCopy = (matrix: boolean[][]) => {
 interface State {
     startNode: Node,
     finishNode: Node,
-    wallSelectionStartNode: Node,
     wallNodes: boolean[][],
     visitedNodes: boolean[][],
+    nodeValues: number[][],
     pathNodes: boolean[][],
+    wallSelectionStartNode: Node,
     proposedWall: Node[],
-    comeFrom: { [name: string]: string | undefined },
     foundPath: Node[],
     draggedNodePosition: Node,
 }
@@ -149,7 +175,7 @@ export const ActionTypes = {
     CLEAR_SOLUTION: 'clearSolution',
     SET_VISITED_NODE: 'setVisitedNode',
     SET_PATH_NODE: 'setPathNode',
-    SET_COME_FROM: 'setComeFrom',
+    SET_NODE_VALUE: 'setNodeValue',
     SET_DRAGGED_NODE_POSITION: 'setDraggedNodePosition',
     SET_START_NODE: 'setStartNode',
     SET_FINISH_NODE: 'setFinishNode',
@@ -172,7 +198,6 @@ function reducer(state: State, action: any) {
 
         case ActionTypes.SET_VISITED_NODE:
             let { row: visitedRow, col: visitedCol }: Node = action.payload;
-
             state.visitedNodes[visitedRow][visitedCol] = true;
 
             return { ...state, visitedNodes: state.visitedNodes };
@@ -184,8 +209,12 @@ function reducer(state: State, action: any) {
 
             return { ...state, pathNodes: state.pathNodes };
 
-        case ActionTypes.SET_COME_FROM:
-            return { ...state, comeFrom: action.payload };
+        case ActionTypes.SET_NODE_VALUE:
+            let { row: nodeValueRow, col: nodeValueCol }: Node = action.payload.node;
+
+            state.nodeValues[nodeValueRow][nodeValueCol] = action.payload.value;
+
+            return { ...state, nodeValues: state.nodeValues };
 
         case ActionTypes.SET_DRAGGED_NODE_POSITION:
             if (state.draggedNodePosition.row != action.payload.row || state.draggedNodePosition.col != action.payload.col) {
@@ -256,7 +285,7 @@ function reducer(state: State, action: any) {
             if (state.wallSelectionStartNode.row != -1 && state.wallSelectionStartNode.col != -1) {
                 const changedNodes: Node[] = generateWall(action.payload.node, state.wallSelectionStartNode, state.wallNodes);
 
-                changedNodes.map(node => state.wallNodes[node.row][node.col] = action.payload.isUnmarkAction?false:true);
+                changedNodes.map(node => state.wallNodes[node.row][node.col] = action.payload.isUnmarkAction ? false : true);
                 return { ...state, proposedWall: changedNodes, wallNodeMatrix: state.wallNodes };
             }
 
@@ -267,56 +296,62 @@ function reducer(state: State, action: any) {
 
 function Board({ size }: Props) {
     const initState = {
-        wallNodes: getMatrixInitValue(size),
-        visitedNodes: getMatrixInitValue(size),
-        pathNodes: getMatrixInitValue(size),
         startNode: { row: 0, col: 0 },
         finishNode: { row: size - 1, col: size - 1 },
-        isMousePressed: false,
-        proposedWall: [],
+        wallNodes: getBooleanMatrixInitValue(size),
+        visitedNodes: getBooleanMatrixInitValue(size),
+        nodeValues: getNumericMatrixInitValue(size),
+        pathNodes: getBooleanMatrixInitValue(size),
         wallSelectionStartNode: { row: -1, col: -1 },
-        comeFrom: {},
+        proposedWall: [],
         foundPath: [],
         draggedNodePosition: { row: -1, col: -1 },
     }
 
     const [state, dispatch] = React.useReducer(reducer, initState);
 
-    const extractSolutionData = (comeFrom: { [name: string]: string | undefined }, startNode: Node, finishNode: Node) => {
+    const extractSolutionData = (comeFrom: ComeFrom, startNode: Node, finishNode: Node) => {
         // the algorithm has been updated again, so we have to clear the latest found path
         if (state.visitedNodes.some(row => row.includes(true))) {
-            dispatch({ type: ActionTypes.CLEAR_SOLUTION, payload: getMatrixInitValue(size) });
+            dispatch({ type: ActionTypes.CLEAR_SOLUTION, payload: getBooleanMatrixInitValue(size) });
         }
 
-        const recentlyVisitedNodes: Node[] = Object.keys(comeFrom).map(node => {
-            let currentNodeData = node.split('-');
-            let row = parseInt(currentNodeData[0]);
-            let col = parseInt(currentNodeData[1]);
+        const recentlyVisitedNodes: { node: Node, value: number }[] = Object.keys(comeFrom).map(currentKey => {
+            let currentKeyData = currentKey.split('-');
+            let row = parseInt(currentKeyData[0]);
+            let col = parseInt(currentKeyData[1]);
 
-            return { row: row, col: col };
+            let value: number = comeFrom[currentKey].value;
+
+            return { node: { row, col }, value };
         });
 
         recentlyVisitedNodes.forEach((node, i) => {
-            setTimeout(
-                () => dispatch({ type: ActionTypes.SET_VISITED_NODE, payload: node }),
+            setTimeout(() => {
+                dispatch({ type: ActionTypes.SET_VISITED_NODE, payload: node.node });
+                dispatch({ type: ActionTypes.SET_NODE_VALUE, payload: node });
+            },
                 i * TIMEOUT_MILLISECONDS
             )
         });
 
 
         //go through each node from comeFrom until the startNode is not reached
-        let currentNode: string | undefined = comeFrom[`${finishNode.row}-${finishNode.col}`];
+        let currentNode: ComeFromData = comeFrom[`${finishNode.row}-${finishNode.col}`];
+
         let startNodeText: string = `${startNode.row}-${startNode.col}`;
         const path: Node[] = [];
 
-        while (currentNode != startNodeText && currentNode) {
-            let currentNodeData = currentNode.split('-');
-            let row = parseInt(currentNodeData[0]);
-            let col = parseInt(currentNodeData[1]);
+        while (currentNode.parent != startNodeText && currentNode) {
+            let parent: string = currentNode.parent!;
 
-            path.push({ row: row, col: col });
+            let parentData = parent.split('-');
+            let row = parseInt(parentData[0]);
+            let col = parseInt(parentData[1]);
 
-            currentNode = comeFrom[currentNode];
+            path.push({ row, col });
+
+            currentNode = comeFrom[parent];
         }
         path.forEach((node, i) => {
             setTimeout(
@@ -329,15 +364,15 @@ function Board({ size }: Props) {
 
     const executeAlgorithm = async () => {
         clearTimers();
-
-        const comeFrom = await breadthFirstSearch(state.wallNodes, state.startNode, state.finishNode);
-        dispatch({ type: ActionTypes.SET_COME_FROM, payload: comeFrom });
+        const comeFrom = await greedyBestFirstSearch(state.wallNodes, state.startNode, state.finishNode);
+        // const comeFrom = await breadthFirstSearch(state.wallNodes, state.startNode, state.finishNode);
+        // dispatch({ type: ActionTypes.SET_COME_FROM, payload: comeFrom });
         extractSolutionData(comeFrom, state.startNode, state.finishNode);
     };
 
     const clearMatrix = () => {
         clearTimers();
-        dispatch({ type: ActionTypes.CLEAR_MATRIX, payload: getMatrixInitValue(size) })
+        dispatch({ type: ActionTypes.CLEAR_MATRIX, payload: getBooleanMatrixInitValue(size) })
     };
 
     return (
@@ -354,6 +389,7 @@ function Board({ size }: Props) {
 
                             return <Cell
                                 key={`board-cell-${rowIndex}-${colIndex}`}
+                                value={state.nodeValues[rowIndex][colIndex]}
                                 isVisited={state.visitedNodes[rowIndex][colIndex]}
                                 isWall={state.wallNodes[rowIndex][colIndex]}
                                 isPartOfThePath={state.pathNodes[rowIndex][colIndex]}

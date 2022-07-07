@@ -13,7 +13,8 @@ export const NodeText = css`
 display: flex;
 justify-content: center;
 align-items:center;
-color:white;
-font-size:2rem;
-font-weight:bold;
+color:black;
+
+font-size:1rem;
+/* font-weight:bold; */
 `;

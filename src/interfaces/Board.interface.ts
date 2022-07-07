@@ -1,6 +1,12 @@
 export interface Props {
-    // rows:number,
-    // cols:number
-    size:number
+    size: number
 };
 
+export interface ComeFromData {
+        parent: string | undefined,
+        value: number,
+}
+
+export interface ComeFrom {
+    [name: string]: ComeFromData
+}

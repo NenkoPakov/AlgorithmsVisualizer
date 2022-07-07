@@ -5,7 +5,7 @@ import { memo } from 'react';
 
 const Cell =
   memo(
-    ({ isVisited, isWall, isPartOfThePath, isStart, isFinish, row, col, dispatch }: INodeFactory) => {
+    ({value, isVisited, isWall, isPartOfThePath, isStart, isFinish, row, col, dispatch }: INodeFactory) => {
       const key: string = `${row}-${col}`;
 
       const getCellType = () => {
@@ -22,7 +22,7 @@ const Cell =
                   : 'free';
       }
 
-      return createNode(row, col, getCellType(), dispatch);
+      return createNode(value, row, col, getCellType(), dispatch);
     }
     , (prevProps, nextProps) => JSON.stringify(prevProps) === JSON.stringify(nextProps));
 

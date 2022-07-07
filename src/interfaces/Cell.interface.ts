@@ -9,11 +9,13 @@ export interface ITargetNode extends INode {
 }
 
 export interface IFreeNode extends INode {
+    value?:number,
     isVisited?: boolean,
     isPartOfThePath?: boolean,
 }
 
 export interface INodeFactory extends INode {
+    value: number,
     isVisited: boolean,
     isWall: boolean,
     isPartOfThePath: boolean,
@@ -25,7 +27,7 @@ export enum NodeType {
     'start', 'finish', 'wall', 'free'
 };
 
-export type NodeColor = 'black'| 'green'| 'blue'| 'lightblue'| 'lightgrey'| 'yellow';
+export type NodeColor = 'black' | 'green' | 'blue' | 'lightblue' | 'lightgrey' | 'yellow';
 
 export interface Node {
     row: number,

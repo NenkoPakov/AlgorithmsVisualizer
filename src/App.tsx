@@ -4,7 +4,7 @@ import React, { useEffect, useRef, useState } from 'react';
 import RangeSlider from './components/RangeSlider';
 
 function App() {
-  const INITIAL_SIZE = 10;
+  const INITIAL_SIZE = 15;
 
   const [boardSize, setBoardSize] = useState<number>(0);
   const [rows, setRows] = useState(INITIAL_SIZE);
