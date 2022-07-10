@@ -5,7 +5,7 @@ export const NodeBase = css`
 
 flex-basis:100%;
 position:relative;
-border:.5px solid lightgrey;
+/* border:.5px solid lightgrey; */
 cursor:pointer;
 `;
 
@@ -15,6 +15,6 @@ justify-content: center;
 align-items:center;
 color:black;
 
-font-size:1rem;
+/* font-size:1rem; */
 /* font-weight:bold; */
 `;

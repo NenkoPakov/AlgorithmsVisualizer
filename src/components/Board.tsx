@@ -1,11 +1,11 @@
 import Cell from './Cell';
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import styled from 'styled-components';
 import { ComeFrom, ComeFromData, Props } from '../interfaces/Board.interface';
 import { Node } from '../interfaces/Cell.interface';
 import BoardProvider from './BoardContext';
 
-const TIMEOUT_MILLISECONDS = 20;
+const TIMEOUT_MILLISECONDS = 100;
 
 const createDelay = async () => {
     return new Promise(resolve => setTimeout(resolve, TIMEOUT_MILLISECONDS));
@@ -30,7 +30,7 @@ display: flex;
 flex-basis:100%;
 flex-direction:column;
 border:5px solid black;
-gap:4px;
+gap:1px;
 `;
 
 const RowWrapper = styled.div`
@@ -39,7 +39,7 @@ position:relative;
 display: flex;
 flex-basis:100%;
 flex-direction:row;
-gap:4px;
+gap:1px;
 `;
 
 const getBooleanMatrixInitValue = (size: number) => {
@@ -154,9 +154,13 @@ const destroyWall = (targetNode: Node, wallStartNode: Node, wallNodes: boolean[]
     // return proposedNodes;
 }
 
-const matrixDeepCopy = (matrix: boolean[][]) => {
-    return JSON.parse(JSON.stringify(matrix)) as boolean[][];
+const matrixDeepCopy = (matrix: boolean[][]|number[][]) => {
+    return JSON.parse(JSON.stringify(matrix));
 }
+
+// const booleanMatrixDeepCopy = (matrix: boolean[][]) => {
+//     return JSON.parse(JSON.stringify(matrix)) as boolean[][];
+// }
 
 interface State {
     startNode: Node,
@@ -173,6 +177,7 @@ interface State {
 }
 
 export const ActionTypes = {
+    UPDATE_SIZE:'updateSize',
     CLEAR_MATRIX: 'clearMatrix',
     CLEAR_SOLUTION: 'clearSolution',
     SET_VISITED_NODE: 'setVisitedNode',
@@ -194,10 +199,14 @@ export const ActionTypes = {
 function reducer(state: State, action: any) {
     switch (action.type) {
         case ActionTypes.CLEAR_MATRIX:
-            return { ...state, visitedNodes: matrixDeepCopy(action.payload),frontierNodes: matrixDeepCopy(action.payload), pathNodes: matrixDeepCopy(action.payload), wallNodes: matrixDeepCopy(action.payload) };
+            return { ...state, visitedNodes: matrixDeepCopy(action.payload) as boolean[][], frontierNodes: matrixDeepCopy(action.payload) as boolean[][], pathNodes: matrixDeepCopy(action.payload) as boolean[][], wallNodes: matrixDeepCopy(action.payload) as boolean[][] };
+
+        case ActionTypes.UPDATE_SIZE:
+            let {booleanMatrix, numericMatrix} = action.payload;
+            return { ...state, visitedNodes: matrixDeepCopy(booleanMatrix) as boolean[][], frontierNodes: matrixDeepCopy(booleanMatrix) as boolean[][], pathNodes: matrixDeepCopy(booleanMatrix) as boolean[][], wallNodes: matrixDeepCopy(booleanMatrix) as boolean[][], nodeValues: matrixDeepCopy(numericMatrix) as number[][] };
 
         case ActionTypes.CLEAR_SOLUTION:
-            return { ...state, visitedNodes: matrixDeepCopy(action.payload), pathNodes: matrixDeepCopy(action.payload) };
+            return { ...state, visitedNodes: matrixDeepCopy(action.payload) as boolean[][], pathNodes: matrixDeepCopy(action.payload) as boolean[][] };
 
         case ActionTypes.SET_VISITED_NODE:
             let { row: visitedRow, col: visitedCol }: Node = action.payload;
@@ -304,6 +313,10 @@ function reducer(state: State, action: any) {
 }
 
 function Board({ size, algorithmFunc }: Props) {
+    const [, updateState] = React.useState<any>();
+    const forceUpdate = React.useCallback(() => updateState({}), []);
+
+    
     const initState = {
         startNode: { row: 0, col: 0 },
         finishNode: { row: size - 1, col: size - 1 },
@@ -317,59 +330,63 @@ function Board({ size, algorithmFunc }: Props) {
         foundPath: [],
         draggedNodePosition: { row: -1, col: -1 },
     }
-
+    
     const [state, dispatch] = React.useReducer(reducer, initState);
 
-    const extractSolutionData = (comeFrom: ComeFrom, startNode: Node, finishNode: Node) => {
-        // the algorithm has been updated again, so we have to clear the latest found path
-        if (state.visitedNodes.some(row => row.includes(true))) {
-            dispatch({ type: ActionTypes.CLEAR_SOLUTION, payload: getBooleanMatrixInitValue(size) });
-        }
+    useEffect(() => { 
+        dispatch({ type: ActionTypes.UPDATE_SIZE, payload: {booleanMatrix:getBooleanMatrixInitValue(size), numericMatrix:getNumericMatrixInitValue(size) }});
+     }, [size])
 
-        const recentlyVisitedNodes: { frontier: Node, parent: Node | undefined, value: number }[] = Object.keys(comeFrom).map(currentKey => {
-            let frontier = splitNodePosition(currentKey);
-            let parent = comeFrom[currentKey].parent ? splitNodePosition(comeFrom[currentKey].parent!) : undefined;
-            let value: number = comeFrom[currentKey].value;
+    // const extractSolutionData = (comeFrom: ComeFrom, startNode: Node, finishNode: Node) => {
+    //     // the algorithm has been updated again, so we have to clear the latest found path
+    //     if (state.visitedNodes.some(row => row.includes(true))) {
+    //         dispatch({ type: ActionTypes.CLEAR_SOLUTION, payload: getBooleanMatrixInitValue(size) });
+    //     }
 
-            return { frontier, parent, value };
-        });
+    //     const recentlyVisitedNodes: { frontier: Node, parent: Node | undefined, value: number }[] = Object.keys(comeFrom).map(currentKey => {
+    //         let frontier = splitNodePosition(currentKey);
+    //         let parent = comeFrom[currentKey].parent ? splitNodePosition(comeFrom[currentKey].parent!) : undefined;
+    //         let value: number = comeFrom[currentKey].value;
 
-        recentlyVisitedNodes.forEach((node, i) => {
-            setTimeout(() => {
-                dispatch({ type: ActionTypes.SET_FRONTIER_NODE, payload: node.frontier });
-                dispatch({ type: ActionTypes.SET_VISITED_NODE, payload: node.parent });
-                dispatch({ type: ActionTypes.SET_NODE_VALUE, payload: node });
-            },
-                i * TIMEOUT_MILLISECONDS
-            )
-        });
+    //         return { frontier, parent, value };
+    //     });
+
+    //     recentlyVisitedNodes.forEach((node, i) => {
+    //         setTimeout(() => {
+    //             dispatch({ type: ActionTypes.SET_FRONTIER_NODE, payload: node.frontier });
+    //             dispatch({ type: ActionTypes.SET_VISITED_NODE, payload: node.parent });
+    //             dispatch({ type: ActionTypes.SET_NODE_VALUE, payload: node });
+    //         },
+    //             i * TIMEOUT_MILLISECONDS
+    //         )
+    //     });
 
 
-        //go through each node from comeFrom until the startNode is not reached
-        let currentNode: ComeFromData = comeFrom[`${finishNode.row}-${finishNode.col}`];
+    //     //go through each node from comeFrom until the startNode is not reached
+    //     let currentNode: ComeFromData = comeFrom[`${finishNode.row}-${finishNode.col}`];
 
-        let startNodeText: string = `${startNode.row}-${startNode.col}`;
-        const path: Node[] = [];
+    //     let startNodeText: string = `${startNode.row}-${startNode.col}`;
+    //     const path: Node[] = [];
 
-        while (currentNode.parent != startNodeText && currentNode) {
-            let parent: string = currentNode.parent!;
+    //     while (currentNode.parent != startNodeText && currentNode) {
+    //         let parent: string = currentNode.parent!;
 
-            let parentData = parent.split('-');
-            let row = parseInt(parentData[0]);
-            let col = parseInt(parentData[1]);
+    //         let parentData = parent.split('-');
+    //         let row = parseInt(parentData[0]);
+    //         let col = parseInt(parentData[1]);
 
-            path.push({ row, col });
+    //         path.push({ row, col });
 
-            currentNode = comeFrom[parent];
-        }
-        path.forEach((node, i) => {
-            setTimeout(
-                () => dispatch({ type: ActionTypes.SET_PATH_NODE, payload: node }),
-                (recentlyVisitedNodes.length + i) * TIMEOUT_MILLISECONDS
-            )
-        });
+    //         currentNode = comeFrom[parent];
+    //     }
+    //     path.forEach((node, i) => {
+    //         setTimeout(
+    //             () => dispatch({ type: ActionTypes.SET_PATH_NODE, payload: node }),
+    //             (recentlyVisitedNodes.length + i) * TIMEOUT_MILLISECONDS
+    //         )
+    //     });
 
-    }
+    // }
 
     const executeAlgorithm = async () => {
         clearTimers();
@@ -377,10 +394,10 @@ function Board({ size, algorithmFunc }: Props) {
         for (const lastComeFrom of algorithmFunc(state.wallNodes, state.startNode, state.finishNode)) {
             const recentlyVisitedNodes: { frontier: Node, parent: Node | undefined, value: number }[] = Object.keys(lastComeFrom).map(currentKey => {
                 let frontier = splitNodePosition(currentKey);
-            let parent = lastComeFrom[currentKey].parent ? splitNodePosition(lastComeFrom[currentKey].parent!) : undefined;
-            let value: number = lastComeFrom[currentKey].value;
+                let parent = lastComeFrom[currentKey].parent ? splitNodePosition(lastComeFrom[currentKey].parent!) : undefined;
+                let value: number = lastComeFrom[currentKey].value;
 
-            return { frontier, parent, value };
+                return { frontier, parent, value };
             });
 
             for (const node of recentlyVisitedNodes) {

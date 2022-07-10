@@ -17,45 +17,26 @@ const BoardContainer = styled.section`
 function App() {
   const INITIAL_SIZE = 15;
 
-  const [boardSize, setBoardSize] = useState<number>(0);
-  const [rows, setRows] = useState(INITIAL_SIZE);
-  const [cols, setCols] = useState(INITIAL_SIZE);
+  const [boardSize, setBoardSize] = useState<number>(INITIAL_SIZE);
 
 
-  // const setBoardSize = (event: any) => {
-  //   // If the user presses the "Enter" key on the keyboard
-  //   // if (event.key === "Enter") 
-  //   {
+  const handleSliderUpdate = (sliderValue: number) => {
+    const minSize = 10;
+    const maxSize = 50;
+    const ratio = maxSize - minSize;
+    const newSize = minSize + Math.ceil(ratio * sliderValue / 100);
 
-  //     // Cancel the default action, if needed
-  //     // event.preventDefault();
-
-  //     if (event.target.name == 'rows-input') {
-  //       setRows(event.target.value);
-  //       console.log("rows")
-  //       console.log(event.target.value)
-  //     } else {
-  //       setCols(event.target.value);
-  //       console.log("cols")
-  //       console.log(event.target.value)
-  //     }
-  //   }
-  // }
-
-  useEffect(() => {
-    setRows(INITIAL_SIZE + boardSize / 10);
-    setCols(INITIAL_SIZE + boardSize / 10);
-  }, [boardSize])
+    setBoardSize(newSize);
+  }
 
   return (
-    //React could deal approximately fast with board 30 by 30 not larger
     <React.Fragment>
       {/* <input  key='rows-input' name='rows-input' onChange={(e) => setBoardSize(e)} defaultValue={INITIAL_SIZE} type="number" />
       <input  key='cols-input'  name='cols-input' onChange={(e) => setBoardSize(e)} defaultValue={INITIAL_SIZE} type="number" /> */}
-      <RangeSlider boardSize={boardSize} updateBoardSize={setBoardSize} />
+      <RangeSlider boardSize={boardSize} updateBoardSize={handleSliderUpdate} />
       <BoardContainer>
-        <Board size={INITIAL_SIZE} algorithmFunc={breadthFirstSearch} ></Board>
-        {/* <Board size={INITIAL_SIZE} algorithmFunc={greedyBestFirstSearch} ></Board> */}
+        {/* <Board size={boardSize} algorithmFunc={breadthFirstSearch} ></Board> */}
+        <Board size={boardSize} algorithmFunc={greedyBestFirstSearch} ></Board>
       </BoardContainer>
     </React.Fragment>
   );

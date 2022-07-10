@@ -117,7 +117,7 @@ const SizeIndicator = styled.h4`
 
 function RangeSlider({boardSize, updateBoardSize}:any) {
     return <React.Fragment>
-        <Slider type="range" onChange={(e: any) => updateBoardSize((parseInt(e.target.value)/5)+10)} defaultValue={boardSize} />
+        <Slider type="range" onChange={(e: any) => updateBoardSize((parseInt(e.target.value)))} defaultValue={boardSize} />
         {/* <SizeIndicatorContainer >
             <SizeIndicatorSubContainer>
                 <SizeIndicator>

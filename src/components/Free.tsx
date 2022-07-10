@@ -14,8 +14,8 @@ background-color:${(props: IFreeNode) => props.isVisited
                                                   ? 'white' 
                                                   : 'lightblue'};
 box-sizing: border-box;
-border:${(props: IFreeNode) => props.isFrontier?'solid 2px blue':''};
-/* transition: background-color 1s ease-out ; */
+outline:${(props: IFreeNode) => props.isFrontier?'solid 0.5px blue':''};
+transition: background-color 1.5s ease-out ;
 
 :hover{
   background-color:black ;
