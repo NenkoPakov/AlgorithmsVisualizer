@@ -3,7 +3,7 @@ import { Node } from '../interfaces/Cell.interface';
 import { getValidNeighbors, areEqual, heuristic } from './common';
 
 
-const greedyBestFirstSearch = async (wallMatrix: boolean[][], startNode: Node, finishNode: Node) => {
+function* greedyBestFirstSearch(wallMatrix: boolean[][], startNode: Node, finishNode: Node) {
     let tempMatrix: any = wallMatrix.map((row: boolean[], rowIndex: number) => row.map((isWall: boolean, colIndex: number) => {
         return {
             row: rowIndex,
@@ -28,6 +28,9 @@ const greedyBestFirstSearch = async (wallMatrix: boolean[][], startNode: Node, f
         tempMatrix[currentNode.node.row][currentNode.node.col].isVisited = true;
         const graphNeighbors: Node[] = getValidNeighbors(tempMatrix, currentNode.node);
 
+        const roundFrontier: { node: Node, priority: number }[] = [];
+        const roundComeFrom: ComeFrom = {};
+
         graphNeighbors.forEach(neighbor => {
             tempMatrix[neighbor.row][neighbor.col].isVisited = true;
 
@@ -35,13 +38,16 @@ const greedyBestFirstSearch = async (wallMatrix: boolean[][], startNode: Node, f
             frontier.push({ node: neighbor, priority });
             comeFrom[`${neighbor.row}-${neighbor.col}`] = { parent: `${currentNode.node.row}-${currentNode.node.col}`, value: priority }
 
+            roundFrontier.push({ node: neighbor, priority });
+            roundComeFrom[`${neighbor.row}-${neighbor.col}`] = { parent: `${currentNode.node.row}-${currentNode.node.col}`, value: priority };
+
             if (areEqual(neighbor, finishNode)) isTargetFound = true;
         });
 
         frontier.sort((prev, next) => prev.priority - next.priority);
+        
+        yield { visited: roundComeFrom, frontier: roundFrontier };
     }
-
-    return comeFrom;
 };
 
 export default greedyBestFirstSearch;

@@ -3,7 +3,7 @@ import { css } from 'styled-components'
 
 export const NodeBase = css`
 
-flex-grow:1;
+flex-basis:100%;
 position:relative;
 border:.5px solid lightgrey;
 cursor:pointer;

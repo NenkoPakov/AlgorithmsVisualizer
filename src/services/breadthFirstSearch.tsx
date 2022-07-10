@@ -2,7 +2,7 @@ import { ComeFrom } from '../interfaces/Board.interface';
 import { Node } from '../interfaces/Cell.interface';
 import { areEqual, getValidNeighbors, heuristic } from './common';
 
-const breadthFirstSearch = async (wallMatrix: boolean[][], startNode: Node, finishNode: Node) => {
+function* breadthFirstSearch(wallMatrix: boolean[][], startNode: Node, finishNode: Node) {
     let tempMatrix: any = wallMatrix.map((row: boolean[], rowIndex: number) => row.map((isWall: boolean, colIndex: number) => {
         return {
             row: rowIndex,
@@ -27,18 +27,26 @@ const breadthFirstSearch = async (wallMatrix: boolean[][], startNode: Node, fini
         tempMatrix[currentNode.node.row][currentNode.node.col].isVisited = true;
         const graphNeighbors: Node[] = getValidNeighbors(tempMatrix, currentNode.node);
 
+        const roundFrontier: { node: Node, priority: number }[] = [];
+        const roundComeFrom: ComeFrom = {};
+
         graphNeighbors.forEach(neighbor => {
+
             tempMatrix[neighbor.row][neighbor.col].isVisited = true;
-            
+
             const priority = heuristic(startNode, neighbor);
             frontier.push({ node: neighbor, priority });
-            comeFrom[`${neighbor.row}-${neighbor.col}`] = { parent: `${currentNode.node.row}-${currentNode.node.col}`, value: priority }
+            comeFrom[`${neighbor.row}-${neighbor.col}`] = { parent: `${currentNode.node.row}-${currentNode.node.col}`, value: priority };
+
+            roundFrontier.push({ node: neighbor, priority });
+            roundComeFrom[`${neighbor.row}-${neighbor.col}`] = { parent: `${currentNode.node.row}-${currentNode.node.col}`, value: priority };
 
             if (areEqual(neighbor, finishNode)) isTargetFound = true;
-        });
-    }
 
-    return comeFrom;
+        });
+
+        yield { visited: roundComeFrom, frontier: roundFrontier };
+    }
 };
 
 export default breadthFirstSearch

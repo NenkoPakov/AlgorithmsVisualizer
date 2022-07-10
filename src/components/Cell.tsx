@@ -6,8 +6,6 @@ import { memo } from 'react';
 const Cell =
   memo(
     ({value, isVisited, isWall, isPartOfThePath, isStart, isFinish, row, col, dispatch }: INodeFactory) => {
-      const key: string = `${row}-${col}`;
-
       const getCellType = () => {
         return isStart
           ? 'start'

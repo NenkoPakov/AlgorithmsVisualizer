@@ -5,7 +5,11 @@ import { ComeFrom, ComeFromData, Props } from '../interfaces/Board.interface';
 import { Node } from '../interfaces/Cell.interface';
 import BoardProvider from './BoardContext';
 
-const TIMEOUT_MILLISECONDS = 10;
+const TIMEOUT_MILLISECONDS = 20;
+
+const createDelay = async () => {
+    return new Promise(resolve => setTimeout(resolve, TIMEOUT_MILLISECONDS));
+}
 
 const BoardSection = styled.section`
 position:relative;
@@ -23,7 +27,7 @@ margin:auto;
 const BoardWrapper = styled.div`
 position:relative;
 display: flex;
-flex-grow:1;
+flex-basis:100%;
 flex-direction:column;
 border:5px solid black;
 `;
@@ -32,7 +36,7 @@ const RowWrapper = styled.div`
 width:100%;
 position:relative;
 display: flex;
-flex-grow:1;
+flex-basis:100%;
 flex-direction:row;
 `;
 
@@ -359,8 +363,28 @@ function Board({ size, algorithmFunc }: Props) {
 
     const executeAlgorithm = async () => {
         clearTimers();
-        const comeFrom = await algorithmFunc(state.wallNodes, state.startNode, state.finishNode);
-        extractSolutionData(comeFrom, state.startNode, state.finishNode);
+        // const comeFrom = await algorithmFunc(state.wallNodes, state.startNode, state.finishNode);
+
+        for (const job of algorithmFunc(state.wallNodes, state.startNode, state.finishNode)) {
+            const recentlyVisitedNodes: { node: Node, value: number }[] = Object.keys(job.visited).map(currentKey => {
+                let currentKeyData = currentKey.split('-');
+                let row = parseInt(currentKeyData[0]);
+                let col = parseInt(currentKeyData[1]);
+
+                let value: number = job.visited[currentKey].value;
+
+                return { node: { row, col }, value };
+            });
+
+            for (const node of recentlyVisitedNodes) {
+                dispatch({ type: ActionTypes.SET_VISITED_NODE, payload: node.node });
+                dispatch({ type: ActionTypes.SET_NODE_VALUE, payload: node });
+            }
+
+            await createDelay();
+        }
+
+        // extractSolutionData(comeFrom, state.startNode, state.finishNode);
     };
 
     const clearMatrix = () => {
