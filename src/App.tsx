@@ -1,6 +1,6 @@
 import Board from './components/Board'
 import './App.css';
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useCallback, useEffect, useRef, useState } from 'react';
 import RangeSlider from './components/RangeSlider';
 import breadthFirstSearch from './services/breadthFirstSearch';
 import greedyBestFirstSearch from './services/greedyBestFirstSearch';
@@ -14,29 +14,57 @@ const BoardContainer = styled.section`
   justify-content:space-around;
   `;
 
+  
+
+
+
 function App() {
+  const MIN_SIZE = 15;
+  const MAX_SIZE = 45;
+  const SIZE_RATIO = MAX_SIZE - MIN_SIZE;
   const INITIAL_SIZE = 15;
+  const INITIAL_TIMEOUT_MILLISECONDS = 80;
 
-  const [boardSize, setBoardSize] = useState<number>(INITIAL_SIZE);
+  const [boardRows, setBoardRows] = useState<number>(INITIAL_SIZE);
+  const [boardCols, setBoardCols] = useState<number>(INITIAL_SIZE);
+  // const [speed, setSpeed] = useState<number>(INITIAL_TIMEOUT_MILLISECONDS);
+  const speed = useRef<number>(INITIAL_TIMEOUT_MILLISECONDS);
 
+  enum SliderType { rowsSlider, colsSlider, speedSlider };
 
-  const handleSliderUpdate = (sliderValue: number) => {
-    const minSize = 10;
-    const maxSize = 50;
-    const ratio = maxSize - minSize;
-    const newSize = minSize + Math.ceil(ratio * sliderValue / 100);
+  const handleSliderUpdate = useCallback((sliderValue: number, sliderType: SliderType) => {
+    const newSize = MIN_SIZE + Math.ceil(SIZE_RATIO * sliderValue / 100);
 
-    setBoardSize(newSize);
-  }
+    switch (sliderType) {
+      case SliderType.rowsSlider:
+        setBoardRows(newSize);
+        break;
+      case SliderType.colsSlider:
+        setBoardCols(newSize);
+        break;
+      case SliderType.speedSlider:
+        speed.current=sliderValue * 2;
+        break;
+      default:
+        //throw exception
+        break;
+    }
+  }, [])
+
+  const delayFunc = useCallback(async () => {
+    return new Promise(resolve => setTimeout(resolve, speed.current));
+  },[speed])
 
   return (
     <React.Fragment>
       {/* <input  key='rows-input' name='rows-input' onChange={(e) => setBoardSize(e)} defaultValue={INITIAL_SIZE} type="number" />
       <input  key='cols-input'  name='cols-input' onChange={(e) => setBoardSize(e)} defaultValue={INITIAL_SIZE} type="number" /> */}
-      <RangeSlider boardSize={boardSize} updateBoardSize={handleSliderUpdate} />
+      <RangeSlider boardSize={boardRows} type={SliderType.rowsSlider} updateBoardSize={handleSliderUpdate} />
+      <RangeSlider boardSize={boardCols} type={SliderType.colsSlider} updateBoardSize={handleSliderUpdate} />
+      <RangeSlider boardSize={speed} type={SliderType.speedSlider} updateBoardSize={handleSliderUpdate} />
       <BoardContainer>
-        {/* <Board size={boardSize} algorithmFunc={breadthFirstSearch} ></Board> */}
-        <Board size={boardSize} algorithmFunc={greedyBestFirstSearch} ></Board>
+        {/* <Board boardRows={boardRows} boardCols={boardCols} speed={speed} algorithmFunc={breadthFirstSearch} ></Board> */}
+        <Board boardRows={boardRows} boardCols={boardCols} algorithmFunc={greedyBestFirstSearch} delayFunc={delayFunc} ></Board>
       </BoardContainer>
     </React.Fragment>
   );

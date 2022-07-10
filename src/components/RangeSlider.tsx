@@ -33,6 +33,7 @@ const Slider = styled.input`
 				height: 40px;
 				cursor: ew-resize;
 				background: #fff;
+				border:solid 3px black; 
 				box-shadow: -340px 0 0 320px #1597ff, inset 0 0 0 40px #1597ff;
 				border-radius: 50%;
 				transition: box-shadow 0.2s ease-in-out;
@@ -115,9 +116,9 @@ const SizeIndicator = styled.h4`
 //     }
 // `;
 
-function RangeSlider({boardSize, updateBoardSize}:any) {
+function RangeSlider({boardSize,type, updateBoardSize}:any) {
     return <React.Fragment>
-        <Slider type="range" onChange={(e: any) => updateBoardSize((parseInt(e.target.value)))} defaultValue={boardSize} />
+        <Slider type="range" onChange={(e: any) => updateBoardSize((parseInt(e.target.value)),type)} defaultValue={boardSize} />
         {/* <SizeIndicatorContainer >
             <SizeIndicatorSubContainer>
                 <SizeIndicator>

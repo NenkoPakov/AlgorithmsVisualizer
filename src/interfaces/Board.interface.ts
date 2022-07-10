@@ -1,11 +1,14 @@
 export interface Props {
-    size: number,
-    algorithmFunc:Function,
+    algorithmFunc: Function,
+    delayFunc: Function,
+    boardRows: number,
+    boardCols: number,
+    // speed: number,
 };
 
 export interface ComeFromData {
-        parent: string | undefined,
-        value: number,
+    parent: string | undefined,
+    value: number,
 }
 
 export interface ComeFrom {

@@ -5,12 +5,6 @@ import { ComeFrom, ComeFromData, Props } from '../interfaces/Board.interface';
 import { Node } from '../interfaces/Cell.interface';
 import BoardProvider from './BoardContext';
 
-const TIMEOUT_MILLISECONDS = 100;
-
-const createDelay = async () => {
-    return new Promise(resolve => setTimeout(resolve, TIMEOUT_MILLISECONDS));
-}
-
 const BoardSection = styled.section`
 position:relative;
 display: flex;
@@ -42,13 +36,13 @@ flex-direction:row;
 gap:1px;
 `;
 
-const getBooleanMatrixInitValue = (size: number) => {
-    let initMatrix: boolean[][] = Array(size);
+const getMatrixInitValue = (rows: number, cols: number, isNumeric = false) => {
+    let initMatrix: boolean[][] | number[][] = Array(rows);
 
-    for (let row = 0; row < size; row++) {
-        initMatrix[row] = Array(size);
-        for (let col = 0; col < size; col++) {
-            initMatrix[row][col] = false;
+    for (let row = 0; row < rows; row++) {
+        initMatrix[row] = Array(cols);
+        for (let col = 0; col < cols; col++) {
+            initMatrix[row][col] = isNumeric ? 0 : false;
         }
     }
 
@@ -154,7 +148,7 @@ const destroyWall = (targetNode: Node, wallStartNode: Node, wallNodes: boolean[]
     // return proposedNodes;
 }
 
-const matrixDeepCopy = (matrix: boolean[][]|number[][]) => {
+const matrixDeepCopy = (matrix: boolean[][] | number[][]) => {
     return JSON.parse(JSON.stringify(matrix));
 }
 
@@ -177,7 +171,7 @@ interface State {
 }
 
 export const ActionTypes = {
-    UPDATE_SIZE:'updateSize',
+    UPDATE_SIZE: 'updateSize',
     CLEAR_MATRIX: 'clearMatrix',
     CLEAR_SOLUTION: 'clearSolution',
     SET_VISITED_NODE: 'setVisitedNode',
@@ -202,7 +196,7 @@ function reducer(state: State, action: any) {
             return { ...state, visitedNodes: matrixDeepCopy(action.payload) as boolean[][], frontierNodes: matrixDeepCopy(action.payload) as boolean[][], pathNodes: matrixDeepCopy(action.payload) as boolean[][], wallNodes: matrixDeepCopy(action.payload) as boolean[][] };
 
         case ActionTypes.UPDATE_SIZE:
-            let {booleanMatrix, numericMatrix} = action.payload;
+            let { booleanMatrix, numericMatrix } = action.payload;
             return { ...state, visitedNodes: matrixDeepCopy(booleanMatrix) as boolean[][], frontierNodes: matrixDeepCopy(booleanMatrix) as boolean[][], pathNodes: matrixDeepCopy(booleanMatrix) as boolean[][], wallNodes: matrixDeepCopy(booleanMatrix) as boolean[][], nodeValues: matrixDeepCopy(numericMatrix) as number[][] };
 
         case ActionTypes.CLEAR_SOLUTION:
@@ -312,30 +306,28 @@ function reducer(state: State, action: any) {
     }
 }
 
-function Board({ size, algorithmFunc }: Props) {
-    const [, updateState] = React.useState<any>();
-    const forceUpdate = React.useCallback(() => updateState({}), []);
+function Board({ boardRows, boardCols, delayFunc, algorithmFunc }: Props) {
 
-    
+
     const initState = {
         startNode: { row: 0, col: 0 },
-        finishNode: { row: size - 1, col: size - 1 },
-        wallNodes: getBooleanMatrixInitValue(size),
-        visitedNodes: getBooleanMatrixInitValue(size),
-        frontierNodes: getBooleanMatrixInitValue(size),
-        nodeValues: getNumericMatrixInitValue(size),
-        pathNodes: getBooleanMatrixInitValue(size),
+        finishNode: { row: boardRows - 1, col: boardCols - 1 },
+        wallNodes: getMatrixInitValue(boardRows, boardCols) as boolean[][],
+        visitedNodes: getMatrixInitValue(boardRows, boardCols)as boolean[][],
+        frontierNodes: getMatrixInitValue(boardRows, boardCols)as boolean[][],
+        nodeValues: getMatrixInitValue(boardRows, boardCols, true)as number[][],
+        pathNodes: getMatrixInitValue(boardRows, boardCols)as boolean[][],
         wallSelectionStartNode: { row: -1, col: -1 },
         proposedWall: [],
         foundPath: [],
         draggedNodePosition: { row: -1, col: -1 },
     }
-    
+
     const [state, dispatch] = React.useReducer(reducer, initState);
 
-    useEffect(() => { 
-        dispatch({ type: ActionTypes.UPDATE_SIZE, payload: {booleanMatrix:getBooleanMatrixInitValue(size), numericMatrix:getNumericMatrixInitValue(size) }});
-     }, [size])
+    useEffect(() => {
+        dispatch({ type: ActionTypes.UPDATE_SIZE, payload: { booleanMatrix: getMatrixInitValue(boardRows, boardCols), numericMatrix: getMatrixInitValue(boardRows, boardCols, true) } });
+    }, [boardRows, boardCols])
 
     // const extractSolutionData = (comeFrom: ComeFrom, startNode: Node, finishNode: Node) => {
     //     // the algorithm has been updated again, so we have to clear the latest found path
@@ -406,13 +398,13 @@ function Board({ size, algorithmFunc }: Props) {
                 dispatch({ type: ActionTypes.SET_NODE_VALUE, payload: node });
             }
 
-            await createDelay();
+            await delayFunc();
         }
     };
 
     const clearMatrix = () => {
         clearTimers();
-        dispatch({ type: ActionTypes.CLEAR_MATRIX, payload: getBooleanMatrixInitValue(size) })
+        dispatch({ type: ActionTypes.CLEAR_MATRIX, payload: getMatrixInitValue(boardRows, boardCols) })
     };
 
     return (

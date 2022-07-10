@@ -5,7 +5,6 @@ export const NodeBase = css`
 
 flex-basis:100%;
 position:relative;
-/* border:.5px solid lightgrey; */
 cursor:pointer;
 `;
 
@@ -14,7 +13,10 @@ display: flex;
 justify-content: center;
 align-items:center;
 color:black;
+font-size:2vmin;
 
-/* font-size:1rem; */
-/* font-weight:bold; */
+@media screen and (max-width: 650px) {
+ font-size:3vmin;
+}
+
 `;
