@@ -2,15 +2,24 @@ import React, { useState } from 'react';
 import styled from 'styled-components'
 import { NodeBase } from '../global';
 import { IFreeNode } from '../interfaces/Cell.interface';
+import { SliderType, ISlider } from '../interfaces/Slider.interface';
+import { useBoard } from './BoardContext';
 
 const Slider = styled.input`
 		outline: 0;
 		border: 0;
+		margin:50px 50px;
 		border-radius: 500px;
-		width: 400px;
-		max-width: 100%;
-		margin: 24px 0 16px;
+		width: 100px;
+		/* max-width: 100%; */
 		transition: box-shadow 0.2s ease-in-out;
+		
+		/* -webkit-transform: rotate(90deg);
+		-moz-transform: rotate(90deg);
+		-o-transform: rotate(90deg);
+		-ms-transform: rotate(90deg);
+		transform: rotate(90deg); */
+		transform:${(props: { sliderType: SliderType }) => props.sliderType == SliderType.rowsSlider ? 'rotate(90deg)' : '0'};
 
 		// Chrome
 		@media screen and (-webkit-min-device-pixel-ratio:0) {
@@ -31,7 +40,7 @@ const Slider = styled.input`
 				width: 40px;
 				-webkit-appearance: none;
 				height: 40px;
-				cursor: ew-resize;
+				cursor:${(props: { sliderType: SliderType }) => props.sliderType == SliderType.rowsSlider ? 'ns-resize' : 'ew-resize'};
 				background: #fff;
 				border:solid 3px black; 
 				box-shadow: -340px 0 0 320px #1597ff, inset 0 0 0 40px #1597ff;
@@ -116,10 +125,13 @@ const SizeIndicator = styled.h4`
 //     }
 // `;
 
-function RangeSlider({boardSize,type, updateBoardSize}:any) {
-    return <React.Fragment>
-        <Slider type="range" onChange={(e: any) => updateBoardSize((parseInt(e.target.value)),type)} defaultValue={boardSize} />
-        {/* <SizeIndicatorContainer >
+function RangeSlider({ boardSize, sliderType, updateBoardSizeFunc }: ISlider) {
+
+	const { isDrawingWall, isUnmarkAction, isInExecution } = useBoard();
+
+	return <React.Fragment>
+		<Slider sliderType={sliderType} type="range" onChange={(e: any) => updateBoardSizeFunc((parseInt(e.target.value)), sliderType)} defaultValue={boardSize} disabled={sliderType != SliderType.speedSlider ? isInExecution : false} />
+		{/* <SizeIndicatorContainer >
             <SizeIndicatorSubContainer>
                 <SizeIndicator>
                     {size}
@@ -127,7 +139,7 @@ function RangeSlider({boardSize,type, updateBoardSize}:any) {
                 </SizeIndicator>
             </SizeIndicatorSubContainer>
         </SizeIndicatorContainer> */}
-    </React.Fragment>
+	</React.Fragment>
 
 
 }

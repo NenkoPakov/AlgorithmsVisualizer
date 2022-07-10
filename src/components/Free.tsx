@@ -8,13 +8,13 @@ import { useBoard, useBoardUpdate } from './BoardContext';
 const FreeNode = styled.div<any>`
 ${NodeBase};
 ${NodeText}
-background-color:${(props: IFreeNode) => props.isVisited 
-                                              ? 'yellow' 
-                                              : props.isPartOfThePath 
-                                                  ? 'white' 
-                                                  : 'lightblue'};
+background-color:${(props: IFreeNode) => props.isVisited
+    ? 'yellow'
+    : props.isPartOfThePath
+      ? 'white'
+      : 'lightblue'};
 box-sizing: border-box;
-outline:${(props: IFreeNode) => props.isFrontier?'solid 0.5px blue':''};
+outline:${(props: IFreeNode) => props.isFrontier ? 'solid 0.5px blue' : ''};
 transition: background-color 1.5s ease-out ;
 
 :hover{
@@ -24,7 +24,7 @@ transition: background-color 1.5s ease-out ;
 
 function Free({ value, row, col, isVisited, isFrontier, isPartOfThePath, dispatch }: IFreeNode) {
   const { isDrawingWall, isUnmarkAction } = useBoard();
-  const { handleWallDrawingEvent, handleUnmarkEvent } = useBoardUpdate();
+  const { handleWallDrawingEvent, handleUnmarkEvent, } = useBoardUpdate();
 
   const key: string = `${row}-${col}`;
 

@@ -1,6 +1,7 @@
-export interface Props {
+export interface BoardProps {
     algorithmFunc: Function,
     delayFunc: Function,
+    // updateExecutionFunc: Function,
     boardRows: number,
     boardCols: number,
     // speed: number,

@@ -1,9 +1,9 @@
 import Cell from './Cell';
 import React, { useEffect, useState } from 'react';
 import styled from 'styled-components';
-import { ComeFrom, ComeFromData, Props } from '../interfaces/Board.interface';
+import { ComeFrom, ComeFromData, BoardProps } from '../interfaces/Board.interface';
 import { Node } from '../interfaces/Cell.interface';
-import BoardProvider from './BoardContext';
+import { useBoard, useBoardUpdate } from './BoardContext';
 
 const BoardSection = styled.section`
 position:relative;
@@ -306,17 +306,17 @@ function reducer(state: State, action: any) {
     }
 }
 
-function Board({ boardRows, boardCols, delayFunc, algorithmFunc }: Props) {
+function Board({ boardRows, boardCols, delayFunc, algorithmFunc }: BoardProps) {
 
 
     const initState = {
         startNode: { row: 0, col: 0 },
         finishNode: { row: boardRows - 1, col: boardCols - 1 },
         wallNodes: getMatrixInitValue(boardRows, boardCols) as boolean[][],
-        visitedNodes: getMatrixInitValue(boardRows, boardCols)as boolean[][],
-        frontierNodes: getMatrixInitValue(boardRows, boardCols)as boolean[][],
-        nodeValues: getMatrixInitValue(boardRows, boardCols, true)as number[][],
-        pathNodes: getMatrixInitValue(boardRows, boardCols)as boolean[][],
+        visitedNodes: getMatrixInitValue(boardRows, boardCols) as boolean[][],
+        frontierNodes: getMatrixInitValue(boardRows, boardCols) as boolean[][],
+        nodeValues: getMatrixInitValue(boardRows, boardCols, true) as number[][],
+        pathNodes: getMatrixInitValue(boardRows, boardCols) as boolean[][],
         wallSelectionStartNode: { row: -1, col: -1 },
         proposedWall: [],
         foundPath: [],
@@ -325,62 +325,15 @@ function Board({ boardRows, boardCols, delayFunc, algorithmFunc }: Props) {
 
     const [state, dispatch] = React.useReducer(reducer, initState);
 
+    const { isDrawingWall, isUnmarkAction, isInExecution } = useBoard();
+    const { handleWallDrawingEvent, handleUnmarkEvent, handleExecution } = useBoardUpdate();
+
     useEffect(() => {
         dispatch({ type: ActionTypes.UPDATE_SIZE, payload: { booleanMatrix: getMatrixInitValue(boardRows, boardCols), numericMatrix: getMatrixInitValue(boardRows, boardCols, true) } });
     }, [boardRows, boardCols])
 
-    // const extractSolutionData = (comeFrom: ComeFrom, startNode: Node, finishNode: Node) => {
-    //     // the algorithm has been updated again, so we have to clear the latest found path
-    //     if (state.visitedNodes.some(row => row.includes(true))) {
-    //         dispatch({ type: ActionTypes.CLEAR_SOLUTION, payload: getBooleanMatrixInitValue(size) });
-    //     }
-
-    //     const recentlyVisitedNodes: { frontier: Node, parent: Node | undefined, value: number }[] = Object.keys(comeFrom).map(currentKey => {
-    //         let frontier = splitNodePosition(currentKey);
-    //         let parent = comeFrom[currentKey].parent ? splitNodePosition(comeFrom[currentKey].parent!) : undefined;
-    //         let value: number = comeFrom[currentKey].value;
-
-    //         return { frontier, parent, value };
-    //     });
-
-    //     recentlyVisitedNodes.forEach((node, i) => {
-    //         setTimeout(() => {
-    //             dispatch({ type: ActionTypes.SET_FRONTIER_NODE, payload: node.frontier });
-    //             dispatch({ type: ActionTypes.SET_VISITED_NODE, payload: node.parent });
-    //             dispatch({ type: ActionTypes.SET_NODE_VALUE, payload: node });
-    //         },
-    //             i * TIMEOUT_MILLISECONDS
-    //         )
-    //     });
-
-
-    //     //go through each node from comeFrom until the startNode is not reached
-    //     let currentNode: ComeFromData = comeFrom[`${finishNode.row}-${finishNode.col}`];
-
-    //     let startNodeText: string = `${startNode.row}-${startNode.col}`;
-    //     const path: Node[] = [];
-
-    //     while (currentNode.parent != startNodeText && currentNode) {
-    //         let parent: string = currentNode.parent!;
-
-    //         let parentData = parent.split('-');
-    //         let row = parseInt(parentData[0]);
-    //         let col = parseInt(parentData[1]);
-
-    //         path.push({ row, col });
-
-    //         currentNode = comeFrom[parent];
-    //     }
-    //     path.forEach((node, i) => {
-    //         setTimeout(
-    //             () => dispatch({ type: ActionTypes.SET_PATH_NODE, payload: node }),
-    //             (recentlyVisitedNodes.length + i) * TIMEOUT_MILLISECONDS
-    //         )
-    //     });
-
-    // }
-
     const executeAlgorithm = async () => {
+        handleExecution();
         clearTimers();
 
         for (const lastComeFrom of algorithmFunc(state.wallNodes, state.startNode, state.finishNode)) {
@@ -400,6 +353,8 @@ function Board({ boardRows, boardCols, delayFunc, algorithmFunc }: Props) {
 
             await delayFunc();
         }
+
+        handleExecution();
     };
 
     const clearMatrix = () => {
@@ -408,38 +363,36 @@ function Board({ boardRows, boardCols, delayFunc, algorithmFunc }: Props) {
     };
 
     return (
-        <BoardProvider>
-            <BoardSection>
-                <ButtonWrapper>
-                    <button key={'execute'} onClick={() => executeAlgorithm()}>Execute</button>
-                    <button key={'clear'} onClick={() => clearMatrix()}>Clear board</button>
-                </ButtonWrapper>
-                <BoardWrapper>
-                    {/* visitedNodes is used just for the iteration through all rows and cols */}
-                    {state.visitedNodes.map((row, rowIndex) => (
-                        <RowWrapper>
-                            {row.map((_, colIndex) => {
-                                let isStartNode = rowIndex === state.startNode.row && colIndex === state.startNode.col;
-                                let isFinishNode = rowIndex === state.finishNode.row && colIndex === state.finishNode.col;
+        <BoardSection>
+            <ButtonWrapper>
+                <button key={'execute'} onClick={() => executeAlgorithm()}>Execute</button>
+                <button key={'clear'} onClick={() => clearMatrix()}>Clear board</button>
+            </ButtonWrapper>
+            <BoardWrapper>
+                {/* visitedNodes is used just for the iteration through all rows and cols */}
+                {state.visitedNodes.map((row, rowIndex) => (
+                    <RowWrapper>
+                        {row.map((_, colIndex) => {
+                            let isStartNode = rowIndex === state.startNode.row && colIndex === state.startNode.col;
+                            let isFinishNode = rowIndex === state.finishNode.row && colIndex === state.finishNode.col;
 
-                                return <Cell
-                                    key={`board-cell-${rowIndex}-${colIndex}`}
-                                    value={state.nodeValues[rowIndex][colIndex]}
-                                    isVisited={state.visitedNodes[rowIndex][colIndex]}
-                                    isFrontier={state.frontierNodes[rowIndex][colIndex]}
-                                    isWall={state.wallNodes[rowIndex][colIndex]}
-                                    isPartOfThePath={state.pathNodes[rowIndex][colIndex]}
-                                    isStart={isStartNode}
-                                    isFinish={isFinishNode}
-                                    row={rowIndex}
-                                    col={colIndex}
-                                    dispatch={dispatch} />
-                            })}
-                        </RowWrapper>
-                    ))}
-                </BoardWrapper>
-            </BoardSection>
-        </BoardProvider>
+                            return <Cell
+                                key={`board-cell-${rowIndex}-${colIndex}`}
+                                value={state.nodeValues[rowIndex][colIndex]}
+                                isVisited={state.visitedNodes[rowIndex][colIndex]}
+                                isFrontier={state.frontierNodes[rowIndex][colIndex]}
+                                isWall={state.wallNodes[rowIndex][colIndex]}
+                                isPartOfThePath={state.pathNodes[rowIndex][colIndex]}
+                                isStart={isStartNode}
+                                isFinish={isFinishNode}
+                                row={rowIndex}
+                                col={colIndex}
+                                dispatch={dispatch} />
+                        })}
+                    </RowWrapper>
+                ))}
+            </BoardWrapper>
+        </BoardSection>
     );
 
     function splitNodePosition(currentKey: string) {
