@@ -5,7 +5,7 @@ import { memo } from 'react';
 
 const Cell =
   memo(
-    ({value, isVisited, isWall, isPartOfThePath, isStart, isFinish, row, col, dispatch }: INodeFactory) => {
+    ({ value, isVisited, isFrontier, isWall, isPartOfThePath, isStart, isFinish, row, col, dispatch }: INodeFactory) => {
       const getCellType = () => {
         return isStart
           ? 'start'
@@ -17,7 +17,9 @@ const Cell =
                 ? 'path'
                 : isVisited
                   ? 'visited'
-                  : 'free';
+                  : isFrontier
+                    ? 'frontier'
+                    : 'free';
       }
 
       return createNode(value, row, col, getCellType(), dispatch);

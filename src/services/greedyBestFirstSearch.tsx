@@ -28,7 +28,6 @@ function* greedyBestFirstSearch(wallMatrix: boolean[][], startNode: Node, finish
         tempMatrix[currentNode.node.row][currentNode.node.col].isVisited = true;
         const graphNeighbors: Node[] = getValidNeighbors(tempMatrix, currentNode.node);
 
-        const roundFrontier: { node: Node, priority: number }[] = [];
         const roundComeFrom: ComeFrom = {};
 
         graphNeighbors.forEach(neighbor => {
@@ -38,7 +37,6 @@ function* greedyBestFirstSearch(wallMatrix: boolean[][], startNode: Node, finish
             frontier.push({ node: neighbor, priority });
             comeFrom[`${neighbor.row}-${neighbor.col}`] = { parent: `${currentNode.node.row}-${currentNode.node.col}`, value: priority }
 
-            roundFrontier.push({ node: neighbor, priority });
             roundComeFrom[`${neighbor.row}-${neighbor.col}`] = { parent: `${currentNode.node.row}-${currentNode.node.col}`, value: priority };
 
             if (areEqual(neighbor, finishNode)) isTargetFound = true;
@@ -46,7 +44,7 @@ function* greedyBestFirstSearch(wallMatrix: boolean[][], startNode: Node, finish
 
         frontier.sort((prev, next) => prev.priority - next.priority);
         
-        yield { visited: roundComeFrom, frontier: roundFrontier };
+        yield roundComeFrom;
     }
 };
 

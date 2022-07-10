@@ -55,7 +55,7 @@ function App() {
       <RangeSlider boardSize={boardSize} updateBoardSize={setBoardSize} />
       <BoardContainer>
         <Board size={INITIAL_SIZE} algorithmFunc={breadthFirstSearch} ></Board>
-        <Board size={INITIAL_SIZE} algorithmFunc={greedyBestFirstSearch} ></Board>
+        {/* <Board size={INITIAL_SIZE} algorithmFunc={greedyBestFirstSearch} ></Board> */}
       </BoardContainer>
     </React.Fragment>
   );

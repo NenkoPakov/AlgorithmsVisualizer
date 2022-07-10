@@ -11,12 +11,14 @@ export interface ITargetNode extends INode {
 export interface IFreeNode extends INode {
     value?:number,
     isVisited?: boolean,
+    isFrontier?: boolean,
     isPartOfThePath?: boolean,
 }
 
 export interface INodeFactory extends INode {
     value: number,
     isVisited: boolean,
+    isFrontier: boolean,
     isWall: boolean,
     isPartOfThePath: boolean,
     isStart: boolean,

@@ -8,15 +8,21 @@ import { useBoard, useBoardUpdate } from './BoardContext';
 const FreeNode = styled.div<any>`
 ${NodeBase};
 ${NodeText}
-background-color:${(props: IFreeNode) => props.isVisited ? 'yellow' : props.isPartOfThePath ? 'white' : 'lightblue'};
-transition: background-color 1s ease-out ;
+background-color:${(props: IFreeNode) => props.isVisited 
+                                              ? 'yellow' 
+                                              : props.isPartOfThePath 
+                                                  ? 'white' 
+                                                  : 'lightblue'};
+box-sizing: border-box;
+border:${(props: IFreeNode) => props.isFrontier?'solid 2px blue':''};
+/* transition: background-color 1s ease-out ; */
 
 :hover{
   background-color:black ;
 } 
 `;
 
-function Free({ value, row, col, isVisited, isPartOfThePath, dispatch }: IFreeNode) {
+function Free({ value, row, col, isVisited, isFrontier, isPartOfThePath, dispatch }: IFreeNode) {
   const { isDrawingWall, isUnmarkAction } = useBoard();
   const { handleWallDrawingEvent, handleUnmarkEvent } = useBoardUpdate();
 
@@ -52,6 +58,7 @@ function Free({ value, row, col, isVisited, isPartOfThePath, dispatch }: IFreeNo
     id={key}
     key={`free-node-${key}`}
     isVisited={isVisited}
+    isFrontier={isFrontier}
     isPartOfThePath={isPartOfThePath}
     onDragOver={(e: MouseEvent) => onDragOver(e)}
     onContextMenu={(e: MouseEvent) => handleClick(e)}
