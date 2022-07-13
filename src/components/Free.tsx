@@ -2,8 +2,8 @@ import React from 'react';
 import styled from 'styled-components'
 import { NodeBase, NodeText } from '../global';
 import { IFreeNode, } from '../interfaces/Cell.interface';
-import { ActionTypes } from './Board';
-import { useBoard, useBoardUpdate } from './BoardContext';
+import { ActionTypes } from '../App';
+import { useBoardContext, useBoardUpdateContext } from './BoardContext';
 
 const FreeNode = styled.div<any>`
 ${NodeBase};
@@ -23,8 +23,8 @@ transition: background-color 1.5s ease-out ;
 `;
 
 function Free({ value, row, col, isVisited, isFrontier, isPartOfThePath, dispatch }: IFreeNode) {
-  const { isDrawingWall, isUnmarkAction } = useBoard();
-  const { handleWallDrawingEvent, handleUnmarkEvent, } = useBoardUpdate();
+  const { isDrawingWall, isUnmarkAction } = useBoardContext();
+  const { handleWallDrawingEvent, handleUnmarkEvent, } = useBoardUpdateContext();
 
   const key: string = `${row}-${col}`;
 

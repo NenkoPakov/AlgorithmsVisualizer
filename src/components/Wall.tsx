@@ -2,8 +2,8 @@ import React from 'react';
 import styled from 'styled-components'
 import { NodeBase } from '../global';
 import { INode } from '../interfaces/Cell.interface';
-import { ActionTypes } from './Board';
-import { useBoard, useBoardUpdate } from './BoardContext';
+import { ActionTypes } from '../App';
+import { useBoardContext, useBoardUpdateContext } from './BoardContext';
 
 
 const WallCell = styled.div<any>`
@@ -14,8 +14,8 @@ transition: background-color 0.5s ease-out ;
 
 
 function Wall({ row, col, dispatch }: INode) {
-  const { isDrawingWall, isUnmarkAction } = useBoard();
-  const { handleWallDrawingEvent, handleUnmarkEvent } = useBoardUpdate();
+  const { isDrawingWall, isUnmarkAction } = useBoardContext();
+  const { handleWallDrawingEvent, handleUnmarkEvent } = useBoardUpdateContext();
   
   const key: string = `${row}-${col}`;
 

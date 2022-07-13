@@ -3,14 +3,14 @@ import styled from 'styled-components'
 import { NodeBase } from '../global';
 import { IFreeNode } from '../interfaces/Cell.interface';
 import { SliderType, ISlider } from '../interfaces/Slider.interface';
-import { useBoard } from './BoardContext';
+import { useBoardContext } from './BoardContext';
 
 const Slider = styled.input`
 		outline: 0;
 		border: 0;
-		margin:50px 50px;
+		margin-bottom:20px;
 		border-radius: 500px;
-		width: 100px;
+		width: 100%;
 		/* max-width: 100%; */
 		transition: box-shadow 0.2s ease-in-out;
 		
@@ -19,7 +19,8 @@ const Slider = styled.input`
 		-o-transform: rotate(90deg);
 		-ms-transform: rotate(90deg);
 		transform: rotate(90deg); */
-		transform:${(props: { sliderType: SliderType }) => props.sliderType == SliderType.rowsSlider ? 'rotate(90deg)' : '0'};
+		/* transform:${(props: { sliderType: SliderType }) => props.sliderType == SliderType.rowsSlider ? 'rotate(90deg)' : '0'}; */
+		transform:${(props: { sliderType: SliderType }) => props.sliderType == SliderType.rowsSlider ? '0' : '0'};
 
 		// Chrome
 		@media screen and (-webkit-min-device-pixel-ratio:0) {
@@ -127,7 +128,7 @@ const SizeIndicator = styled.h4`
 
 function RangeSlider({ boardSize, sliderType, updateBoardSizeFunc }: ISlider) {
 
-	const { isDrawingWall, isUnmarkAction, isInExecution } = useBoard();
+	const { isDrawingWall, isUnmarkAction, isInExecution } = useBoardContext();
 
 	return <React.Fragment>
 		<Slider sliderType={sliderType} type="range" onChange={(e: any) => updateBoardSizeFunc((parseInt(e.target.value)), sliderType)} defaultValue={boardSize} disabled={sliderType != SliderType.speedSlider ? isInExecution : false} />
