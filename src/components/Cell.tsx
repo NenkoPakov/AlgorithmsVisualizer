@@ -1,6 +1,6 @@
 import { INodeFactory } from '../interfaces/Cell.interface';
 import { createNode } from '../factories/NodeFactory';
-import { memo } from 'react';
+import { memo, useRef } from 'react';
 
 
 const Cell =

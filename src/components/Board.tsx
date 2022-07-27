@@ -45,6 +45,7 @@ interface State {
     pathNodes: boolean[][],
     nodeValues: number[][],
     foundPath: Node[],
+    algorithmResult: {},
 }
 
 export const ActionTypes = {
@@ -55,6 +56,7 @@ export const ActionTypes = {
     SET_FRONTIER_NODE: 'setFrontierNode',
     SET_PATH_NODE: 'setPathNode',
     SET_NODE_VALUE: 'setNodeValue',
+    SET_ALGORITHM_RESULT: 'setAlgorithmResult',
 }
 
 function reducer(state: State, action: any) {
@@ -97,12 +99,15 @@ function reducer(state: State, action: any) {
 
             return { ...state, nodeValues: state.nodeValues };
 
+        case ActionTypes.SET_ALGORITHM_RESULT:
+            return { ...state, algorithmResult: action.payload };
+
         default:
             return state;
     }
 }
 
-function Board({ boardRows, boardCols, wallNodes, startNode, finishNode, recentlyVisitedNodes, delayFunc, algorithmFunc, parentDispatch }: BoardProps) {
+const Board = ({ boardRows, boardCols, wallNodes, startNode, finishNode, iteration, recentlyVisitedNodes, delayFunc, algorithmFunc, parentDispatch }: BoardProps) => {
 
     const initState = {
         visitedNodes: getMatrixInitValue(boardRows, boardCols) as boolean[][],
@@ -110,6 +115,7 @@ function Board({ boardRows, boardCols, wallNodes, startNode, finishNode, recentl
         pathNodes: getMatrixInitValue(boardRows, boardCols) as boolean[][],
         nodeValues: getMatrixInitValue(boardRows, boardCols, true) as number[][],
         foundPath: [],
+        algorithmResult: {},
         // startNode: { row: 0, col: 0 },
         // finishNode: { row: boardRows - 1, col: boardCols - 1 },
         // wallNodes: getMatrixInitValue(boardRows, boardCols) as boolean[][],
@@ -119,7 +125,7 @@ function Board({ boardRows, boardCols, wallNodes, startNode, finishNode, recentl
     }
 
     const [state, dispatch] = React.useReducer(reducer, initState);
-    // const isCancelled = useRef<Boolean>(false);
+    const rerendered = useRef<number>(0);
 
     const generatorAlgorithmFunc = useMemo(() => algorithmFunc(wallNodes, startNode, finishNode), [wallNodes, startNode, finishNode]);
 
@@ -127,61 +133,74 @@ function Board({ boardRows, boardCols, wallNodes, startNode, finishNode, recentl
     const { handleWallDrawingEvent, handleUnmarkEvent, handleExecution, handleCancellation } = useBoardUpdateContext();
 
     useEffect(() => {
-        if (isInExecution) {
-            test();
+        executeAlgorithm();
+    }, [isInExecution])
+
+    useEffect(() => {
+        if(Object.keys(state.algorithmResult).length){
+            Object.keys(state.algorithmResult[iteration]).forEach(currentKey => {
+                    const currentNode = state.algorithmResult[iteration][currentKey];
+                    let frontier: Node = splitNodePosition(currentKey);
+                    let parent: Node | undefined = currentNode.parent ? splitNodePosition(currentNode.parent!) : undefined;
+                    let value: number = currentNode.value;
+        
+                    dispatch({ type: ActionTypes.SET_FRONTIER_NODE, payload: frontier });
+                    if (parent) {
+                        dispatch({ type: ActionTypes.SET_VISITED_NODE, payload: parent });
+                    } 
+                    dispatch({ type: ActionTypes.SET_NODE_VALUE, payload: { frontier, value } });
+                });
         }
-    }, [isInExecution, isCancelled])
-
-    const test = async () => {
-        let lastComeFrom = generatorAlgorithmFunc.next();
-        while (!lastComeFrom.done && !isCancelled) {
-            const recentlyVisitedNodes: { frontier: Node, parent: Node | undefined, value: number }[] = Object.keys(lastComeFrom.value).map(currentKey => {
-                let frontier = splitNodePosition(currentKey);
-                let parent = lastComeFrom.value[currentKey].parent ? splitNodePosition(lastComeFrom.value[currentKey].parent!) : undefined;
-                let value: number = lastComeFrom.value[currentKey].value;
-
-                return { frontier, parent, value };
-            });
-
-            for (const node of recentlyVisitedNodes) {
-                dispatch({ type: ActionTypes.SET_FRONTIER_NODE, payload: node.frontier });
-                dispatch({ type: ActionTypes.SET_VISITED_NODE, payload: node.parent });
-                dispatch({ type: ActionTypes.SET_NODE_VALUE, payload: node });
-            }
-
-            await delayFunc();
-
-            lastComeFrom = generatorAlgorithmFunc.next();
-        }
-
-    };
+    }, [iteration])
 
     useEffect(() => {
         dispatch({ type: ActionTypes.UPDATE_SIZE, payload: { booleanMatrix: getMatrixInitValue(boardRows, boardCols), numericMatrix: getMatrixInitValue(boardRows, boardCols, true) } });
     }, [boardRows, boardCols])
 
     const executeAlgorithm = async () => {
-        for (const lastComeFrom of generatorAlgorithmFunc) {
-            const recentlyVisitedNodes: { frontier: Node, parent: Node | undefined, value: number }[] = Object.keys(lastComeFrom).map(currentKey => {
-                let frontier = splitNodePosition(currentKey);
-                let parent = lastComeFrom[currentKey].parent ? splitNodePosition(lastComeFrom[currentKey].parent!) : undefined;
-                let value: number = lastComeFrom[currentKey].value;
+        var cameFrom = await algorithmFunc(wallNodes, startNode, finishNode);
+        dispatch({ type: ActionTypes.SET_ALGORITHM_RESULT, payload: cameFrom });
 
-                return { frontier, parent, value };
-            });
+        // Object.keys(cameFrom).forEach(currentKey => {
+        //     let frontier: Node = splitNodePosition(currentKey);
+        //     let parent: Node | undefined = cameFrom[currentKey].parent ? splitNodePosition(cameFrom[currentKey].parent!) : undefined;
+        //     let value: number = cameFrom[currentKey].value;
+        //     let iteration: number = cameFrom[currentKey].value;
 
-            for (const node of recentlyVisitedNodes) {
-                dispatch({ type: ActionTypes.SET_FRONTIER_NODE, payload: node.frontier });
-                dispatch({ type: ActionTypes.SET_VISITED_NODE, payload: node.parent });
-                dispatch({ type: ActionTypes.SET_NODE_VALUE, payload: node });
-            }
+        //     dispatch({ type: ActionTypes.SET_FRONTIER_NODE, payload: frontier });
+        //     dispatch({ type: ActionTypes.SET_VISITED_NODE, payload: parent });
+        //     dispatch({ type: ActionTypes.SET_NODE_VALUE, payload: { frontier, value } });
 
-            if (isCancelled) {
-                break;
-            }
 
-            await delayFunc();
-        }
+        //     await delayFunc();
+
+        // })
+
+        // for (const lastComeFrom of generatorAlgorithmFunc) {
+
+        //     const recentlyVisitedNodes: { frontier: Node, parent: Node | undefined, value: number }[] = Object.keys(lastComeFrom).map(currentKey => {
+        //         let frontier = splitNodePosition(currentKey);
+        //         let parent = lastComeFrom[currentKey].parent ? splitNodePosition(lastComeFrom[currentKey].parent!) : undefined;
+        //         let value: number = lastComeFrom[currentKey].value;
+
+        //         return { frontier, parent, value };
+        //     });
+
+        //     for (const node of recentlyVisitedNodes) {
+        //         dispatch({ type: ActionTypes.SET_FRONTIER_NODE, payload: node.frontier });
+        //         dispatch({ type: ActionTypes.SET_VISITED_NODE, payload: node.parent });
+        //         dispatch({ type: ActionTypes.SET_NODE_VALUE, payload: node });
+        //     }
+
+        //     if (isCancelled.current) {
+        //         await new Promise((resolve, reject) => {
+        //             if (!isCancelled.current)
+        //                 resolve("Resolved")
+        //         });
+        //     }
+
+        //     await delayFunc();
+        // }
     };
 
     const clearMatrix = () => {

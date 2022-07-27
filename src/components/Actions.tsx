@@ -1,5 +1,6 @@
-import React from 'react'
+import React, { useCallback } from 'react'
 import styled from 'styled-components';
+import { ActionTypes } from './BoardManager';
 import { useBoardContext, useBoardUpdateContext } from './BoardContext';
 import Button from './Button'
 
@@ -12,25 +13,41 @@ const ButtonWrapper = styled.div`
   position:relative;
   `;
 
-function Actions() {
+function Actions({ dispatch, delayFunc }: any) {
     const boardContext = useBoardContext();
     const boardUpdateContext = useBoardUpdateContext();
 
-    return (
+    const startAnimation = async () => {
+        boardUpdateContext.handleCancellation(false);
+        boardUpdateContext.handleExecution(true);
 
-        // <button key='execute' onClick={() => executeAlgorithm()}>Execute</button>
-        // <button key='clear' onClick={() => clearMatrix()}>Clear board</button>
-        // <button key='pause' onClick={() => isCancelled.current = true}>Pause</button>
-        // <button key='continue' onClick={() => { isCancelled.current = false, executeAlgorithm() }}>Continue</button>
-        boardContext.isInExecution
-            ? <ButtonWrapper>
-                <Button key='continue' text='continue' handleClickFunc={() => { boardUpdateContext.handleCancellation(false)}} isForStart={true} >Continue</Button>
-                <Button key='pause' text='pause' handleClickFunc={() => { boardUpdateContext.handleCancellation(true)}} isForStart={false} >Pause</Button>
-            </ButtonWrapper>
-            : <ButtonWrapper>
-                <Button key='execute' text='execute' handleClickFunc={() => boardUpdateContext.handleExecution(true)} isForStart={true} >Execute</Button>
-                <Button key='clear' text='clear' handleClickFunc={() => boardUpdateContext.handleExecution(false)} isForStart={false} >Clear board</Button>
-            </ButtonWrapper>
+        while (!boardContext.isCancelled.current) {
+            dispatch({ type: ActionTypes.STEP_FURTHER })
+
+            await delayFunc()
+        }
+
+        boardUpdateContext.handleExecution(false);
+    }
+
+    return (
+        <ButtonWrapper>
+            {boardContext.isCancelled.current
+                ? <>
+                    <Button key='continue' text='continue' handleClickFunc={() => startAnimation()} isForStart={true} >Continue</Button>
+                    <Button key='continue' text='next' handleClickFunc={() => dispatch({ type: ActionTypes.STEP_FURTHER })} isForStart={true} >Next</Button>
+                    <Button key='continue' text='prev' handleClickFunc={() => dispatch({ type: ActionTypes.STEP_BACK })} isForStart={true} >Previous</Button>
+                </>
+                : !boardContext.isInExecution
+                    ? <>
+                        <Button key='execute' text='execute' handleClickFunc={() => startAnimation()} isForStart={true} >Execute</Button>
+                    </>
+                    : <>
+                        <Button key='pause' text='pause' handleClickFunc={() => boardUpdateContext.handleCancellation(true)} isForStart={false} >Pause</Button>
+                    </>
+            }
+            <Button key='clear' text='clear' handleClickFunc={() => boardUpdateContext.handleExecution(false)} isForStart={false} >Clear board</Button>
+        </ButtonWrapper>
     )
 }
 

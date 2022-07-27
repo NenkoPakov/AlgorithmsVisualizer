@@ -2,7 +2,7 @@ import React from 'react';
 import styled from 'styled-components'
 import { NodeBase, NodeText } from '../global';
 import { IFreeNode, } from '../interfaces/Cell.interface';
-import { ActionTypes } from '../App';
+import { ActionTypes } from './BoardManager';
 import { useBoardContext, useBoardUpdateContext } from './BoardContext';
 
 const FreeNode = styled.div<any>`
@@ -65,6 +65,7 @@ function Free({ value, row, col, isVisited, isFrontier, isPartOfThePath, dispatc
     onClick={(e: MouseEvent) => handleClick(e)}
     onMouseEnter={() => dispatch({ type: ActionTypes.GENERATE_PROPOSAL_WALL, payload: { node: { row, col }, isUnmarkAction } })}
   >
+    {/* {key} */}
     {value}
   </FreeNode>
 

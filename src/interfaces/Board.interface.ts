@@ -10,13 +10,19 @@ export interface BoardProps {
     wallNodes:boolean[][],
     recentlyVisitedNodes:{ frontier: Node, parent: Node | undefined, value: number }[],
     parentDispatch:Function,
+    iteration:number, 
 };
 
 export interface ComeFromData {
     parent: string | undefined,
     value: number,
+    iteration:number,
+}
+
+export interface Test {
+    [name: string]: ComeFromData
 }
 
 export interface ComeFrom {
-    [name: string]: ComeFromData
+    [name: number]: Test
 }

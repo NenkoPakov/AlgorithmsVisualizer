@@ -2,7 +2,7 @@ import React from 'react';
 import styled from 'styled-components'
 import { NodeBase } from '../global';
 import { INode } from '../interfaces/Cell.interface';
-import { ActionTypes } from '../App';
+import { ActionTypes } from './BoardManager';
 import { useBoardContext, useBoardUpdateContext } from './BoardContext';
 
 

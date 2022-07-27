@@ -15,9 +15,9 @@ function BoardProvider({ children }: any) {
     const [isDrawingWall, setIsDrawingWall] = useState<Boolean>(false);
     const [isUnmarkAction, setIsUnmarkAction] = useState<Boolean>(false);
     const [isInExecution, setIsInExecution] = useState<Boolean>(false);
-    const [isCancelled, setIsCancelled] = useState<Boolean>(false);
+    // const [isCancelled, setIsCancelled] = useState<Boolean>(false);
 
-    // const isCancelled = useRef<boolean>(false);
+    const isCancelled = useRef<boolean>(false);
     // const isInExecution = useRef<boolean>(false);
 
     const handleWallDrawingEvent = () => {
@@ -35,8 +35,8 @@ function BoardProvider({ children }: any) {
 
 
     const handleCancellation = (value: boolean) => {
-        setIsCancelled(value);
-        // isCancelled.current=value;
+        // setIsCancelled(value);
+        isCancelled.current=value;
     }
 
     return (

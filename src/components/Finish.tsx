@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import styled from 'styled-components'
 import { NodeBase } from '../global';
 import {  ITargetNode } from '../interfaces/Cell.interface';
-import { ActionTypes } from '../App';
+import { ActionTypes } from './BoardManager';
 
 
 const FinishNode = styled.div<any>`
