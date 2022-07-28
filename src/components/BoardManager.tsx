@@ -183,7 +183,7 @@ function BoardManager() {
     const SIZE_RATIO = MAX_SIZE - MIN_SIZE;
     const INITIAL_SIZE = 15;
     // const INITIAL_TIMEOUT_MILLISECONDS = 80;
-     const INITIAL_TIMEOUT_MILLISECONDS = 580;
+    const INITIAL_TIMEOUT_MILLISECONDS = 580;
 
     const initState = {
         boardRows: INITIAL_SIZE,
@@ -194,11 +194,12 @@ function BoardManager() {
         wallSelectionStartNode: { row: -1, col: -1 },
         proposedWall: [],
         draggedNodePosition: { row: -1, col: -1 },
-        iteration: 0,
+        iteration: -1,
     }
 
     const [state, dispatch] = React.useReducer(reducer, initState);
     const speed = useRef<number>(INITIAL_TIMEOUT_MILLISECONDS);
+    const previousIteration = useRef<number>(0);
 
 
 
@@ -214,6 +215,18 @@ function BoardManager() {
                 break;
             case SliderType.speedSlider:
                 speed.current = sliderValue * 2;
+                break;
+            case SliderType.progressSlider:
+                const totalIterations = state.boardRows * state.boardCols;
+                const newIterationIndex = Math.floor(totalIterations * sliderValue / 100);
+
+                const direction = previousIteration.current > newIterationIndex ? -1 : +1;
+                while (previousIteration.current != newIterationIndex) {
+                    dispatch({ type: ActionTypes.STEP_FURTHER})
+
+                    previousIteration.current += direction;
+                }
+
                 break;
             default:
                 //throw exception
@@ -252,9 +265,10 @@ function BoardManager() {
             </BoardContainer>
             <Settings>
                 <div>
-                    <RangeSlider key='range-slider-rows' boardSize={state.boardRows} sliderType={SliderType.rowsSlider} updateBoardSizeFunc={handleSliderUpdate} />
-                    <RangeSlider key='range-slider-cols' boardSize={state.boardCols} sliderType={SliderType.colsSlider} updateBoardSizeFunc={handleSliderUpdate} />
-                    <RangeSlider key='range-slider-speed' boardSize={speed.current} sliderType={SliderType.speedSlider} updateBoardSizeFunc={handleSliderUpdate} />
+                    <RangeSlider key='range-slider-rows' defaultValue={state.boardRows} sliderType={SliderType.rowsSlider} updateBoardSizeFunc={handleSliderUpdate} />
+                    <RangeSlider key='range-slider-cols' defaultValue={state.boardCols} sliderType={SliderType.colsSlider} updateBoardSizeFunc={handleSliderUpdate} />
+                    <RangeSlider key='range-slider-speed' defaultValue={speed.current} sliderType={SliderType.speedSlider} updateBoardSizeFunc={handleSliderUpdate} />
+                    <RangeSlider key='range-slider-progress' defaultValue={state.iteration} sliderType={SliderType.progressSlider} updateBoardSizeFunc={handleSliderUpdate} />
                 </div>
                 <Actions dispatch={dispatch} delayFunc={delayFunc} />
             </Settings>

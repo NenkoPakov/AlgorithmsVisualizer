@@ -1,7 +1,7 @@
-export enum SliderType { rowsSlider, colsSlider, speedSlider };
+export enum SliderType { rowsSlider, colsSlider, speedSlider, progressSlider };
 
 export interface ISlider {
-    boardSize: number,
+    defaultValue: number,
     sliderType: SliderType,
     updateBoardSizeFunc: Function,
 }

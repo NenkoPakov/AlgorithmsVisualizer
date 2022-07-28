@@ -16,13 +16,8 @@ export interface BoardProps {
 export interface ComeFromData {
     parent: string | undefined,
     value: number,
-    iteration:number,
-}
-
-export interface Test {
-    [name: string]: ComeFromData
 }
 
 export interface ComeFrom {
-    [name: number]: Test
+    [name: string]: ComeFromData
 }

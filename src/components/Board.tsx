@@ -5,6 +5,7 @@ import { ComeFrom, ComeFromData, BoardProps } from '../interfaces/Board.interfac
 import { Node } from '../interfaces/Cell.interface';
 import { useBoardContext, useBoardUpdateContext } from './BoardContext';
 import { getMatrixInitValue, splitNodePosition, matrixDeepCopy } from '../global'
+import { IndexInfo, IndexKind } from 'typescript';
 
 const BoardSection = styled.section`
 position:relative;
@@ -45,7 +46,7 @@ interface State {
     pathNodes: boolean[][],
     nodeValues: number[][],
     foundPath: Node[],
-    algorithmResult: {},
+    algorithmResult: [],
 }
 
 export const ActionTypes = {
@@ -53,9 +54,12 @@ export const ActionTypes = {
     CLEAR_MATRIX: 'clearMatrix',
     CLEAR_SOLUTION: 'clearSolution',
     SET_VISITED_NODE: 'setVisitedNode',
+    SET_VISITED_NODES: 'setVisitedNodes',
     SET_FRONTIER_NODE: 'setFrontierNode',
+    SET_FRONTIER_NODES: 'setFrontiersNode',
     SET_PATH_NODE: 'setPathNode',
     SET_NODE_VALUE: 'setNodeValue',
+    SET_NODES_VALUE: 'setNodesValue',
     SET_ALGORITHM_RESULT: 'setAlgorithmResult',
 }
 
@@ -79,9 +83,28 @@ function reducer(state: State, action: any) {
 
             return { ...state, visitedNodes: state.visitedNodes as boolean[][] };
 
+        case ActionTypes.SET_VISITED_NODES:
+            let visitedNodes: Node[] = action.payload;
+
+            visitedNodes.forEach(({ row: visitedRow, col: visitedCol }) => {
+
+                state.visitedNodes[visitedRow][visitedCol] = true;
+            })
+
+            return { ...state, visitedNodes: state.visitedNodes as boolean[][] };
+
         case ActionTypes.SET_FRONTIER_NODE:
             let { row: frontierRow, col: frontierCol }: Node = action.payload;
             state.frontierNodes[frontierRow][frontierCol] = true;
+
+            return { ...state, frontierNodes: state.frontierNodes };
+
+        case ActionTypes.SET_FRONTIER_NODES:
+            let frontierNodes: Node[] = action.payload;
+
+            frontierNodes.forEach(({ row: frontierRow, col: frontierCol }) => {
+                state.frontierNodes[frontierRow][frontierCol] = true;
+            })
 
             return { ...state, frontierNodes: state.frontierNodes };
 
@@ -96,6 +119,17 @@ function reducer(state: State, action: any) {
             let { row: nodeValueRow, col: nodeValueCol }: Node = action.payload.frontier;
 
             state.nodeValues[nodeValueRow][nodeValueCol] = action.payload.value;
+
+            return { ...state, nodeValues: state.nodeValues };
+
+        case ActionTypes.SET_NODES_VALUE:
+            let nodeValues: { frontier: Node, value: number }[] = action.payload;
+
+            nodeValues.forEach(({ frontier, value }) => {
+                let { row: nodeValueRow, col: nodeValueCol } = frontier;
+
+                state.nodeValues[nodeValueRow][nodeValueCol] = value;
+            })
 
             return { ...state, nodeValues: state.nodeValues };
 
@@ -125,7 +159,7 @@ const Board = ({ boardRows, boardCols, wallNodes, startNode, finishNode, iterati
     }
 
     const [state, dispatch] = React.useReducer(reducer, initState);
-    const rerendered = useRef<number>(0);
+    const previousIteration = useRef<number>(0);
 
     const generatorAlgorithmFunc = useMemo(() => algorithmFunc(wallNodes, startNode, finishNode), [wallNodes, startNode, finishNode]);
 
@@ -136,21 +170,47 @@ const Board = ({ boardRows, boardCols, wallNodes, startNode, finishNode, iterati
         executeAlgorithm();
     }, [isInExecution])
 
-    useEffect(() => {
-        if(Object.keys(state.algorithmResult).length){
+    useEffect(() => { 
+        console.log(state.algorithmResult);
+        // if (Object.keys(state.algorithmResult).length) {
+        //     const direction = iteration > previousIteration.current ? +1 : -1;
+
+        //     while (previousIteration.current != iteration) {
+        //         Object.keys(state.algorithmResult[previousIteration.current]).forEach(currentKey => {
+        //             const currentNode = state.algorithmResult[previousIteration.current][currentKey];
+        //             let frontier: Node = splitNodePosition(currentKey);
+        //             let parent: Node | undefined = currentNode.parent ? splitNodePosition(currentNode.parent!) : undefined;
+        //             let value: number = currentNode.value;
+
+        //             if (parent) {
+        //                 dispatch({ type: ActionTypes.SET_VISITED_NODE, payload: parent });
+        //             }
+
+        //             dispatch({ type: ActionTypes.SET_FRONTIER_NODE, payload: frontier });
+        //             dispatch({ type: ActionTypes.SET_NODE_VALUE, payload: { frontier, value } });
+        //         });
+
+        //         previousIteration.current += direction;
+        //     }
+        // }
+
+        if (Object.keys(state.algorithmResult).length) {
             Object.keys(state.algorithmResult[iteration]).forEach(currentKey => {
-                    const currentNode = state.algorithmResult[iteration][currentKey];
-                    let frontier: Node = splitNodePosition(currentKey);
-                    let parent: Node | undefined = currentNode.parent ? splitNodePosition(currentNode.parent!) : undefined;
-                    let value: number = currentNode.value;
-        
-                    dispatch({ type: ActionTypes.SET_FRONTIER_NODE, payload: frontier });
-                    if (parent) {
-                        dispatch({ type: ActionTypes.SET_VISITED_NODE, payload: parent });
-                    } 
-                    dispatch({ type: ActionTypes.SET_NODE_VALUE, payload: { frontier, value } });
-                });
+                const currentNode = state.algorithmResult[iteration][currentKey];
+                let frontier: Node = splitNodePosition(currentKey);
+                let parent: Node | undefined = currentNode.parent ? splitNodePosition(currentNode.parent!) : undefined;
+                let value: number = currentNode.value;
+
+                if (parent) {
+                    dispatch({ type: ActionTypes.SET_VISITED_NODE, payload: parent });
+                }
+
+                dispatch({ type: ActionTypes.SET_FRONTIER_NODE, payload: frontier });
+                dispatch({ type: ActionTypes.SET_NODE_VALUE, payload: { frontier, value } });
+            });
         }
+
+        // previousIteration.current = iteration;
     }, [iteration])
 
     useEffect(() => {

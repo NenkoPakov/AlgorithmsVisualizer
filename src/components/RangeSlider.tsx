@@ -126,12 +126,12 @@ const SizeIndicator = styled.h4`
 //     }
 // `;
 
-function RangeSlider({ boardSize, sliderType, updateBoardSizeFunc }: ISlider) {
+function RangeSlider({ defaultValue, sliderType, updateBoardSizeFunc }: ISlider) {
 
 	const { isDrawingWall, isUnmarkAction, isInExecution } = useBoardContext();
 
 	return <React.Fragment>
-		<Slider sliderType={sliderType} type="range" onChange={(e: any) => updateBoardSizeFunc((parseInt(e.target.value)), sliderType)} defaultValue={boardSize} disabled={sliderType != SliderType.speedSlider ? isInExecution : false} />
+		<Slider sliderType={sliderType} type="range" onChange={(e: any) => updateBoardSizeFunc((parseInt(e.target.value)), sliderType)} defaultValue={defaultValue} disabled={sliderType != SliderType.speedSlider ? isInExecution : false} />
 		{/* <SizeIndicatorContainer >
             <SizeIndicatorSubContainer>
                 <SizeIndicator>

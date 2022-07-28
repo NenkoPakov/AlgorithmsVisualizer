@@ -17,17 +17,17 @@ const breadthFirstSearch = async (wallMatrix: boolean[][], startNode: Node, fini
     const frontier: { node: Node, priority: number }[] = [];
     frontier.push({ node: startNode, priority: 0 });
 
-    const comeFrom: ComeFrom = {};
-    
+    const comeFrom: ComeFrom[] = [];
+
     let isTargetFound = false;
-    let iteration=0;
+    let iteration = 0;
 
-    let obj :any= {};
-    obj[`${startNode.row}-${startNode.col}`] ={ parent: undefined, value: heuristic(startNode, finishNode)};
-    comeFrom[iteration]=obj;
+    let obj: any = {};
+    comeFrom.push(obj);
+    obj[`${startNode.row}-${startNode.col}`] = { parent: undefined, value: heuristic(startNode, finishNode) };
 
 
-    
+
     while (frontier.length && !isTargetFound) {
         const currentNode: { node: Node, priority: number } = frontier.shift()!;
 
@@ -43,14 +43,16 @@ const breadthFirstSearch = async (wallMatrix: boolean[][], startNode: Node, fini
             const priority = heuristic(startNode, neighbor);
             frontier.push({ node: neighbor, priority });
 
-            let obj :any= {};
-            obj[`${neighbor.row}-${neighbor.col}`] ={ parent: `${currentNode.node.row}-${currentNode.node.col}`, value: priority};
-            comeFrom[iteration]=obj;
+            // let obj: any = {};
+            // obj[`${neighbor.row}-${neighbor.col}`] = { parent: `${currentNode.node.row}-${currentNode.node.col}`, value: priority };
+            comeFrom[iteration][`${neighbor.row}-${neighbor.col}`] = { parent: `${currentNode.node.row}-${currentNode.node.col}`, value: priority };
 
             // roundComeFrom[`${neighbor.row}-${neighbor.col}`] = { parent: `${currentNode.node.row}-${currentNode.node.col}`, value: priority, iteration };
 
             if (areEqual(neighbor, finishNode)) isTargetFound = true;
         });
+
+        comeFrom.push({});
 
         // yield roundComeFrom;
         iteration++;
