@@ -14,7 +14,7 @@ transition: background-color 0.5s ease-out ;
 
 
 function Wall({ row, col, dispatch }: INode) {
-  const { isDrawingWall, isUnmarkAction } = useBoardContext();
+  const boardContext = useBoardContext();
   const { handleWallDrawingEvent, handleUnmarkEvent } = useBoardUpdateContext();
   
   const key: string = `${row}-${col}`;
@@ -27,7 +27,7 @@ function Wall({ row, col, dispatch }: INode) {
   const handleClick = (e: MouseEvent) => {
     e.preventDefault();
 
-    if (isDrawingWall) {
+    if (boardContext.isDrawingWallAction) {
       if (e.button === 0) {
         dispatch({ type: ActionTypes.SET_WALL_START_NODE, payload: { row, col } });
       } else if (e.button === 2) {
@@ -53,7 +53,7 @@ function Wall({ row, col, dispatch }: INode) {
     onDragOver={(e: MouseEvent) => { onDragOver(e) }}
     onContextMenu={(e: MouseEvent) => handleClick(e)}
     onClick={(e: MouseEvent) => handleClick(e)}
-    onMouseEnter={(e: MouseEvent) => dispatch({ type: ActionTypes.GENERATE_PROPOSAL_WALL, payload: { node: { row, col }, isUnmarkAction } })}
+    onMouseEnter={(e: MouseEvent) => dispatch({ type: ActionTypes.GENERATE_PROPOSAL_WALL, payload: { node: { row, col },isUnmarkWallAction: boardContext.isUnmarkWallAction } })}
   />
 }
 

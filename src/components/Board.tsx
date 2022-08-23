@@ -51,21 +51,24 @@ interface State {
 
 export const ActionTypes = {
     UPDATE_SIZE: 'updateSize',
-    CLEAR_MATRIX: 'clearMatrix',
+    RESET: 'reset',
     CLEAR_SOLUTION: 'clearSolution',
     SET_VISITED_NODE: 'setVisitedNode',
     SET_VISITED_NODES: 'setVisitedNodes',
+    SET_FREE_NODE: 'setFreeNode',
+    REMOVE_VISITED_NODE: 'removeVisitedNode',
     SET_FRONTIER_NODE: 'setFrontierNode',
     SET_FRONTIER_NODES: 'setFrontiersNode',
     SET_PATH_NODE: 'setPathNode',
     SET_NODE_VALUE: 'setNodeValue',
     SET_NODES_VALUE: 'setNodesValue',
+    REMOVE_NODE_VALUE: 'removeNodeValue',
     SET_ALGORITHM_RESULT: 'setAlgorithmResult',
 }
 
 function reducer(state: State, action: any) {
     switch (action.type) {
-        case ActionTypes.CLEAR_MATRIX:
+        case ActionTypes.RESET:
             // return { ...state, visitedNodes: matrixDeepCopy(action.payload) as boolean[][], frontierNodes: matrixDeepCopy(action.payload) as boolean[][], pathNodes: matrixDeepCopy(action.payload) as boolean[][], wallNodes: matrixDeepCopy(action.payload) as boolean[][] };
             return { ...state, visitedNodes: matrixDeepCopy(action.payload) as boolean[][], frontierNodes: matrixDeepCopy(action.payload) as boolean[][], pathNodes: matrixDeepCopy(action.payload) as boolean[][] };
 
@@ -90,6 +93,19 @@ function reducer(state: State, action: any) {
 
                 state.visitedNodes[visitedRow][visitedCol] = true;
             })
+
+            return { ...state, visitedNodes: state.visitedNodes as boolean[][] };
+
+        case ActionTypes.SET_FREE_NODE:
+            let { row: freeNodeRow, col: freeNodeCol }: Node = action.payload;
+            state.frontierNodes[freeNodeRow][freeNodeCol] = false;
+            state.nodeValues[freeNodeRow][freeNodeCol] = 0;
+
+            return { ...state, frontierNodes: state.frontierNodes as boolean[][], nodeValues: state.nodeValues as number[][] };
+
+        case ActionTypes.REMOVE_VISITED_NODE:
+            let { row: removeNodeRow, col: removeNodeCol }: Node = action.payload;
+            state.visitedNodes[removeNodeRow][removeNodeCol] = false;
 
             return { ...state, visitedNodes: state.visitedNodes as boolean[][] };
 
@@ -133,6 +149,13 @@ function reducer(state: State, action: any) {
 
             return { ...state, nodeValues: state.nodeValues };
 
+        case ActionTypes.REMOVE_NODE_VALUE:
+            let { row: removeNodeValueRow, col: removeNodeValueCol }: Node = action.payload;
+
+            state.nodeValues[removeNodeValueRow][removeNodeValueCol] = 0;
+
+            return { ...state, nodeValues: state.nodeValues };
+
         case ActionTypes.SET_ALGORITHM_RESULT:
             return { ...state, algorithmResult: action.payload };
 
@@ -141,7 +164,7 @@ function reducer(state: State, action: any) {
     }
 }
 
-const Board = ({ boardRows, boardCols, wallNodes, startNode, finishNode, iteration, recentlyVisitedNodes, delayFunc, algorithmFunc, parentDispatch }: BoardProps) => {
+const Board = ({ boardRows, boardCols, wallNodes, startNode, finishNode, recentlyVisitedNodes, delayFunc, algorithmFunc, parentDispatch }: BoardProps) => {
 
     const initState = {
         visitedNodes: getMatrixInitValue(boardRows, boardCols) as boolean[][],
@@ -149,13 +172,7 @@ const Board = ({ boardRows, boardCols, wallNodes, startNode, finishNode, iterati
         pathNodes: getMatrixInitValue(boardRows, boardCols) as boolean[][],
         nodeValues: getMatrixInitValue(boardRows, boardCols, true) as number[][],
         foundPath: [],
-        algorithmResult: {},
-        // startNode: { row: 0, col: 0 },
-        // finishNode: { row: boardRows - 1, col: boardCols - 1 },
-        // wallNodes: getMatrixInitValue(boardRows, boardCols) as boolean[][],
-        // wallSelectionStartNode: { row: -1, col: -1 },
-        // proposedWall: [],
-        // draggedNodePosition: { row: -1, col: -1 },
+        algorithmResult: [],
     }
 
     const [state, dispatch] = React.useReducer(reducer, initState);
@@ -163,55 +180,65 @@ const Board = ({ boardRows, boardCols, wallNodes, startNode, finishNode, iterati
 
     const generatorAlgorithmFunc = useMemo(() => algorithmFunc(wallNodes, startNode, finishNode), [wallNodes, startNode, finishNode]);
 
-    const { isDrawingWall, isUnmarkAction, isInExecution, isCancelled } = useBoardContext();
-    const { handleWallDrawingEvent, handleUnmarkEvent, handleExecution, handleCancellation } = useBoardUpdateContext();
+    const boardContext = useBoardContext();
+    const boardUpdateContext = useBoardUpdateContext();
 
     useEffect(() => {
         executeAlgorithm();
-    }, [isInExecution])
+    }, [boardContext.isInExecution])
 
-    useEffect(() => { 
-        console.log(state.algorithmResult);
-        // if (Object.keys(state.algorithmResult).length) {
-        //     const direction = iteration > previousIteration.current ? +1 : -1;
+    useEffect(() => {
+        const currentIteration = boardContext.iteration;
 
-        //     while (previousIteration.current != iteration) {
-        //         Object.keys(state.algorithmResult[previousIteration.current]).forEach(currentKey => {
-        //             const currentNode = state.algorithmResult[previousIteration.current][currentKey];
-        //             let frontier: Node = splitNodePosition(currentKey);
-        //             let parent: Node | undefined = currentNode.parent ? splitNodePosition(currentNode.parent!) : undefined;
-        //             let value: number = currentNode.value;
+        if (currentIteration === -1) {
+            reset();
+        }
 
-        //             if (parent) {
-        //                 dispatch({ type: ActionTypes.SET_VISITED_NODE, payload: parent });
-        //             }
+        if (currentIteration > state.algorithmResult.length) {
+            return;
+        }
 
-        //             dispatch({ type: ActionTypes.SET_FRONTIER_NODE, payload: frontier });
-        //             dispatch({ type: ActionTypes.SET_NODE_VALUE, payload: { frontier, value } });
-        //         });
+        let isStepFurther = previousIteration.current < currentIteration;
+        let useIndex = isStepFurther ? currentIteration : previousIteration.current;
 
-        //         previousIteration.current += direction;
-        //     }
-        // }
+        let iterationsCount = state.algorithmResult.length;
 
-        if (Object.keys(state.algorithmResult).length) {
-            Object.keys(state.algorithmResult[iteration]).forEach(currentKey => {
-                const currentNode = state.algorithmResult[iteration][currentKey];
+        if (currentIteration >= 0 && currentIteration < iterationsCount) {
+
+            Object.keys(state.algorithmResult[useIndex]).forEach(currentKey => {
+                const currentNode = state.algorithmResult[useIndex][currentKey];
                 let frontier: Node = splitNodePosition(currentKey);
                 let parent: Node | undefined = currentNode.parent ? splitNodePosition(currentNode.parent!) : undefined;
                 let value: number = currentNode.value;
 
-                if (parent) {
-                    dispatch({ type: ActionTypes.SET_VISITED_NODE, payload: parent });
+                switch (isStepFurther) {
+                    case true:
+                        if (parent) {
+                            dispatch({ type: ActionTypes.SET_VISITED_NODE, payload: parent });
+                        }
+
+                        dispatch({ type: ActionTypes.SET_NODE_VALUE, payload: { frontier, value } });
+                        dispatch({ type: ActionTypes.SET_FRONTIER_NODE, payload: frontier });
+                        break;
+
+                    case false:
+                        dispatch({ type: ActionTypes.SET_FREE_NODE, payload: frontier });
+
+                        if (parent) {
+                            dispatch({ type: ActionTypes.REMOVE_VISITED_NODE, payload: parent });
+                        }
+
+                        break;
+
+                    default:
+                        break;
                 }
 
-                dispatch({ type: ActionTypes.SET_FRONTIER_NODE, payload: frontier });
-                dispatch({ type: ActionTypes.SET_NODE_VALUE, payload: { frontier, value } });
             });
         }
 
-        // previousIteration.current = iteration;
-    }, [iteration])
+        previousIteration.current = currentIteration;
+    }, [boardContext.iteration])
 
     useEffect(() => {
         dispatch({ type: ActionTypes.UPDATE_SIZE, payload: { booleanMatrix: getMatrixInitValue(boardRows, boardCols), numericMatrix: getMatrixInitValue(boardRows, boardCols, true) } });
@@ -220,60 +247,17 @@ const Board = ({ boardRows, boardCols, wallNodes, startNode, finishNode, iterati
     const executeAlgorithm = async () => {
         var cameFrom = await algorithmFunc(wallNodes, startNode, finishNode);
         dispatch({ type: ActionTypes.SET_ALGORITHM_RESULT, payload: cameFrom });
-
-        // Object.keys(cameFrom).forEach(currentKey => {
-        //     let frontier: Node = splitNodePosition(currentKey);
-        //     let parent: Node | undefined = cameFrom[currentKey].parent ? splitNodePosition(cameFrom[currentKey].parent!) : undefined;
-        //     let value: number = cameFrom[currentKey].value;
-        //     let iteration: number = cameFrom[currentKey].value;
-
-        //     dispatch({ type: ActionTypes.SET_FRONTIER_NODE, payload: frontier });
-        //     dispatch({ type: ActionTypes.SET_VISITED_NODE, payload: parent });
-        //     dispatch({ type: ActionTypes.SET_NODE_VALUE, payload: { frontier, value } });
-
-
-        //     await delayFunc();
-
-        // })
-
-        // for (const lastComeFrom of generatorAlgorithmFunc) {
-
-        //     const recentlyVisitedNodes: { frontier: Node, parent: Node | undefined, value: number }[] = Object.keys(lastComeFrom).map(currentKey => {
-        //         let frontier = splitNodePosition(currentKey);
-        //         let parent = lastComeFrom[currentKey].parent ? splitNodePosition(lastComeFrom[currentKey].parent!) : undefined;
-        //         let value: number = lastComeFrom[currentKey].value;
-
-        //         return { frontier, parent, value };
-        //     });
-
-        //     for (const node of recentlyVisitedNodes) {
-        //         dispatch({ type: ActionTypes.SET_FRONTIER_NODE, payload: node.frontier });
-        //         dispatch({ type: ActionTypes.SET_VISITED_NODE, payload: node.parent });
-        //         dispatch({ type: ActionTypes.SET_NODE_VALUE, payload: node });
-        //     }
-
-        //     if (isCancelled.current) {
-        //         await new Promise((resolve, reject) => {
-        //             if (!isCancelled.current)
-        //                 resolve("Resolved")
-        //         });
-        //     }
-
-        //     await delayFunc();
-        // }
     };
 
-    const clearMatrix = () => {
-        // clearTimers();
-        handleExecution(false);
-        dispatch({ type: ActionTypes.CLEAR_MATRIX, payload: getMatrixInitValue(boardRows, boardCols) });
+    const reset = () => {
+        dispatch({ type: ActionTypes.RESET, payload: getMatrixInitValue(boardRows, boardCols) });
     };
 
     return (
         <BoardSection>
             {/* <ButtonWrapper>
                 <button key='execute' onClick={() => executeAlgorithm()}>Execute</button>
-                <button key='clear' onClick={() => clearMatrix()}>Clear board</button>
+                <button key='clear' onClick={() => reset()}>Clear board</button>
                 <button key='pause' onClick={() => isCancelled.current = true}>Pause</button>
                 <button key='continue' onClick={() => { isCancelled.current = false, executeAlgorithm() }}>Continue</button>
             </ButtonWrapper> */}

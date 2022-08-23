@@ -10,7 +10,6 @@ export interface BoardProps {
     wallNodes:boolean[][],
     recentlyVisitedNodes:{ frontier: Node, parent: Node | undefined, value: number }[],
     parentDispatch:Function,
-    iteration:number, 
 };
 
 export interface ComeFromData {

@@ -67,7 +67,6 @@ interface State {
     wallSelectionStartNode: Node,
     proposedWall: Node[],
     draggedNodePosition: Node,
-    iteration: number,
 }
 
 export const ActionTypes = {
@@ -84,6 +83,7 @@ export const ActionTypes = {
     UNMARK_WALL_NODE: 'unmarkWallNode',
     STEP_FURTHER: 'stepFurther',
     STEP_BACK: 'stepBack',
+    RESET: 'reset',
 }
 
 function reducer(state: State, action: any) {
@@ -151,26 +151,20 @@ function reducer(state: State, action: any) {
             return { ...state, wallSelectionStartNode: { row: -1, col: -1 }, proposedWall: [] };
 
         case ActionTypes.GENERATE_PROPOSAL_WALL:
+            if (state.wallSelectionStartNode.row == -1 || state.wallSelectionStartNode.col == -1) {
+                return state;
+            }
+
             //unmark previously proposed wall
             if (state.proposedWall.length) {
                 state.proposedWall.map(node => state.wallNodes[node.row][node.col] = false);
             }
 
-            if (state.wallSelectionStartNode.row != -1 && state.wallSelectionStartNode.col != -1) {
-                const changedNodes: Node[] = generateWall(action.payload.node, state.wallSelectionStartNode, state.wallNodes);
+            const changedNodes: Node[] = generateWall(action.payload.node, state.wallSelectionStartNode, state.wallNodes);
 
-                changedNodes.map(node => state.wallNodes[node.row][node.col] = action.payload.isUnmarkAction ? false : true);
-                return { ...state, proposedWall: changedNodes, wallNodeMatrix: state.wallNodes };
-            }
-
-        case ActionTypes.STEP_FURTHER:
-
-            return { ...state, iteration: ++state.iteration };
-
-        case ActionTypes.STEP_BACK:
-
-            return { ...state, iteration: --state.iteration };
-
+            changedNodes.map(node => state.wallNodes[node.row][node.col] = action.payload.isUnmarkWallAction ? false : true);
+            return { ...state, proposedWall: changedNodes, wallNodeMatrix: state.wallNodes };
+    
         default:
             return state;
     }
@@ -182,8 +176,7 @@ function BoardManager() {
     const MAX_SIZE = 45;
     const SIZE_RATIO = MAX_SIZE - MIN_SIZE;
     const INITIAL_SIZE = 15;
-    // const INITIAL_TIMEOUT_MILLISECONDS = 80;
-    const INITIAL_TIMEOUT_MILLISECONDS = 580;
+    const INITIAL_TIMEOUT_MILLISECONDS = 80;
 
     const initState = {
         boardRows: INITIAL_SIZE,
@@ -194,7 +187,6 @@ function BoardManager() {
         wallSelectionStartNode: { row: -1, col: -1 },
         proposedWall: [],
         draggedNodePosition: { row: -1, col: -1 },
-        iteration: -1,
     }
 
     const [state, dispatch] = React.useReducer(reducer, initState);
@@ -216,18 +208,18 @@ function BoardManager() {
             case SliderType.speedSlider:
                 speed.current = sliderValue * 2;
                 break;
-            case SliderType.progressSlider:
-                const totalIterations = state.boardRows * state.boardCols;
-                const newIterationIndex = Math.floor(totalIterations * sliderValue / 100);
+            // case SliderType.progressSlider:
+            //     const totalIterations = state.boardRows * state.boardCols;
+            //     const newIterationIndex = Math.floor(totalIterations * sliderValue / 100);
 
-                const direction = previousIteration.current > newIterationIndex ? -1 : +1;
-                while (previousIteration.current != newIterationIndex) {
-                    dispatch({ type: ActionTypes.STEP_FURTHER})
+            //     const direction = previousIteration.current > newIterationIndex ? -1 : +1;
+            //     while (previousIteration.current != newIterationIndex) {
+            //         dispatch({ type: ActionTypes.STEP_FURTHER })
 
-                    previousIteration.current += direction;
-                }
+            //         previousIteration.current += direction;
+            //     }
 
-                break;
+            //     break;
             default:
                 //throw exception
                 break;
@@ -257,7 +249,6 @@ function BoardManager() {
                     wallNodes={state.wallNodes}
                     startNode={state.startNode}
                     finishNode={state.finishNode}
-                    iteration={state.iteration}
                     recentlyVisitedNodes={[]}
                     algorithmFunc={breadthFirstSearch}
                     delayFunc={delayFunc}
@@ -268,9 +259,9 @@ function BoardManager() {
                     <RangeSlider key='range-slider-rows' defaultValue={state.boardRows} sliderType={SliderType.rowsSlider} updateBoardSizeFunc={handleSliderUpdate} />
                     <RangeSlider key='range-slider-cols' defaultValue={state.boardCols} sliderType={SliderType.colsSlider} updateBoardSizeFunc={handleSliderUpdate} />
                     <RangeSlider key='range-slider-speed' defaultValue={speed.current} sliderType={SliderType.speedSlider} updateBoardSizeFunc={handleSliderUpdate} />
-                    <RangeSlider key='range-slider-progress' defaultValue={state.iteration} sliderType={SliderType.progressSlider} updateBoardSizeFunc={handleSliderUpdate} />
+                    {/* <RangeSlider key='range-slider-progress' defaultValue={state.iteration} sliderType={SliderType.progressSlider} updateBoardSizeFunc={handleSliderUpdate} /> */}
                 </div>
-                <Actions dispatch={dispatch} delayFunc={delayFunc} />
+                <Actions delayFunc={delayFunc} />
             </Settings>
         </>
     )

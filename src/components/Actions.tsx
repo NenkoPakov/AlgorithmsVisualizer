@@ -1,6 +1,6 @@
-import React, { useCallback } from 'react'
+import React, { useCallback, useEffect } from 'react'
 import styled from 'styled-components';
-import { ActionTypes } from './BoardManager';
+import { ActionTypes } from './BoardContext';
 import { useBoardContext, useBoardUpdateContext } from './BoardContext';
 import Button from './Button'
 
@@ -13,40 +13,40 @@ const ButtonWrapper = styled.div`
   position:relative;
   `;
 
-function Actions({ dispatch, delayFunc }: any) {
+function Actions({ delayFunc }: any) {
     const boardContext = useBoardContext();
     const boardUpdateContext = useBoardUpdateContext();
 
     const startAnimation = async () => {
-        boardUpdateContext.handleCancellation(false);
-        boardUpdateContext.handleExecution(true);
+        boardUpdateContext.handleExecutionCancellation(false);
+        boardUpdateContext.dispatch({ type: ActionTypes.START_EXECUTION })
 
-        while (!boardContext.isCancelled.current) {
-            dispatch({ type: ActionTypes.STEP_FURTHER })
+        while (!boardContext.isExecutionCancelled.current) {
+            boardUpdateContext.dispatch({ type: ActionTypes.STEP_FURTHER });
 
-            await delayFunc()
+            await delayFunc();
         }
 
-        boardUpdateContext.handleExecution(false);
+        boardUpdateContext.dispatch({ type: ActionTypes.STOP_EXECUTION })
     }
 
     return (
         <ButtonWrapper>
-            {boardContext.isCancelled.current
+            {boardContext.isExecutionCancelled.current
                 ? <>
                     <Button key='continue' text='continue' handleClickFunc={() => startAnimation()} isForStart={true} >Continue</Button>
-                    <Button key='continue' text='next' handleClickFunc={() => dispatch({ type: ActionTypes.STEP_FURTHER })} isForStart={true} >Next</Button>
-                    <Button key='continue' text='prev' handleClickFunc={() => dispatch({ type: ActionTypes.STEP_BACK })} isForStart={true} >Previous</Button>
+                    <Button key='continue' text='next' handleClickFunc={() => {boardUpdateContext.dispatch({ type: ActionTypes.STEP_FURTHER })}} isForStart={true} >Next</Button>
+                    <Button key='continue' text='prev' handleClickFunc={() => boardUpdateContext.dispatch({ type: ActionTypes.STEP_BACK })} isForStart={true} >Previous</Button>
                 </>
                 : !boardContext.isInExecution
                     ? <>
                         <Button key='execute' text='execute' handleClickFunc={() => startAnimation()} isForStart={true} >Execute</Button>
                     </>
                     : <>
-                        <Button key='pause' text='pause' handleClickFunc={() => boardUpdateContext.handleCancellation(true)} isForStart={false} >Pause</Button>
+                        <Button key='pause' text='pause' handleClickFunc={() => boardUpdateContext.handleExecutionCancellation(true)} isForStart={false} >Pause</Button>
                     </>
             }
-            <Button key='clear' text='clear' handleClickFunc={() => boardUpdateContext.handleExecution(false)} isForStart={false} >Clear board</Button>
+            <Button key='reset' text='reset' handleClickFunc={() => {boardUpdateContext.handleExecutionCancellation(false), boardUpdateContext.dispatch({ type: ActionTypes.RESET })}} isForStart={false} >Reset</Button>
         </ButtonWrapper>
     )
 }
