@@ -1,4 +1,11 @@
 import { Node } from '../interfaces/Cell.interface';
+import breadthFirstSearch from './breadthFirstSearch';
+import greedyBestFirstSearch from './greedyBestFirstSearch';
+
+export const Algorithms = {
+    'BFS': breadthFirstSearch,
+    'Greedy Best FS': greedyBestFirstSearch,
+}
 
 export const getValidNeighbors = (matrix: any, currentNode: Node) => {
     const graphNeighbors: Node[] = [];

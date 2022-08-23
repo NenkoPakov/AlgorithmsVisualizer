@@ -25,7 +25,7 @@ transition: background-color 1.5s ease-out ;
 
 function Free({ value, row, col, isVisited, isFrontier, isPartOfThePath, dispatch }: IFreeNode) {
   const boardContext = useBoardContext();
-  const contextDispatch = useBoardUpdateContext();
+  const boardUpdateContext = useBoardUpdateContext();
 
   const key: string = `${row}-${col}`;
 
@@ -41,15 +41,15 @@ function Free({ value, row, col, isVisited, isFrontier, isPartOfThePath, dispatc
       if (e.button === 0) {
         dispatch({ type: ActionTypes.UNMARK_WALL_NODE, payload: { row, col } });
       } else if (e.button === 2) {
-        contextDispatch({ type: ContextActionTypes.START_DRAWING_WALL_ACTION });
+        boardUpdateContext.dispatch({ type: ContextActionTypes.STOP_DRAWING_WALL_ACTION });
         dispatch({ type: ActionTypes.STOP_WALL_SELECTION });
       }
     } else {
       if (e.button === 0) {
         dispatch({ type: ActionTypes.SET_WALL_NODE, payload: { row, col } });
       } else if (e.button === 2) {
-        contextDispatch({ type: ContextActionTypes.START_DRAWING_WALL_ACTION });
-        contextDispatch({ type: ContextActionTypes.STOP_UNMARK_WALL_ACTION });
+        boardUpdateContext.dispatch({ type: ContextActionTypes.START_DRAWING_WALL_ACTION });
+        boardUpdateContext.dispatch({ type: ContextActionTypes.STOP_UNMARK_WALL_ACTION });
         dispatch({ type: ActionTypes.SET_WALL_START_NODE, payload: { row, col } });
       }
     }

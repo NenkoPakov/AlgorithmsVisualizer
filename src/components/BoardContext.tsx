@@ -1,4 +1,6 @@
 import React, { useContext, useRef } from 'react'
+import breadthFirstSearch from '../services/breadthFirstSearch';
+import greedyBestFirstSearch from '../services/greedyBestFirstSearch';
 
 const BoardContext = React.createContext<any>('');
 const BoardUpdateContext = React.createContext<any>('');
@@ -7,10 +9,14 @@ interface State {
     isDrawingWallAction: boolean,
     isUnmarkWallAction: boolean,
     isInExecution: boolean,
+    boardsIterationIndex: number[],
+    boardsAlgorithm:Function[],
     iteration: number,
 }
 
 export const ActionTypes = {
+    ADD_BOARD: 'addBoard',
+    REMOVE_BOARD: 'removeBoard',
     START_EXECUTION: 'startExecution',
     STOP_EXECUTION: 'stopExecution',
     START_DRAWING_WALL_ACTION: 'startDrawingWallAction',
@@ -24,6 +30,18 @@ export const ActionTypes = {
 
 function reducer(state: State, action: any) {
     switch (action.type) {
+
+        case ActionTypes.ADD_BOARD:
+            const boardAlgorithmFunc = action.payload;
+            state.boardsAlgorithm.push(boardAlgorithmFunc);
+            state.boardsIterationIndex.push(-1);
+            return { ...state };
+
+        case ActionTypes.REMOVE_BOARD:
+            const boardIndex = action.payload;
+            state.boardsAlgorithm.splice(boardIndex, 1);
+            state.boardsIterationIndex.splice(boardIndex, 1);
+            return { ...state };
 
         case ActionTypes.START_DRAWING_WALL_ACTION:
             return { ...state, isDrawingWallAction: true };
@@ -70,7 +88,9 @@ function BoardProvider({ children }: any) {
         isDrawingWallAction: false,
         isUnmarkWallAction: false,
         isInExecution: false,
-        iteration: -1,
+        boardsAlgorithm: [breadthFirstSearch, greedyBestFirstSearch],
+        boardsIterationIndex: [-1, -1],
+        iteration: -1
     };
 
     const [state, dispatch] = React.useReducer(reducer, initState);
@@ -82,7 +102,7 @@ function BoardProvider({ children }: any) {
     }
 
     return (
-        <BoardContext.Provider value={{...state,isExecutionCancelled}}>
+        <BoardContext.Provider value={{ ...state, isExecutionCancelled: isExecutionCancelled.current }}>
             <BoardUpdateContext.Provider value={{ dispatch, handleExecutionCancellation }}>
                 {children}
             </BoardUpdateContext.Provider>

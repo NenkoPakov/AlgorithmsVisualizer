@@ -1,4 +1,4 @@
-import React, { useCallback, useRef } from 'react';
+import React, { useCallback, useRef, useState } from 'react';
 import RangeSlider from '../components/RangeSlider';
 import breadthFirstSearch from '../services/breadthFirstSearch';
 import greedyBestFirstSearch from '../services/greedyBestFirstSearch';
@@ -8,8 +8,10 @@ import { SliderType } from '../interfaces/Slider.interface';
 import Settings from '../components/Settings';
 import Actions from '../components/Actions';
 import { Node } from '../interfaces/Cell.interface';
+import { ActionTypes as ContextActionTypes } from './BoardContext';
 import { getMatrixInitValue, splitNodePosition, matrixDeepCopy } from '../global'
 import Board from './Board';
+import { Algorithms } from '../services/common';
 
 const BoardContainer = styled.section`
   height:calc(100vh - 2*10px);
@@ -19,6 +21,49 @@ const BoardContainer = styled.section`
   justify-content:space-around;
   margin:0 20px;
   gap:10px 0;
+  `;
+
+const Dropdown = styled.div<any>`
+  width: 100%;
+  position: relative;
+  display: inline-block;
+
+  button {
+    border: solid black 2px;
+    border-radius:10px;
+    padding: 0;
+    width: 100%;
+    border: 0;
+    background-color: #bdb5b571;
+    color: #333;
+    cursor: pointer;
+    outline: 0;
+    font-size: 40px;
+  }
+
+  ul {
+    display:${(props: any) => props.isDropdownOpened ? 'block' : 'none'};
+    position: absolute;
+    top: 100%;
+    left: 0;
+    width: 100%;
+    z-index: 2;
+    border: 1px solid rgba(0, 0, 0, 0.04);
+    box-shadow: 0 16px 24px 2px rgba(0, 0, 0, 0.14);
+
+    list-style: none;
+    padding: 0;
+    margin: 0;
+  }
+
+  li {
+    padding: 8px 12px;
+  }
+
+  li:hover {
+    background-color: rgba(0, 0, 0, 0.14);
+    cursor: pointer;
+  }
   `;
 
 const generateWall = (targetNode: Node, wallStartNode: Node, wallNodes: boolean[][]) => {
@@ -164,7 +209,7 @@ function reducer(state: State, action: any) {
 
             changedNodes.map(node => state.wallNodes[node.row][node.col] = action.payload.isUnmarkWallAction ? false : true);
             return { ...state, proposedWall: changedNodes, wallNodeMatrix: state.wallNodes };
-    
+
         default:
             return state;
     }
@@ -191,7 +236,11 @@ function BoardManager() {
 
     const [state, dispatch] = React.useReducer(reducer, initState);
     const speed = useRef<number>(INITIAL_TIMEOUT_MILLISECONDS);
-    const previousIteration = useRef<number>(0);
+
+    const [isDropdownOpened, setIsDropdownOpened] = useState(false);
+
+    const boardContext = useBoardContext();
+    const boardUpdateContext = useBoardUpdateContext();
 
 
 
@@ -243,16 +292,19 @@ function BoardManager() {
               algorithmFunc={breadthFirstSearch}
               delayFunc={delayFunc}
             parentDispatch={dispatch}/> */}
-                <Board
-                    boardRows={state.boardRows}
-                    boardCols={state.boardCols}
-                    wallNodes={state.wallNodes}
-                    startNode={state.startNode}
-                    finishNode={state.finishNode}
-                    recentlyVisitedNodes={[]}
-                    algorithmFunc={breadthFirstSearch}
-                    delayFunc={delayFunc}
-                    parentDispatch={dispatch} />
+                {boardContext.boardsAlgorithm.map((algorithm: Function) => 
+                    <Board
+                        boardRows={state.boardRows}
+                        boardCols={state.boardCols}
+                        wallNodes={state.wallNodes}
+                        startNode={state.startNode}
+                        finishNode={state.finishNode}
+                        recentlyVisitedNodes={[]}
+                        algorithmFunc={algorithm}
+                        delayFunc={delayFunc}
+                        parentDispatch={dispatch}
+                    />
+                )}
             </BoardContainer>
             <Settings>
                 <div>
@@ -260,6 +312,20 @@ function BoardManager() {
                     <RangeSlider key='range-slider-cols' defaultValue={state.boardCols} sliderType={SliderType.colsSlider} updateBoardSizeFunc={handleSliderUpdate} />
                     <RangeSlider key='range-slider-speed' defaultValue={speed.current} sliderType={SliderType.speedSlider} updateBoardSizeFunc={handleSliderUpdate} />
                     {/* <RangeSlider key='range-slider-progress' defaultValue={state.iteration} sliderType={SliderType.progressSlider} updateBoardSizeFunc={handleSliderUpdate} /> */}
+
+                    <Dropdown isDropdownOpened={isDropdownOpened}>
+                        <button type="button" onClick={() => setIsDropdownOpened(!isDropdownOpened)}>
+                            ADD BOARD
+                        </button>
+                        <ul>
+                            {
+                                Object.keys(Algorithms).map((algorithm: string) =>
+                                    <li onClick={() => boardUpdateContext.dispatch({ type: ContextActionTypes.ADD_BOARD, payload: Algorithms[algorithm as keyof typeof Algorithms] })}>
+                                        {algorithm}
+                                    </li>)
+                            }
+                        </ul>
+                    </Dropdown>
                 </div>
                 <Actions delayFunc={delayFunc} />
             </Settings>

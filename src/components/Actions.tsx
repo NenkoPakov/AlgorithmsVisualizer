@@ -35,7 +35,7 @@ function Actions({ delayFunc }: any) {
             {boardContext.isExecutionCancelled.current
                 ? <>
                     <Button key='continue' text='continue' handleClickFunc={() => startAnimation()} isForStart={true} >Continue</Button>
-                    <Button key='continue' text='next' handleClickFunc={() => {boardUpdateContext.dispatch({ type: ActionTypes.STEP_FURTHER })}} isForStart={true} >Next</Button>
+                    <Button key='continue' text='next' handleClickFunc={() => boardUpdateContext.dispatch({ type: ActionTypes.STEP_FURTHER })} isForStart={true} >Next</Button>
                     <Button key='continue' text='prev' handleClickFunc={() => boardUpdateContext.dispatch({ type: ActionTypes.STEP_BACK })} isForStart={true} >Previous</Button>
                 </>
                 : !boardContext.isInExecution
