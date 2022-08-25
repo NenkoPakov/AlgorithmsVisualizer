@@ -189,7 +189,7 @@ const Board = ({ boardRows, boardCols, wallNodes, startNode, finishNode, recentl
     useEffect(() => {
         const currentIteration = boardContext.boards[algorithmKey];
 
-        if (currentIteration === -1) {
+        if (currentIteration === 0) {
             reset();
         }
 
@@ -204,7 +204,7 @@ const Board = ({ boardRows, boardCols, wallNodes, startNode, finishNode, recentl
 
         if (currentIteration >= 0 && currentIteration < iterationsCount) {
 
-            Object.keys(state.algorithmResult[useIndex]).forEach(currentKey => {
+            state.algorithmResult[useIndex] && Object.keys(state.algorithmResult[useIndex]).forEach(currentKey => {
                 const currentNode = state.algorithmResult[useIndex][currentKey];
                 let frontier: Node = splitNodePosition(currentKey);
                 let parent: Node | undefined = currentNode.parent ? splitNodePosition(currentNode.parent!) : undefined;

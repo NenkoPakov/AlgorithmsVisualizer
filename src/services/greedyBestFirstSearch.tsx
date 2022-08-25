@@ -49,7 +49,6 @@ const greedyBestFirstSearch = async (wallMatrix: boolean[][], startNode: Node, f
         frontier.sort((prev, next) => prev.priority - next.priority);
 
         // yield roundComeFrom;
-        iteration++;
     }
 
     return comeFrom;

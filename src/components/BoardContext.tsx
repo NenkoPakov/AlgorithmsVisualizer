@@ -69,7 +69,7 @@ function reducer(state: State, action: any) {
             return { ...state, iteration: --state.boards[stepBackBoardKey] };
 
         case ActionTypes.RESET:
-            Object.keys(state.boards).map(key => state.boards[key] = -1);
+            Object.keys(state.boards).map(key => state.boards[key] = 0);
             return { ...state, isInExecution: false };
 
         default:
@@ -98,15 +98,15 @@ function BoardProvider({ children }: any) {
 
     const [state, dispatch] = React.useReducer(reducer, initState);
 
-    const isExecutionCancelled = useRef<boolean>(false);
+    const cancellationToken = useRef<boolean>(false);
 
-    const handleExecutionCancellation = (value: boolean) => {
-        isExecutionCancelled.current = value;
+    const handleCancellationToken = (value: boolean) => {
+        cancellationToken.current = value;
     }
 
     return (
-        <BoardContext.Provider value={{ ...state, isExecutionCancelled }}>
-            <BoardUpdateContext.Provider value={{ dispatch, handleExecutionCancellation }}>
+        <BoardContext.Provider value={{ ...state, cancellationToken }}>
+            <BoardUpdateContext.Provider value={{ dispatch, handleCancellationToken }}>
                 {children}
             </BoardUpdateContext.Provider>
         </BoardContext.Provider>
