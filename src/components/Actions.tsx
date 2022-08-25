@@ -45,8 +45,10 @@ function Actions({ delayFunc }: any) {
         boardUpdateContext.handleCancellationToken(false);
 
         while (!boardContext.cancellationToken.current) {
-            Object.keys(boardContext.boards).forEach(key => {
-                boardUpdateContext.dispatch({ type: ActionTypes.STEP_FURTHER, payload: key });
+            Object.keys(boardContext.boards).forEach(algorithmKey => {
+                if (!boardContext.boards[algorithmKey].isCompleted) {
+                    boardUpdateContext.dispatch({ type: ActionTypes.STEP_FURTHER, payload: algorithmKey });
+                }
             })
 
             await delayFunc();
@@ -67,21 +69,23 @@ function Actions({ delayFunc }: any) {
 
     return (
         <ButtonWrapper>
-            {isPaused
-                ? <>
-                    <Button key='continue' text='continue' handleClickFunc={() => setIsPaused(false)} isForStart={true} >Continue</Button>
-                    <Button key='next' text='next' handleClickFunc={() => stepFurther()} isForStart={true} >Next</Button>
-                    <Button key='prev' text='prev' handleClickFunc={() => stepBack()} isForStart={true} >Previous</Button>
-                    <Button key='reset' text='reset' handleClickFunc={() => resetFunc()} isForStart={false} >Reset</Button>
-                </>
-                : !boardContext.isInExecution
+            {Object.values(boardContext.boards).filter((board: any) => !board.isCompleted).length==0
+                ? <Button key='reset' text='reset' handleClickFunc={() => resetFunc()} isForStart={false} >Reset</Button>
+                : isPaused
                     ? <>
-                        <Button key='execute' text='execute' handleClickFunc={() => boardUpdateContext.dispatch({ type: ActionTypes.START_EXECUTION })} isForStart={true} >Execute</Button>
+                        <Button key='continue' text='continue' handleClickFunc={() => setIsPaused(false)} isForStart={true} >Continue</Button>
+                        <Button key='next' text='next' handleClickFunc={() => stepFurther()} isForStart={true} >Next</Button>
+                        <Button key='prev' text='prev' handleClickFunc={() => stepBack()} isForStart={true} >Previous</Button>
+                        <Button key='reset' text='reset' handleClickFunc={() => resetFunc()} isForStart={false} >Reset</Button>
                     </>
-                    : <>
-                        <Button key='pause' text='pause' handleClickFunc={() => { setIsPaused(true), boardUpdateContext.handleCancellationToken(true) }} isForStart={false} >Pause</Button>
-                        <Button key='reset2' text='reset' handleClickFunc={() => resetFunc()} isForStart={false} >Reset</Button>
-                    </>
+                    : !boardContext.isInExecution
+                        ? <>
+                            <Button key='execute' text='execute' handleClickFunc={() => boardUpdateContext.dispatch({ type: ActionTypes.START_EXECUTION })} isForStart={true} >Execute</Button>
+                        </>
+                        : <>
+                            <Button key='pause' text='pause' handleClickFunc={() => { setIsPaused(true), boardUpdateContext.handleCancellationToken(true) }} isForStart={false} >Pause</Button>
+                            <Button key='reset2' text='reset' handleClickFunc={() => resetFunc()} isForStart={false} >Reset</Button>
+                        </>
             }
             {/* <Button key='reset' text='reset' handleClickFunc={() => { boardUpdateContext.handleCancellationToken(true), boardUpdateContext.dispatch({ type: ActionTypes.RESET }) }} isForStart={false} >Reset</Button> */}
         </ButtonWrapper>

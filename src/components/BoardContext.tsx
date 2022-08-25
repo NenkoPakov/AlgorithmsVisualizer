@@ -1,11 +1,16 @@
 import React, { useContext, useRef } from 'react'
 import { Algorithms } from '../services/common';
 
+const defaultIteration = 0;
 const BoardContext = React.createContext<any>('');
 const BoardUpdateContext = React.createContext<any>('');
 
 interface BoardsIteration {
-    [name: string]: number
+    [name: string]: {
+        currentIteration: number,
+        iterationsCount?: number,
+        isCompleted: boolean,
+    }
 }
 
 interface State {
@@ -26,6 +31,8 @@ export const ActionTypes = {
     STOP_UNMARK_WALL_ACTION: 'stopUnmarkWallAction',
     STEP_FURTHER: 'stepFurther',
     STEP_BACK: 'stepBack',
+    MARK_COMPLETED: 'markCompleted',
+    SET_ITERATIONS_COUNT: 'setIterationsCount',
     RESET: 'reset',
 }
 
@@ -33,13 +40,13 @@ function reducer(state: State, action: any) {
     switch (action.type) {
 
         case ActionTypes.ADD_BOARD:
-            const addBoardKey = action.payload as keyof typeof Algorithms;
-            state.boards[addBoardKey] = 0;
+            const addAlgorithmKey = action.payload as keyof typeof Algorithms;
+            state.boards[addAlgorithmKey] = { currentIteration: defaultIteration, isCompleted: false };
             return { ...state };
 
         case ActionTypes.REMOVE_BOARD:
-            const removeBoardKey = action.payload as keyof typeof Algorithms;
-            delete state.boards[removeBoardKey];
+            const removeAlgorithmKey = action.payload as keyof typeof Algorithms;
+            delete state.boards[removeAlgorithmKey];
             return { ...state };
 
         case ActionTypes.START_DRAWING_WALL_ACTION:
@@ -61,15 +68,37 @@ function reducer(state: State, action: any) {
             return { ...state, isInExecution: false };
 
         case ActionTypes.STEP_FURTHER:
-            const stepFurtherBoardKey = action.payload as keyof typeof Algorithms;
-            return { ...state, iteration: ++state.boards[stepFurtherBoardKey] };
+            const stepFurtherAlgorithmKey = action.payload as keyof typeof Algorithms;
+            if (!state.boards[stepFurtherAlgorithmKey].isCompleted) {
+                ++state.boards[stepFurtherAlgorithmKey].currentIteration
+            }
+            return { ...state };
 
         case ActionTypes.STEP_BACK:
-            const stepBackBoardKey = action.payload as keyof typeof Algorithms;
-            return { ...state, iteration: --state.boards[stepBackBoardKey] };
+            const stepBackAlgorithmKey = action.payload as keyof typeof Algorithms;
+            --state.boards[stepBackAlgorithmKey].currentIteration
+
+            if (state.boards[stepBackAlgorithmKey].isCompleted) {
+                state.boards[stepBackAlgorithmKey].isCompleted = false;
+            }
+
+            return { ...state };
+
+        case ActionTypes.MARK_COMPLETED:
+            const completedAlgorithmKey = action.payload as keyof typeof Algorithms;
+            state.boards[completedAlgorithmKey].isCompleted = true
+            return { ...state };
+
+        case ActionTypes.SET_ITERATIONS_COUNT:
+            const {iterationsAlgorithmKey,iterationsCount} = action.payload;
+            state.boards[iterationsAlgorithmKey].iterationsCount =iterationsCount;
+            return { ...state };
 
         case ActionTypes.RESET:
-            Object.keys(state.boards).map(key => state.boards[key] = 0);
+            Object.keys(state.boards).forEach(algorithmKey => {
+                state.boards[algorithmKey].currentIteration = defaultIteration;
+                state.boards[algorithmKey].isCompleted = false;
+            });
             return { ...state, isInExecution: false };
 
         default:
@@ -91,7 +120,10 @@ function BoardProvider({ children }: any) {
         isUnmarkWallAction: false,
         isInExecution: false,
         boards: {
-            'BFS': 0,
+            'BFS': {
+                currentIteration: defaultIteration,
+                isCompleted: false,
+            }
             // 'Greedy Best FS': -1,
         },
     };

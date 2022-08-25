@@ -20,7 +20,7 @@ const breadthFirstSearch = async (wallMatrix: boolean[][], startNode: Node, fini
     const comeFrom: ComeFrom[] = [];
 
     let isTargetFound = false;
-    let iteration = 0;
+    let currentIteration = 0;
 
     let obj: any = {};
     comeFrom.push(obj);
@@ -32,7 +32,7 @@ const breadthFirstSearch = async (wallMatrix: boolean[][], startNode: Node, fini
         tempMatrix[currentNode.node.row][currentNode.node.col].isVisited = true;
         const graphNeighbors: Node[] = getValidNeighbors(tempMatrix, currentNode.node);
         
-        iteration++;
+        currentIteration++;
         comeFrom.push({});
 
         graphNeighbors.forEach(neighbor => {
@@ -41,7 +41,7 @@ const breadthFirstSearch = async (wallMatrix: boolean[][], startNode: Node, fini
             const priority = heuristic(startNode, neighbor);
             frontier.push({ node: neighbor, priority });
 
-            comeFrom[iteration][`${neighbor.row}-${neighbor.col}`] = { parent: `${currentNode.node.row}-${currentNode.node.col}`, value: priority };
+            comeFrom[currentIteration][`${neighbor.row}-${neighbor.col}`] = { parent: `${currentNode.node.row}-${currentNode.node.col}`, value: priority };
 
             if (areEqual(neighbor, finishNode)) isTargetFound = true;
         });

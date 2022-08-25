@@ -3,7 +3,7 @@ import React, { useEffect, useMemo, useRef, useState } from 'react';
 import styled from 'styled-components';
 import { ComeFrom, ComeFromData, BoardProps } from '../interfaces/Board.interface';
 import { Node } from '../interfaces/Cell.interface';
-import { useBoardContext, useBoardUpdateContext } from './BoardContext';
+import { useBoardContext, useBoardUpdateContext, ActionTypes as ContextActionTypes } from './BoardContext';
 import { getMatrixInitValue, splitNodePosition, matrixDeepCopy } from '../global'
 import { IndexInfo, IndexKind } from 'typescript';
 import { Algorithms } from '../services/common';
@@ -187,57 +187,62 @@ const Board = ({ boardRows, boardCols, wallNodes, startNode, finishNode, recentl
     }, [])
 
     useEffect(() => {
-        const currentIteration = boardContext.boards[algorithmKey];
+        const currentIteration = boardContext.boards[algorithmKey].currentIteration;
 
         if (currentIteration === 0) {
             reset();
         }
 
-        if (currentIteration > state.algorithmResult.length) {
-            return;
+        if (currentIteration == state.algorithmResult.length - 1) {
+            boardUpdateContext.dispatch({ type: ContextActionTypes.MARK_COMPLETED, payload: algorithmKey });
         }
 
         let isStepFurther = previousIteration.current < currentIteration;
-        let useIndex = isStepFurther ? currentIteration : previousIteration.current;
-
+        
         let iterationsCount = state.algorithmResult.length;
-
+        
         if (currentIteration >= 0 && currentIteration < iterationsCount) {
+            while (previousIteration.current != currentIteration) {
+                previousIteration.current = isStepFurther ? previousIteration.current +1 : previousIteration.current -1;
+                let useIndex = previousIteration.current;
+                
+                state.algorithmResult[useIndex] && Object.keys(state.algorithmResult[useIndex]).forEach(currentKey => {
+                    const currentNode = state.algorithmResult[useIndex][currentKey];
+                    let frontier: Node = splitNodePosition(currentKey);
+                    let parent: Node | undefined = currentNode.parent ? splitNodePosition(currentNode.parent!) : undefined;
+                    let value: number = currentNode.value;
 
-            state.algorithmResult[useIndex] && Object.keys(state.algorithmResult[useIndex]).forEach(currentKey => {
-                const currentNode = state.algorithmResult[useIndex][currentKey];
-                let frontier: Node = splitNodePosition(currentKey);
-                let parent: Node | undefined = currentNode.parent ? splitNodePosition(currentNode.parent!) : undefined;
-                let value: number = currentNode.value;
+                    switch (isStepFurther) {
+                        case true:
+                            if (parent) {
+                                dispatch({ type: ActionTypes.SET_VISITED_NODE, payload: parent });
+                            }
 
-                switch (isStepFurther) {
-                    case true:
-                        if (parent) {
-                            dispatch({ type: ActionTypes.SET_VISITED_NODE, payload: parent });
-                        }
+                            dispatch({ type: ActionTypes.SET_NODE_VALUE, payload: { frontier, value } });
+                            dispatch({ type: ActionTypes.SET_FRONTIER_NODE, payload: frontier });
+                            break;
 
-                        dispatch({ type: ActionTypes.SET_NODE_VALUE, payload: { frontier, value } });
-                        dispatch({ type: ActionTypes.SET_FRONTIER_NODE, payload: frontier });
-                        break;
+                        case false:
+                            dispatch({ type: ActionTypes.SET_FREE_NODE, payload: frontier });
 
-                    case false:
-                        dispatch({ type: ActionTypes.SET_FREE_NODE, payload: frontier });
+                            if (parent) {
+                                dispatch({ type: ActionTypes.REMOVE_VISITED_NODE, payload: parent });
+                            }
 
-                        if (parent) {
-                            dispatch({ type: ActionTypes.REMOVE_VISITED_NODE, payload: parent });
-                        }
+                            break;
 
-                        break;
+                        default:
+                            break;
+                    }
 
-                    default:
-                        break;
-                }
+                });
 
-            });
+                // previousIteration.current += isStepFurther ? +1 : -1;
+            }
         }
 
         previousIteration.current = currentIteration;
-    }, [boardContext.boards[algorithmKey]])
+    }, [boardContext.boards[algorithmKey].currentIteration])
 
     useEffect(() => {
         dispatch({ type: ActionTypes.UPDATE_SIZE, payload: { booleanMatrix: getMatrixInitValue(boardRows, boardCols), numericMatrix: getMatrixInitValue(boardRows, boardCols, true) } });
@@ -246,6 +251,7 @@ const Board = ({ boardRows, boardCols, wallNodes, startNode, finishNode, recentl
     const executeAlgorithm = async () => {
         const algorithmFunc = Algorithms[algorithmKey];
         var cameFrom = await algorithmFunc(wallNodes, startNode, finishNode);
+        boardUpdateContext.dispatch({ type: ContextActionTypes.SET_ITERATIONS_COUNT, payload: { iterationsAlgorithmKey: algorithmKey, iterationsCount: cameFrom.length } })
         dispatch({ type: ActionTypes.SET_ALGORITHM_RESULT, payload: cameFrom });
     };
 
@@ -262,7 +268,7 @@ const Board = ({ boardRows, boardCols, wallNodes, startNode, finishNode, recentl
                 <button key='continue' onClick={() => { isCancelled.current = false, executeAlgorithm() }}>Continue</button>
             </ButtonWrapper> */}
             <BoardWrapper>
-                {/* visitedNodes is used just for the iteration through all rows and cols */}
+                {/* visitedNodes is used just for the currentIteration through all rows and cols */}
                 {state.visitedNodes.map((row: boolean[], rowIndex: number) => (
                     <RowWrapper>
                         {row.map((_, colIndex) => {

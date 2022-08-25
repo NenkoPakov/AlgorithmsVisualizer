@@ -126,8 +126,6 @@ export const ActionTypes = {
     GENERATE_PROPOSAL_WALL: 'generateProposalWall',
     SET_WALL_NODE: 'setWallNode',
     UNMARK_WALL_NODE: 'unmarkWallNode',
-    STEP_FURTHER: 'stepFurther',
-    STEP_BACK: 'stepBack',
     RESET: 'reset',
 }
 
@@ -222,6 +220,7 @@ function BoardManager() {
     const SIZE_RATIO = MAX_SIZE - MIN_SIZE;
     const INITIAL_SIZE = 15;
     const INITIAL_TIMEOUT_MILLISECONDS = 80;
+    const INITIAL_ITERATION = 0;
 
     const initState = {
         boardRows: INITIAL_SIZE,
@@ -236,6 +235,7 @@ function BoardManager() {
 
     const [state, dispatch] = React.useReducer(reducer, initState);
     const speed = useRef<number>(INITIAL_TIMEOUT_MILLISECONDS);
+    const lastIterationIndex = useRef<number>(INITIAL_ITERATION);
 
     const [isDropdownOpened, setIsDropdownOpened] = useState(false);
 
@@ -257,18 +257,25 @@ function BoardManager() {
             case SliderType.speedSlider:
                 speed.current = sliderValue * 2;
                 break;
-            // case SliderType.progressSlider:
-            //     const totalIterations = state.boardRows * state.boardCols;
-            //     const newIterationIndex = Math.floor(totalIterations * sliderValue / 100);
+            case SliderType.progressSlider:
+                const maxIterationsCount = Math.max(...Object.values(boardContext.boards).map((board:any)=>board.iterationsCount));
+                const newIterationIndex = Math.floor(maxIterationsCount * sliderValue / 100);
 
-            //     const direction = previousIteration.current > newIterationIndex ? -1 : +1;
-            //     while (previousIteration.current != newIterationIndex) {
-            //         dispatch({ type: ActionTypes.STEP_FURTHER })
+                const direction = lastIterationIndex.current > newIterationIndex ? -1 : +1;
+                while (lastIterationIndex.current != newIterationIndex) {
+                    Object.keys(boardContext.boards).forEach((algorithmKey:any)=>{
+                        if (direction==-1) {
+                            boardUpdateContext.dispatch({ type: ContextActionTypes.STEP_BACK, payload: algorithmKey })
+                        } else{
+                            boardUpdateContext.dispatch({ type: ContextActionTypes.STEP_FURTHER, payload: algorithmKey })
+                        }
+                    })
 
-            //         previousIteration.current += direction;
-            //     }
+                    lastIterationIndex.current += direction;
+                }
 
-            //     break;
+                break;
+
             default:
                 //throw exception
                 break;
@@ -282,7 +289,7 @@ function BoardManager() {
     return (
         <>
             <BoardContainer>
-                {Object.keys(boardContext.boards).map((key :string) => 
+                {Object.keys(boardContext.boards).map((key: string) =>
                     <Board
                         boardRows={state.boardRows}
                         boardCols={state.boardCols}
@@ -301,7 +308,7 @@ function BoardManager() {
                     <RangeSlider key='range-slider-rows' defaultValue={state.boardRows} sliderType={SliderType.rowsSlider} updateBoardSizeFunc={handleSliderUpdate} />
                     <RangeSlider key='range-slider-cols' defaultValue={state.boardCols} sliderType={SliderType.colsSlider} updateBoardSizeFunc={handleSliderUpdate} />
                     <RangeSlider key='range-slider-speed' defaultValue={speed.current} sliderType={SliderType.speedSlider} updateBoardSizeFunc={handleSliderUpdate} />
-                    {/* <RangeSlider key='range-slider-progress' defaultValue={state.iteration} sliderType={SliderType.progressSlider} updateBoardSizeFunc={handleSliderUpdate} /> */}
+                    <RangeSlider key='range-slider-progress' defaultValue={INITIAL_ITERATION} sliderType={SliderType.progressSlider} updateBoardSizeFunc={handleSliderUpdate} />
 
                     <Dropdown isDropdownOpened={isDropdownOpened}>
                         <button type="button" onClick={() => setIsDropdownOpened(!isDropdownOpened)}>
