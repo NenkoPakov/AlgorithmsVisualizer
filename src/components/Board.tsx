@@ -6,6 +6,7 @@ import { Node } from '../interfaces/Cell.interface';
 import { useBoardContext, useBoardUpdateContext } from './BoardContext';
 import { getMatrixInitValue, splitNodePosition, matrixDeepCopy } from '../global'
 import { IndexInfo, IndexKind } from 'typescript';
+import { Algorithms } from '../services/common';
 
 const BoardSection = styled.section`
 position:relative;
@@ -164,7 +165,7 @@ function reducer(state: State, action: any) {
     }
 }
 
-const Board = ({ boardRows, boardCols, wallNodes, startNode, finishNode, recentlyVisitedNodes, delayFunc, algorithmFunc, parentDispatch }: BoardProps) => {
+const Board = ({ boardRows, boardCols, wallNodes, startNode, finishNode, recentlyVisitedNodes, delayFunc, algorithmKey, parentDispatch }: BoardProps) => {
 
     const initState = {
         visitedNodes: getMatrixInitValue(boardRows, boardCols) as boolean[][],
@@ -178,17 +179,15 @@ const Board = ({ boardRows, boardCols, wallNodes, startNode, finishNode, recentl
     const [state, dispatch] = React.useReducer(reducer, initState);
     const previousIteration = useRef<number>(0);
 
-    const generatorAlgorithmFunc = useMemo(() => algorithmFunc(wallNodes, startNode, finishNode), [wallNodes, startNode, finishNode]);
-
     const boardContext = useBoardContext();
     const boardUpdateContext = useBoardUpdateContext();
 
     useEffect(() => {
         executeAlgorithm();
-    }, [boardContext.isInExecution])
+    }, [])
 
     useEffect(() => {
-        const currentIteration = boardContext.iteration;
+        const currentIteration = boardContext.boards[algorithmKey];
 
         if (currentIteration === -1) {
             reset();
@@ -238,13 +237,14 @@ const Board = ({ boardRows, boardCols, wallNodes, startNode, finishNode, recentl
         }
 
         previousIteration.current = currentIteration;
-    }, [boardContext.iteration])
+    }, [boardContext.boards[algorithmKey]])
 
     useEffect(() => {
         dispatch({ type: ActionTypes.UPDATE_SIZE, payload: { booleanMatrix: getMatrixInitValue(boardRows, boardCols), numericMatrix: getMatrixInitValue(boardRows, boardCols, true) } });
     }, [boardRows, boardCols])
 
     const executeAlgorithm = async () => {
+        const algorithmFunc = Algorithms[algorithmKey];
         var cameFrom = await algorithmFunc(wallNodes, startNode, finishNode);
         dispatch({ type: ActionTypes.SET_ALGORITHM_RESULT, payload: cameFrom });
     };

@@ -26,36 +26,27 @@ const breadthFirstSearch = async (wallMatrix: boolean[][], startNode: Node, fini
     comeFrom.push(obj);
     obj[`${startNode.row}-${startNode.col}`] = { parent: undefined, value: heuristic(startNode, finishNode) };
 
-
-
     while (frontier.length && !isTargetFound) {
         const currentNode: { node: Node, priority: number } = frontier.shift()!;
 
         tempMatrix[currentNode.node.row][currentNode.node.col].isVisited = true;
         const graphNeighbors: Node[] = getValidNeighbors(tempMatrix, currentNode.node);
-
-        // const roundComeFrom: ComeFrom = {};
+        
+        iteration++;
+        comeFrom.push({});
 
         graphNeighbors.forEach(neighbor => {
-
             tempMatrix[neighbor.row][neighbor.col].isVisited = true;
 
             const priority = heuristic(startNode, neighbor);
             frontier.push({ node: neighbor, priority });
 
-            // let obj: any = {};
-            // obj[`${neighbor.row}-${neighbor.col}`] = { parent: `${currentNode.node.row}-${currentNode.node.col}`, value: priority };
             comeFrom[iteration][`${neighbor.row}-${neighbor.col}`] = { parent: `${currentNode.node.row}-${currentNode.node.col}`, value: priority };
-
-            // roundComeFrom[`${neighbor.row}-${neighbor.col}`] = { parent: `${currentNode.node.row}-${currentNode.node.col}`, value: priority, iteration };
 
             if (areEqual(neighbor, finishNode)) isTargetFound = true;
         });
 
-        comeFrom.push({});
-
         // yield roundComeFrom;
-        iteration++;
     }
 
     return comeFrom;

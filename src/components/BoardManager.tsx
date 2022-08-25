@@ -282,17 +282,7 @@ function BoardManager() {
     return (
         <>
             <BoardContainer>
-                {/* <Board 
-              boardRows={state.boardRows} 
-              boardCols={state.boardCols} 
-              wallNodes={state.wallNodes} 
-              startNode={state.startNode} 
-              finishNode={state.finishNode} 
-              recentlyVisitedNodes={[]} 
-              algorithmFunc={breadthFirstSearch}
-              delayFunc={delayFunc}
-            parentDispatch={dispatch}/> */}
-                {boardContext.boardsAlgorithm.map((algorithm: Function) => 
+                {Object.keys(boardContext.boards).map((key :string) => 
                     <Board
                         boardRows={state.boardRows}
                         boardCols={state.boardCols}
@@ -300,7 +290,7 @@ function BoardManager() {
                         startNode={state.startNode}
                         finishNode={state.finishNode}
                         recentlyVisitedNodes={[]}
-                        algorithmFunc={algorithm}
+                        algorithmKey={key as keyof typeof Algorithms}
                         delayFunc={delayFunc}
                         parentDispatch={dispatch}
                     />
@@ -320,7 +310,7 @@ function BoardManager() {
                         <ul>
                             {
                                 Object.keys(Algorithms).map((algorithm: string) =>
-                                    <li onClick={() => boardUpdateContext.dispatch({ type: ContextActionTypes.ADD_BOARD, payload: Algorithms[algorithm as keyof typeof Algorithms] })}>
+                                    <li onClick={() => boardUpdateContext.dispatch({ type: ContextActionTypes.ADD_BOARD, payload: algorithm })}>
                                         {algorithm}
                                     </li>)
                             }

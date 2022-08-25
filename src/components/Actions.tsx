@@ -17,12 +17,34 @@ function Actions({ delayFunc }: any) {
     const boardContext = useBoardContext();
     const boardUpdateContext = useBoardUpdateContext();
 
+    const stepFurther = async () => {
+        Object.keys(boardContext.boards).forEach(key => {
+            boardUpdateContext.dispatch({ type: ActionTypes.STEP_FURTHER, payload: key });
+        })
+    };
+
+    const stepBack = async () => {
+        Object.keys(boardContext.boards).forEach(key => {
+            boardUpdateContext.dispatch({ type: ActionTypes.STEP_BACK, payload: key });
+        })
+    };
+
+    const resetFunc = async () => {
+        //stop the while loop in startAnimation method
+        boardUpdateContext.handleExecutionCancellation(true);
+        boardUpdateContext.dispatch({ type: ActionTypes.RESET });
+        //set isInExecution = false to show the default buttons for start
+        boardUpdateContext.handleExecutionCancellation(false);
+    };
+
     const startAnimation = async () => {
         boardUpdateContext.handleExecutionCancellation(false);
         boardUpdateContext.dispatch({ type: ActionTypes.START_EXECUTION })
 
         while (!boardContext.isExecutionCancelled.current) {
-            boardUpdateContext.dispatch({ type: ActionTypes.STEP_FURTHER });
+            Object.keys(boardContext.boards).forEach(key => {
+                boardUpdateContext.dispatch({ type: ActionTypes.STEP_FURTHER, payload: key });
+            })
 
             await delayFunc();
         }
@@ -35,8 +57,9 @@ function Actions({ delayFunc }: any) {
             {boardContext.isExecutionCancelled.current
                 ? <>
                     <Button key='continue' text='continue' handleClickFunc={() => startAnimation()} isForStart={true} >Continue</Button>
-                    <Button key='continue' text='next' handleClickFunc={() => boardUpdateContext.dispatch({ type: ActionTypes.STEP_FURTHER })} isForStart={true} >Next</Button>
-                    <Button key='continue' text='prev' handleClickFunc={() => boardUpdateContext.dispatch({ type: ActionTypes.STEP_BACK })} isForStart={true} >Previous</Button>
+                    <Button key='continue' text='next' handleClickFunc={() => stepFurther()} isForStart={true} >Next</Button>
+                    <Button key='continue' text='prev' handleClickFunc={() => stepBack()} isForStart={true} >Previous</Button>
+                    <Button key='reset' text='reset' handleClickFunc={() => resetFunc()} isForStart={false} >Reset</Button>
                 </>
                 : !boardContext.isInExecution
                     ? <>
@@ -44,9 +67,10 @@ function Actions({ delayFunc }: any) {
                     </>
                     : <>
                         <Button key='pause' text='pause' handleClickFunc={() => boardUpdateContext.handleExecutionCancellation(true)} isForStart={false} >Pause</Button>
+                        <Button key='reset' text='reset' handleClickFunc={() => resetFunc()} isForStart={false} >Reset</Button>
                     </>
             }
-            <Button key='reset' text='reset' handleClickFunc={() => {boardUpdateContext.handleExecutionCancellation(false), boardUpdateContext.dispatch({ type: ActionTypes.RESET })}} isForStart={false} >Reset</Button>
+            {/* <Button key='reset' text='reset' handleClickFunc={() => { boardUpdateContext.handleExecutionCancellation(true), boardUpdateContext.dispatch({ type: ActionTypes.RESET }) }} isForStart={false} >Reset</Button> */}
         </ButtonWrapper>
     )
 }

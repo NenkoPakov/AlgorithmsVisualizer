@@ -1,17 +1,18 @@
 import React, { useContext, useRef } from 'react'
-import breadthFirstSearch from '../services/breadthFirstSearch';
-import greedyBestFirstSearch from '../services/greedyBestFirstSearch';
+import { Algorithms } from '../services/common';
 
 const BoardContext = React.createContext<any>('');
 const BoardUpdateContext = React.createContext<any>('');
+
+interface BoardsIteration {
+    [name: string]: number
+}
 
 interface State {
     isDrawingWallAction: boolean,
     isUnmarkWallAction: boolean,
     isInExecution: boolean,
-    boardsIterationIndex: number[],
-    boardsAlgorithm:Function[],
-    iteration: number,
+    boards: BoardsIteration,
 }
 
 export const ActionTypes = {
@@ -32,15 +33,13 @@ function reducer(state: State, action: any) {
     switch (action.type) {
 
         case ActionTypes.ADD_BOARD:
-            const boardAlgorithmFunc = action.payload;
-            state.boardsAlgorithm.push(boardAlgorithmFunc);
-            state.boardsIterationIndex.push(-1);
+            const addBoardKey = action.payload as keyof typeof Algorithms;
+            state.boards[addBoardKey] = 0;
             return { ...state };
 
         case ActionTypes.REMOVE_BOARD:
-            const boardIndex = action.payload;
-            state.boardsAlgorithm.splice(boardIndex, 1);
-            state.boardsIterationIndex.splice(boardIndex, 1);
+            const removeBoardKey = action.payload as keyof typeof Algorithms;
+            delete state.boards[removeBoardKey];
             return { ...state };
 
         case ActionTypes.START_DRAWING_WALL_ACTION:
@@ -62,13 +61,16 @@ function reducer(state: State, action: any) {
             return { ...state, isInExecution: false };
 
         case ActionTypes.STEP_FURTHER:
-            return { ...state, iteration: ++state.iteration };
+            const stepFurtherBoardKey = action.payload as keyof typeof Algorithms;
+            return { ...state, iteration: ++state.boards[stepFurtherBoardKey] };
 
         case ActionTypes.STEP_BACK:
-            return { ...state, iteration: --state.iteration };
+            const stepBackBoardKey = action.payload as keyof typeof Algorithms;
+            return { ...state, iteration: --state.boards[stepBackBoardKey] };
 
         case ActionTypes.RESET:
-            return { ...state, isInExecution: false, iteration: -1 };
+            Object.keys(state.boards).map(key => state.boards[key] = -1);
+            return { ...state, isInExecution: false };
 
         default:
             return state;
@@ -88,9 +90,10 @@ function BoardProvider({ children }: any) {
         isDrawingWallAction: false,
         isUnmarkWallAction: false,
         isInExecution: false,
-        boardsAlgorithm: [breadthFirstSearch, greedyBestFirstSearch],
-        boardsIterationIndex: [-1, -1],
-        iteration: -1
+        boards: {
+            'BFS': 0,
+            // 'Greedy Best FS': -1,
+        },
     };
 
     const [state, dispatch] = React.useReducer(reducer, initState);
@@ -102,7 +105,7 @@ function BoardProvider({ children }: any) {
     }
 
     return (
-        <BoardContext.Provider value={{ ...state, isExecutionCancelled: isExecutionCancelled.current }}>
+        <BoardContext.Provider value={{ ...state, isExecutionCancelled }}>
             <BoardUpdateContext.Provider value={{ dispatch, handleExecutionCancellation }}>
                 {children}
             </BoardUpdateContext.Provider>

@@ -5,7 +5,7 @@ import greedyBestFirstSearch from './greedyBestFirstSearch';
 export const Algorithms = {
     'BFS': breadthFirstSearch,
     'Greedy Best FS': greedyBestFirstSearch,
-}
+} 
 
 export const getValidNeighbors = (matrix: any, currentNode: Node) => {
     const graphNeighbors: Node[] = [];

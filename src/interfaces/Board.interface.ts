@@ -1,9 +1,10 @@
+import { Algorithms } from "../services/common"
 import { Node } from "./Cell.interface"
 
 export interface BoardProps {
     startNode:Node,
     finishNode:Node,
-    algorithmFunc: Function,
+    algorithmKey: keyof typeof Algorithms,
     delayFunc: Function,
     boardRows: number,
     boardCols: number,
