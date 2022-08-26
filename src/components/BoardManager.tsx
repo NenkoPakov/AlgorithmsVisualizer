@@ -219,6 +219,7 @@ function BoardManager() {
     const MAX_SIZE = 45;
     const SIZE_RATIO = MAX_SIZE - MIN_SIZE;
     const INITIAL_SIZE = 15;
+    const INITIAL_SIZE_SLIDER_DEFAULT_VALUE = 0;
     const INITIAL_TIMEOUT_MILLISECONDS = 80;
     const INITIAL_ITERATION = 0;
 
@@ -247,6 +248,7 @@ function BoardManager() {
     const handleSliderUpdate = (sliderValue: number, sliderType: SliderType) => {
         const newSize = MIN_SIZE + Math.ceil(SIZE_RATIO * sliderValue / 100);
 
+        console.log('newSize: ' + newSize)
         switch (sliderType) {
             case SliderType.rowsSlider:
                 dispatch({ type: ActionTypes.SET_BOARD_ROWS, payload: newSize })
@@ -258,21 +260,19 @@ function BoardManager() {
                 speed.current = sliderValue * 2;
                 break;
             case SliderType.progressSlider:
-                const maxIterationsCount = Math.max(...Object.values(boardContext.boards).map((board:any)=>board.iterationsCount));
-                const newIterationIndex = Math.floor(maxIterationsCount * sliderValue / 100);
+                const maxIterationsCount = Math.max(...Object.values(boardContext.boards).map((board: any) => board.iterationsCount));
+                const targetIteration = Math.ceil(maxIterationsCount * sliderValue / 100);
+                const direction = lastIterationIndex.current > targetIteration ? -1 : +1;
 
-                const direction = lastIterationIndex.current > newIterationIndex ? -1 : +1;
-                while (lastIterationIndex.current != newIterationIndex) {
-                    Object.keys(boardContext.boards).forEach((algorithmKey:any)=>{
-                        if (direction==-1) {
-                            boardUpdateContext.dispatch({ type: ContextActionTypes.STEP_BACK, payload: algorithmKey })
-                        } else{
-                            boardUpdateContext.dispatch({ type: ContextActionTypes.STEP_FURTHER, payload: algorithmKey })
-                        }
-                    })
+                Object.keys(boardContext.boards).forEach((algorithmKey: any) => {
+                    if (direction == -1) {
+                        boardUpdateContext.dispatch({ type: ContextActionTypes.STEP_BACK, payload: {algorithmKey, targetIteration}})
+                    } else {
+                        boardUpdateContext.dispatch({ type: ContextActionTypes.STEP_FURTHER, payload: {algorithmKey, targetIteration} })
+                    }
+                })
 
-                    lastIterationIndex.current += direction;
-                }
+                lastIterationIndex.current = targetIteration;
 
                 break;
 
@@ -305,8 +305,8 @@ function BoardManager() {
             </BoardContainer>
             <Settings>
                 <div>
-                    <RangeSlider key='range-slider-rows' defaultValue={state.boardRows} sliderType={SliderType.rowsSlider} updateBoardSizeFunc={handleSliderUpdate} />
-                    <RangeSlider key='range-slider-cols' defaultValue={state.boardCols} sliderType={SliderType.colsSlider} updateBoardSizeFunc={handleSliderUpdate} />
+                    <RangeSlider key='range-slider-rows' defaultValue={INITIAL_SIZE_SLIDER_DEFAULT_VALUE} sliderType={SliderType.rowsSlider} updateBoardSizeFunc={handleSliderUpdate} />
+                    <RangeSlider key='range-slider-cols' defaultValue={INITIAL_SIZE_SLIDER_DEFAULT_VALUE} sliderType={SliderType.colsSlider} updateBoardSizeFunc={handleSliderUpdate} />
                     <RangeSlider key='range-slider-speed' defaultValue={speed.current} sliderType={SliderType.speedSlider} updateBoardSizeFunc={handleSliderUpdate} />
                     <RangeSlider key='range-slider-progress' defaultValue={INITIAL_ITERATION} sliderType={SliderType.progressSlider} updateBoardSizeFunc={handleSliderUpdate} />
 

@@ -68,17 +68,30 @@ function reducer(state: State, action: any) {
             return { ...state, isInExecution: false };
 
         case ActionTypes.STEP_FURTHER:
-            const stepFurtherAlgorithmKey = action.payload as keyof typeof Algorithms;
+            const { algorithmKey: stepFurtherAlgorithmKey, targetIteration:furtherTargetIteration } = action.payload;
+
             if (!state.boards[stepFurtherAlgorithmKey].isCompleted) {
-                ++state.boards[stepFurtherAlgorithmKey].currentIteration
+                if (furtherTargetIteration==undefined) {
+                    ++state.boards[stepFurtherAlgorithmKey].currentIteration
+                } else {
+                    state.boards[stepFurtherAlgorithmKey].currentIteration = furtherTargetIteration;
+                }
             }
+
             return { ...state };
 
         case ActionTypes.STEP_BACK:
-            const stepBackAlgorithmKey = action.payload as keyof typeof Algorithms;
-            --state.boards[stepBackAlgorithmKey].currentIteration
+            const { algorithmKey: stepBackAlgorithmKey, targetIteration:backTargetIteration } = action.payload;
 
-            if (state.boards[stepBackAlgorithmKey].isCompleted) {
+            if (!state.boards[stepBackAlgorithmKey].isCompleted) {
+                if (backTargetIteration==undefined) {
+                    --state.boards[stepBackAlgorithmKey].currentIteration
+                } else {
+                    state.boards[stepBackAlgorithmKey].currentIteration = backTargetIteration;
+                }
+            }
+
+            if (state.boards[stepBackAlgorithmKey].isCompleted && state.boards[stepBackAlgorithmKey].currentIteration < state.boards[stepBackAlgorithmKey].iterationsCount!) {
                 state.boards[stepBackAlgorithmKey].isCompleted = false;
             }
 
@@ -90,8 +103,8 @@ function reducer(state: State, action: any) {
             return { ...state };
 
         case ActionTypes.SET_ITERATIONS_COUNT:
-            const {iterationsAlgorithmKey,iterationsCount} = action.payload;
-            state.boards[iterationsAlgorithmKey].iterationsCount =iterationsCount;
+            const { iterationsAlgorithmKey, iterationsCount } = action.payload;
+            state.boards[iterationsAlgorithmKey].iterationsCount = iterationsCount;
             return { ...state };
 
         case ActionTypes.RESET:
