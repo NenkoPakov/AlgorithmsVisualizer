@@ -29,6 +29,7 @@ export const ActionTypes = {
     STOP_DRAWING_WALL_ACTION: 'stopDrawingWallAction',
     START_UNMARK_WALL_ACTION: 'startUnmarkWallAction',
     STOP_UNMARK_WALL_ACTION: 'stopUnmarkWallAction',
+    JUMP_AT_INDEX: 'jumpAtIndex',
     STEP_FURTHER: 'stepFurther',
     STEP_BACK: 'stepBack',
     MARK_COMPLETED: 'markCompleted',
@@ -67,28 +68,25 @@ function reducer(state: State, action: any) {
         case ActionTypes.STOP_EXECUTION:
             return { ...state, isInExecution: false };
 
+        case ActionTypes.JUMP_AT_INDEX:
+            const { algorithmKey: jumpAlgorithmKey, targetIteration: jumpTargetIteration } = action.payload;
+            state.boards[jumpAlgorithmKey].currentIteration = jumpTargetIteration;
+            return { ...state };
+
         case ActionTypes.STEP_FURTHER:
-            const { algorithmKey: stepFurtherAlgorithmKey, targetIteration:furtherTargetIteration } = action.payload;
+            const stepFurtherAlgorithmKey = action.payload;
 
             if (!state.boards[stepFurtherAlgorithmKey].isCompleted) {
-                if (furtherTargetIteration==undefined) {
-                    ++state.boards[stepFurtherAlgorithmKey].currentIteration
-                } else {
-                    state.boards[stepFurtherAlgorithmKey].currentIteration = furtherTargetIteration;
-                }
+                    ++state.boards[stepFurtherAlgorithmKey].currentIteration;
             }
 
             return { ...state };
 
         case ActionTypes.STEP_BACK:
-            const { algorithmKey: stepBackAlgorithmKey, targetIteration:backTargetIteration } = action.payload;
+            const stepBackAlgorithmKey = action.payload;
 
             if (!state.boards[stepBackAlgorithmKey].isCompleted) {
-                if (backTargetIteration==undefined) {
-                    --state.boards[stepBackAlgorithmKey].currentIteration
-                } else {
-                    state.boards[stepBackAlgorithmKey].currentIteration = backTargetIteration;
-                }
+                    --state.boards[stepBackAlgorithmKey].currentIteration;
             }
 
             if (state.boards[stepBackAlgorithmKey].isCompleted && state.boards[stepBackAlgorithmKey].currentIteration < state.boards[stepBackAlgorithmKey].iterationsCount!) {
@@ -137,7 +135,6 @@ function BoardProvider({ children }: any) {
                 currentIteration: defaultIteration,
                 isCompleted: false,
             }
-            // 'Greedy Best FS': -1,
         },
     };
 

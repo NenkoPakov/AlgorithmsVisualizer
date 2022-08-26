@@ -20,14 +20,14 @@ function Actions({ delayFunc }: any) {
     const boardUpdateContext = useBoardUpdateContext();
 
     const stepFurther = async () => {
-        Object.keys(boardContext.boards).forEach(key => {
-            boardUpdateContext.dispatch({ type: ActionTypes.STEP_FURTHER, payload: key });
+        Object.keys(boardContext.boards).forEach(algorithmKey => {
+            boardUpdateContext.dispatch({ type: ActionTypes.STEP_FURTHER, payload: { algorithmKey:algorithmKey } });
         })
     };
 
     const stepBack = async () => {
-        Object.keys(boardContext.boards).forEach(key => {
-            boardUpdateContext.dispatch({ type: ActionTypes.STEP_BACK, payload: key });
+        Object.keys(boardContext.boards).forEach(algorithmKey => {
+            boardUpdateContext.dispatch({ type: ActionTypes.STEP_BACK, payload: { algorithmKey:algorithmKey } });
         })
     };
 
@@ -69,7 +69,7 @@ function Actions({ delayFunc }: any) {
 
     return (
         <ButtonWrapper>
-            {Object.values(boardContext.boards).filter((board: any) => !board.isCompleted).length==0
+            {Object.values(boardContext.boards).filter((board: any) => !board.isCompleted).length == 0
                 ? <Button key='reset' text='reset' handleClickFunc={() => resetFunc()} isForStart={false} >Reset</Button>
                 : isPaused
                     ? <>

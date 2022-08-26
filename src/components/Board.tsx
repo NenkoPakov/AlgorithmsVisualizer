@@ -203,7 +203,6 @@ const Board = ({ boardRows, boardCols, wallNodes, startNode, finishNode, recentl
         
         if (currentIteration >= 0 && currentIteration < iterationsCount) {
             while (previousIteration.current != currentIteration) {
-                previousIteration.current = isStepFurther ? previousIteration.current +1 : previousIteration.current -1;
                 let useIndex = previousIteration.current;
                 
                 state.algorithmResult[useIndex] && Object.keys(state.algorithmResult[useIndex]).forEach(currentKey => {
@@ -237,7 +236,7 @@ const Board = ({ boardRows, boardCols, wallNodes, startNode, finishNode, recentl
 
                 });
 
-                // previousIteration.current += isStepFurther ? +1 : -1;
+                previousIteration.current += isStepFurther ? +1 : -1;
             }
         }
 
