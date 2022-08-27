@@ -299,10 +299,10 @@ function BoardManager() {
         return new Promise(resolve => setTimeout(resolve, speed.current));
     }, [speed]);
 
-    useEffect(()=>{
+    useEffect(() => {
         let rowsPerBoard = Math.floor(state.boardRows / Object.keys(boardContext.boards).length);
         dispatch({ type: ActionTypes.SET_BOARD_ROWS, payload: rowsPerBoard })
-    },[Object.keys(boardContext.boards).length])
+    }, [Object.keys(boardContext.boards).length])
 
     return (
         <>
@@ -328,12 +328,14 @@ function BoardManager() {
 
                     <Dropdown isDropdownOpened={isDropdownOpened}>
                         <button type="button" onClick={() => setIsDropdownOpened(!isDropdownOpened)}>
-                            ADD BOARD
+                            ALGORITHMS:
+                            {Object.keys(boardContext.boards).map(algorithm => <div>{algorithm}</div>)}
                         </button>
                         <ul>
                             {
                                 Object.keys(Algorithms).map((algorithm: string) =>
-                                    <li onClick={() => { setIsDropdownOpened(!isDropdownOpened), boardUpdateContext.dispatch({ type: ContextActionTypes.ADD_BOARD, payload: algorithm }) }}>
+                                    <li onClick={() => { boardUpdateContext.dispatch({ type: boardContext.boards.hasOwnProperty(algorithm) ? ContextActionTypes.REMOVE_BOARD : ContextActionTypes.ADD_BOARD, payload: algorithm }) }}>
+                                        <input type="checkbox" value={algorithm} checked={boardContext.boards.hasOwnProperty(algorithm)} />
                                         {algorithm}
                                     </li>)
                             }
