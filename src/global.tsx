@@ -32,6 +32,49 @@ export const getMatrixInitValue = (rows: number, cols: number, isNumeric = false
     return initMatrix
 };
 
+
+
+export const updateMatrixRows = (newSize: number, currentSize: number, matrix: boolean[][] | number[][], initialValue: boolean | number) => {
+    if (newSize == currentSize) {
+        return matrix;
+    }
+
+    const isGrowth = newSize > currentSize;
+    if (isGrowth) {
+        for (let row = currentSize; row < newSize; row++) {
+            const colsCount = matrix[0].length;
+            matrix[row] = Array(colsCount);
+            for (let col = 0; col < colsCount; col++) {
+                matrix[row][col] = initialValue;
+            }
+        }
+    } else {
+        matrix.length = newSize;
+    }
+
+    return matrix;
+};
+
+export const updateMatrixCols = (newSize: number, currentSize: number, matrix: boolean[][] | number[][], initialValue: boolean | number) => {
+    if (newSize == currentSize) {
+        return matrix;
+    }
+
+    const isGrowth = newSize > currentSize;
+    const rowsCount = matrix.length;
+    if (isGrowth) {
+        for (let row = 0; row < rowsCount; row++) {
+            for (let col = currentSize; col < newSize; col++) {
+                matrix[row][col] = initialValue;
+            }
+        }
+    } else {
+        matrix.map(row=>row.length = newSize);
+    }
+
+    return matrix;
+};
+
 export const splitNodePosition = (currentKey: string) => {
     let currentKeyData = currentKey.split('-');
     let row = parseInt(currentKeyData[0]);

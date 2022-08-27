@@ -9,7 +9,7 @@ import Settings from '../components/Settings';
 import Actions from '../components/Actions';
 import { Node } from '../interfaces/Cell.interface';
 import { ActionTypes as ContextActionTypes } from './BoardContext';
-import { getMatrixInitValue, splitNodePosition, matrixDeepCopy } from '../global'
+import { getMatrixInitValue, splitNodePosition, matrixDeepCopy, updateMatrixRows, updateMatrixCols } from '../global'
 import Board from './Board';
 import { Algorithms } from '../services/common';
 
@@ -140,7 +140,8 @@ function reducer(state: State, action: any) {
                 state.finishNode = { row: action.payload - 1, col: state.finishNode.col };
             }
 
-            return { ...state, boardRows: action.payload, wallNodes: getMatrixInitValue(action.payload, state.boardCols) as boolean[][] };
+            // return { ...state, boardRows: action.payload, wallNodes: getMatrixInitValue(action.payload, state.boardCols) as boolean[][] };
+            return { ...state, boardRows: action.payload, wallNodes: updateMatrixRows(action.payload, state.boardRows, state.wallNodes, false) as boolean[][] };
         case ActionTypes.SET_BOARD_COLS:
             if (state.startNode.col >= action.payload) {
                 state.startNode = { row: state.startNode.row, col: action.payload - 1 };
@@ -150,7 +151,8 @@ function reducer(state: State, action: any) {
                 state.finishNode = { row: state.finishNode.row, col: action.payload - 1 };
             }
 
-            return { ...state, boardCols: action.payload, wallNodes: getMatrixInitValue(state.boardRows, action.payload) as boolean[][] };
+            // return { ...state, boardCols: action.payload, wallNodes: getMatrixInitValue(state.boardRows, action.payload) as boolean[][] };
+            return { ...state, boardCols: action.payload, wallNodes: updateMatrixCols(action.payload, state.boardCols, state.wallNodes, false) as boolean[][] };
 
         case ActionTypes.SET_DRAGGED_NODE_POSITION:
             if (state.draggedNodePosition.row != action.payload.row || state.draggedNodePosition.col != action.payload.col) {
