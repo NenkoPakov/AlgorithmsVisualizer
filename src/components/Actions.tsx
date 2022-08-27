@@ -21,13 +21,13 @@ function Actions({ delayFunc }: any) {
 
     const stepFurther = async () => {
         Object.keys(boardContext.boards).forEach(algorithmKey => {
-            boardUpdateContext.dispatch({ type: ActionTypes.STEP_FURTHER, payload: { algorithmKey:algorithmKey } });
+            boardUpdateContext.dispatch({ type: ActionTypes.STEP_FURTHER, payload: algorithmKey });
         })
     };
 
     const stepBack = async () => {
         Object.keys(boardContext.boards).forEach(algorithmKey => {
-            boardUpdateContext.dispatch({ type: ActionTypes.STEP_BACK, payload: { algorithmKey:algorithmKey } });
+            boardUpdateContext.dispatch({ type: ActionTypes.STEP_BACK, payload: algorithmKey });
         })
     };
 

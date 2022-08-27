@@ -2,7 +2,7 @@ import Cell from './Cell';
 import React, { useEffect, useMemo, useRef, useState } from 'react';
 import styled from 'styled-components';
 import { ComeFrom, ComeFromData, BoardProps } from '../interfaces/Board.interface';
-import { Node } from '../interfaces/Cell.interface';
+import { INodeFactory, Node } from '../interfaces/Cell.interface';
 import { useBoardContext, useBoardUpdateContext, ActionTypes as ContextActionTypes } from './BoardContext';
 import { getMatrixInitValue, splitNodePosition, matrixDeepCopy } from '../global'
 import { IndexInfo, IndexKind } from 'typescript';
@@ -183,7 +183,7 @@ const Board = ({ boardRows, boardCols, wallNodes, startNode, finishNode, algorit
     const boardUpdateContext = useBoardUpdateContext();
 
     useEffect(() => {
-        // executeAlgorithm();
+        executeAlgorithm();
     }, [])
 
     useEffect(() => {
@@ -258,6 +258,37 @@ const Board = ({ boardRows, boardCols, wallNodes, startNode, finishNode, algorit
         dispatch({ type: ActionTypes.RESET, payload: getMatrixInitValue(boardRows, boardCols) });
     };
 
+    const boardRenderFunc = () => {
+        const board:INodeFactory[][] = [];
+
+        //boardRows and wallNodes are passed by the BoardManager component. Because the useEffect is executed after the rendering we have to work with the smaller matrix to prevent exceptions during rendering
+        //I chose to use state.pathNodes but here could be used any of the matrixes in the Board state
+        const lessRows = Math.min(boardRows, state.pathNodes.length);
+        const lessCols = Math.min(boardCols, state.pathNodes[0].length);
+        for (let rowIndex = 0; rowIndex < lessRows; rowIndex++) {
+            board[rowIndex]=[];
+            for (let colIndex = 0; colIndex < lessCols; colIndex++) {
+                let isStartNode = rowIndex === startNode.row && colIndex === startNode.col;
+                let isFinishNode = rowIndex === finishNode.row && colIndex === finishNode.col;
+
+                board[rowIndex][colIndex] = {
+                    value: state.nodeValues[rowIndex][colIndex],
+                    isVisited: state.visitedNodes[rowIndex][colIndex],
+                    isFrontier: state.frontierNodes[rowIndex][colIndex],
+                    isWall: wallNodes[rowIndex][colIndex],
+                    isPartOfThePath: state.pathNodes[rowIndex][colIndex],
+                    isStart: isStartNode,
+                    isFinish: isFinishNode,
+                    row: rowIndex,
+                    col: colIndex,
+                    dispatch: parentDispatch,
+                }
+            }
+        }
+
+        return board;
+    }
+
     return (
         <BoardSection>
             {/* <ButtonWrapper>
@@ -267,39 +298,18 @@ const Board = ({ boardRows, boardCols, wallNodes, startNode, finishNode, algorit
                 <button key='continue' onClick={() => { isCancelled.current = false, executeAlgorithm() }}>Continue</button>
             </ButtonWrapper> */}
             <BoardWrapper>
-                {/* visitedNodes is used just for the currentIteration through all rows and cols */}
-                {(wallNodes.length <= state.pathNodes.length ? wallNodes : state.pathNodes).map((row: boolean[], rowIndex: number) => (
+                {boardRenderFunc().map(row => (
                     <RowWrapper>
-                        {row.map((_, colIndex) => {
-                            let isStartNode = rowIndex === startNode.row && colIndex === startNode.col;
-                            let isFinishNode = rowIndex === finishNode.row && colIndex === finishNode.col;
-
+                        {row.map(cell => {
                             return <Cell
-                                key={`board-cell-${rowIndex}-${colIndex}`}
-                                value={state.nodeValues[rowIndex][colIndex]}
-                                isVisited={state.visitedNodes[rowIndex][colIndex]}
-                                isFrontier={state.frontierNodes[rowIndex][colIndex]}
-                                isWall={wallNodes[rowIndex][colIndex]}
-                                isPartOfThePath={state.pathNodes[rowIndex][colIndex]}
-                                isStart={isStartNode}
-                                isFinish={isFinishNode}
-                                row={rowIndex}
-                                col={colIndex}
-                                dispatch={parentDispatch} />
+                                key={`board-cell-${cell.row}-${cell.col}`}
+                                {...cell} />
                         })}
                     </RowWrapper>
                 ))}
             </BoardWrapper>
         </BoardSection>
     );
-}
-
-function clearTimers() {
-    //stop previous execution if there is one
-    let highestTimeoutId = setTimeout(";");
-    for (var i = 0; i < highestTimeoutId; i++) {
-        clearTimeout(i);
-    }
 }
 
 export default Board;

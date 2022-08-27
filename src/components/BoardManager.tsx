@@ -1,4 +1,4 @@
-import React, { useCallback, useRef, useState } from 'react';
+import React, { useCallback, useEffect, useRef, useState } from 'react';
 import RangeSlider from '../components/RangeSlider';
 import breadthFirstSearch from '../services/breadthFirstSearch';
 import greedyBestFirstSearch from '../services/greedyBestFirstSearch';
@@ -299,14 +299,17 @@ function BoardManager() {
         return new Promise(resolve => setTimeout(resolve, speed.current));
     }, [speed]);
 
-    var rowsPerBoard = Math.floor(state.boardRows / Object.keys(boardContext.boards).length);
+    useEffect(()=>{
+        let rowsPerBoard = Math.floor(state.boardRows / Object.keys(boardContext.boards).length);
+        dispatch({ type: ActionTypes.SET_BOARD_ROWS, payload: rowsPerBoard })
+    },[Object.keys(boardContext.boards).length])
 
     return (
         <>
             <BoardContainer>
                 {Object.keys(boardContext.boards).map((key: string) =>
                     <Board
-                        boardRows={rowsPerBoard}
+                        boardRows={state.boardRows}
                         boardCols={state.boardCols}
                         wallNodes={state.wallNodes}
                         startNode={state.startNode}

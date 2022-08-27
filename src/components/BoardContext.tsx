@@ -77,7 +77,7 @@ function reducer(state: State, action: any) {
             const stepFurtherAlgorithmKey = action.payload;
 
             if (!state.boards[stepFurtherAlgorithmKey].isCompleted) {
-                    ++state.boards[stepFurtherAlgorithmKey].currentIteration;
+                ++state.boards[stepFurtherAlgorithmKey].currentIteration;
             }
 
             return { ...state };
@@ -86,7 +86,7 @@ function reducer(state: State, action: any) {
             const stepBackAlgorithmKey = action.payload;
 
             if (!state.boards[stepBackAlgorithmKey].isCompleted) {
-                    --state.boards[stepBackAlgorithmKey].currentIteration;
+                --state.boards[stepBackAlgorithmKey].currentIteration;
             }
 
             if (state.boards[stepBackAlgorithmKey].isCompleted && state.boards[stepBackAlgorithmKey].currentIteration < state.boards[stepBackAlgorithmKey].iterationsCount!) {
