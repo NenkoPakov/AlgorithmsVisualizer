@@ -6,6 +6,7 @@ import { SliderType, ISlider } from '../interfaces/Slider.interface';
 import { useBoardContext } from './BoardContext';
 
 const Slider = styled.input`
+		position:relative;
 		outline: 0;
 		border: 0;
 		margin-bottom:20px;

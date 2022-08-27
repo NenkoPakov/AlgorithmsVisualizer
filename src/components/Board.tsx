@@ -165,7 +165,7 @@ function reducer(state: State, action: any) {
     }
 }
 
-const Board = ({ boardRows, boardCols, wallNodes, startNode, finishNode, recentlyVisitedNodes, delayFunc, algorithmKey, parentDispatch }: BoardProps) => {
+const Board = ({ boardRows, boardCols, wallNodes, startNode, finishNode, algorithmKey, parentDispatch }: BoardProps) => {
 
     const initState = {
         visitedNodes: getMatrixInitValue(boardRows, boardCols) as boolean[][],
@@ -183,8 +183,12 @@ const Board = ({ boardRows, boardCols, wallNodes, startNode, finishNode, recentl
     const boardUpdateContext = useBoardUpdateContext();
 
     useEffect(() => {
-        executeAlgorithm();
+        // executeAlgorithm();
     }, [])
+
+    useEffect(() => {
+        dispatch({ type: ActionTypes.UPDATE_SIZE, payload: { booleanMatrix: getMatrixInitValue(boardRows, boardCols), numericMatrix: getMatrixInitValue(boardRows, boardCols, true) } });
+    }, [boardRows, boardCols])
 
     useEffect(() => {
         const currentIteration = boardContext.boards[algorithmKey].currentIteration;
@@ -198,13 +202,13 @@ const Board = ({ boardRows, boardCols, wallNodes, startNode, finishNode, recentl
         }
 
         let isStepFurther = previousIteration.current < currentIteration;
-        
+
         let iterationsCount = state.algorithmResult.length;
-        
+
         if (currentIteration >= 0 && currentIteration < iterationsCount) {
             while (previousIteration.current != currentIteration) {
                 let useIndex = previousIteration.current;
-                
+
                 state.algorithmResult[useIndex] && Object.keys(state.algorithmResult[useIndex]).forEach(currentKey => {
                     const currentNode = state.algorithmResult[useIndex][currentKey];
                     let frontier: Node = splitNodePosition(currentKey);
@@ -243,10 +247,6 @@ const Board = ({ boardRows, boardCols, wallNodes, startNode, finishNode, recentl
         previousIteration.current = currentIteration;
     }, [boardContext.boards[algorithmKey].currentIteration])
 
-    useEffect(() => {
-        dispatch({ type: ActionTypes.UPDATE_SIZE, payload: { booleanMatrix: getMatrixInitValue(boardRows, boardCols), numericMatrix: getMatrixInitValue(boardRows, boardCols, true) } });
-    }, [boardRows, boardCols])
-
     const executeAlgorithm = async () => {
         const algorithmFunc = Algorithms[algorithmKey];
         var cameFrom = await algorithmFunc(wallNodes, startNode, finishNode);
@@ -268,7 +268,7 @@ const Board = ({ boardRows, boardCols, wallNodes, startNode, finishNode, recentl
             </ButtonWrapper> */}
             <BoardWrapper>
                 {/* visitedNodes is used just for the currentIteration through all rows and cols */}
-                {state.visitedNodes.map((row: boolean[], rowIndex: number) => (
+                {(wallNodes.length <= state.pathNodes.length ? wallNodes : state.pathNodes).map((row: boolean[], rowIndex: number) => (
                     <RowWrapper>
                         {row.map((_, colIndex) => {
                             let isStartNode = rowIndex === startNode.row && colIndex === startNode.col;

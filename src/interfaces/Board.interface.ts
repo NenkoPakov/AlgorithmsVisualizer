@@ -5,11 +5,9 @@ export interface BoardProps {
     startNode:Node,
     finishNode:Node,
     algorithmKey: keyof typeof Algorithms,
-    delayFunc: Function,
     boardRows: number,
     boardCols: number,
     wallNodes:boolean[][],
-    recentlyVisitedNodes:{ frontier: Node, parent: Node | undefined, value: number }[],
     parentDispatch:Function,
 };
 

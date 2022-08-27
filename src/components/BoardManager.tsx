@@ -281,7 +281,7 @@ function BoardManager() {
         return new Promise(resolve => setTimeout(resolve, speed.current));
     }, [speed]);
 
-    var rowsPerBoard = Math.ceil(state.boardRows/Object.keys(boardContext.boards).length);
+    var rowsPerBoard = Math.floor(state.boardRows/Object.keys(boardContext.boards).length);
 
     return (
         <>
@@ -293,9 +293,7 @@ function BoardManager() {
                         wallNodes={state.wallNodes}
                         startNode={state.startNode}
                         finishNode={state.finishNode}
-                        recentlyVisitedNodes={[]}
                         algorithmKey={key as keyof typeof Algorithms}
-                        delayFunc={delayFunc}
                         parentDispatch={dispatch}
                     />
                 )}
