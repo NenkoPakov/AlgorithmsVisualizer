@@ -132,8 +132,24 @@ export const ActionTypes = {
 function reducer(state: State, action: any) {
     switch (action.type) {
         case ActionTypes.SET_BOARD_ROWS:
+            if (state.startNode.row >= action.payload) {
+                state.startNode = { row: action.payload - 1, col: state.startNode.col };
+            }
+
+            if (state.finishNode.row >= action.payload) {
+                state.finishNode = { row: action.payload - 1, col: state.finishNode.col };
+            }
+
             return { ...state, boardRows: action.payload, wallNodes: getMatrixInitValue(action.payload, state.boardCols) as boolean[][] };
         case ActionTypes.SET_BOARD_COLS:
+            if (state.startNode.col >= action.payload) {
+                state.startNode = { row: state.startNode.row, col: action.payload - 1 };
+            }
+
+            if (state.finishNode.col >= action.payload) {
+                state.finishNode = { row: state.finishNode.row, col: action.payload - 1 };
+            }
+
             return { ...state, boardCols: action.payload, wallNodes: getMatrixInitValue(state.boardRows, action.payload) as boolean[][] };
 
         case ActionTypes.SET_DRAGGED_NODE_POSITION:
@@ -264,7 +280,7 @@ function BoardManager() {
                 const targetIteration = Math.ceil(maxIterationsCount * sliderValue / 100);
 
                 Object.keys(boardContext.boards).forEach((algorithmKey: any) => {
-                        boardUpdateContext.dispatch({ type: ContextActionTypes.JUMP_AT_INDEX, payload: {algorithmKey, targetIteration}})
+                    boardUpdateContext.dispatch({ type: ContextActionTypes.JUMP_AT_INDEX, payload: { algorithmKey, targetIteration } })
                 })
 
                 lastIterationIndex.current = targetIteration;
@@ -281,7 +297,7 @@ function BoardManager() {
         return new Promise(resolve => setTimeout(resolve, speed.current));
     }, [speed]);
 
-    var rowsPerBoard = Math.floor(state.boardRows/Object.keys(boardContext.boards).length);
+    var rowsPerBoard = Math.floor(state.boardRows / Object.keys(boardContext.boards).length);
 
     return (
         <>
@@ -312,7 +328,7 @@ function BoardManager() {
                         <ul>
                             {
                                 Object.keys(Algorithms).map((algorithm: string) =>
-                                    <li onClick={() => {setIsDropdownOpened(!isDropdownOpened),boardUpdateContext.dispatch({ type: ContextActionTypes.ADD_BOARD, payload: algorithm })}}>
+                                    <li onClick={() => { setIsDropdownOpened(!isDropdownOpened), boardUpdateContext.dispatch({ type: ContextActionTypes.ADD_BOARD, payload: algorithm }) }}>
                                         {algorithm}
                                     </li>)
                             }
