@@ -45,7 +45,7 @@ const Slider = styled.input`
 				cursor:${(props: { sliderType: SliderType }) => props.sliderType == SliderType.rowsSlider ? 'ns-resize' : 'ew-resize'};
 				background: #fff;
 				border:solid 3px black; 
-				box-shadow: -340px 0 0 320px #1597ff, inset 0 0 0 40px #1597ff;
+				box-shadow: -340px 0 0 320px #99DDFF, inset 0 0 0 40px #99DDFF;
 				border-radius: 50%;
 				transition: box-shadow 0.2s ease-in-out;
 				position: relative;
@@ -53,7 +53,7 @@ const Slider = styled.input`
 			}
 			&:active::-webkit-slider-thumb {
 				background: #fff;
-				box-shadow: -340px 0 0 320px #1597ff, inset 0 0 0 3px #1597ff;
+				box-shadow: -340px 0 0 320px #99DDFF, inset 0 0 0 3px #99DDFF;
 			}
 		}
         
@@ -119,7 +119,7 @@ const SizeIndicator = styled.h4`
 //             height: 100%;
 //             top: 0;
 //             left: 0;
-//             background-color: #1597ff;
+//             background-color: #99DDFF;
 //             border-radius: 0 50% 50% 50%;
 //             transform: rotate(45deg);
 //             z-index: -1;

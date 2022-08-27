@@ -301,7 +301,7 @@ function BoardManager() {
 
     useEffect(() => {
         let rowsPerBoard = Math.floor(state.boardRows / Object.keys(boardContext.boards).length);
-        dispatch({ type: ActionTypes.SET_BOARD_ROWS, payload: rowsPerBoard })
+        dispatch({ type: ActionTypes.SET_BOARD_ROWS, payload: Math.max(rowsPerBoard, MIN_SIZE) })
     }, [Object.keys(boardContext.boards).length])
 
     return (

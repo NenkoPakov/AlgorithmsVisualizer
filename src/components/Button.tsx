@@ -8,18 +8,18 @@ width:100%;
 display:flex;
 align-items:center;
 justify-content:center;
-background-color:${(props: { isForStart: boolean }) => props.isForStart ? '#5df96d' : 'white'};
+background-color:${(props: { isForStart: boolean }) => props.isForStart ? '#3FD2C7' : 'white'};
 color:${(props: { isForStart: boolean }) => props.isForStart ? 'black' : '#ff3434'};
 font-size:1.2rem;
 font-weight:bold;
 text-transform:uppercase;
-border:solid 5px  ${(props: { isForStart: boolean }) => props.isForStart ? '#5df96d' : '#ff3434'};
+border:solid 5px  ${(props: { isForStart: boolean }) => props.isForStart ? '#3FD2C7' : '#ff3434'};
 border-radius:10px;
 cursor: pointer;
 
 :hover{
 transform: translateY(-5px);
-background-color:${(props: { isForStart: boolean }) => props.isForStart ? '#5df96d' : '#ff3434'};
+background-color:${(props: { isForStart: boolean }) => props.isForStart ? '#3FD2C7' : '#ff3434'};
 color:${(props: { isForStart: boolean }) => props.isForStart ? 'black' : 'white'};
 
 box-shadow: 5px 5px lightgray;

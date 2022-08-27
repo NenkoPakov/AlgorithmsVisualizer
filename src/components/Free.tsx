@@ -8,7 +8,8 @@ import { useBoardContext, useBoardUpdateContext } from './BoardContext';
 
 const FreeNode = styled.div<any>`
 ${NodeBase};
-${NodeText}
+${NodeText};
+resize:none;
 background-color:${(props: IFreeNode) => props.isVisited
     ? 'yellow'
     : props.isPartOfThePath

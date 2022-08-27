@@ -6,11 +6,11 @@ position:relative;
 display:flex;
 justify-content:space-between;
 flex-direction:column;
-width:350px;
+max-width:350px;
 min-height:100%;
-background-color:white ;
-border:solid 5px gray;
-border-radius:35px ;
+background-color:#c8d8e4;
+/* border:solid 5px gray; */
+/* border-radius:35px ; */
 padding:35px;
 `;
 
