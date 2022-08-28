@@ -10,7 +10,6 @@ const Layout = styled.div`
   /* padding: 10px; */
   height:100%;
   overflow:hidden;
-  background-color:#fcde67;
   `;
 
 function App() {

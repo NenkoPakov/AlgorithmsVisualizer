@@ -13,13 +13,24 @@ import { getMatrixInitValue, splitNodePosition, matrixDeepCopy, updateMatrixRows
 import Board from './Board';
 import { Algorithms } from '../services/common';
 
+const MainPage = styled.div`
+  position:fixed;
+  width:100%;
+  height:100%;
+  background-color:#4251f1;
+  display:flex;
+  flex-direction:row;
+`;
+
 const BoardContainer = styled.section`
-  height:calc(100vh - 2*10px);
+  position:relative;
+  background-color: #ececec;
+  border-radius:40px 0 0 40px;
   display:flex;
   flex-grow:1;
   flex-direction:column;
   justify-content:space-around;
-  margin:0 20px;
+  padding:40px;
   gap:10px 0;
   `;
 
@@ -305,20 +316,7 @@ function BoardManager() {
     }, [Object.keys(boardContext.boards).length])
 
     return (
-        <>
-            <BoardContainer>
-                {Object.keys(boardContext.boards).map((key: string) =>
-                    <Board
-                        boardRows={state.boardRows}
-                        boardCols={state.boardCols}
-                        wallNodes={state.wallNodes}
-                        startNode={state.startNode}
-                        finishNode={state.finishNode}
-                        algorithmKey={key as keyof typeof Algorithms}
-                        parentDispatch={dispatch}
-                    />
-                )}
-            </BoardContainer>
+        <MainPage>
             <Settings>
                 <div>
                     <RangeSlider key='range-slider-rows' defaultValue={INITIAL_SIZE_SLIDER_DEFAULT_VALUE} sliderType={SliderType.rowsSlider} updateBoardSizeFunc={handleSliderUpdate} />
@@ -344,7 +342,20 @@ function BoardManager() {
                 </div>
                 <Actions delayFunc={delayFunc} />
             </Settings>
-        </>
+            <BoardContainer>
+                {Object.keys(boardContext.boards).map((key: string) =>
+                    <Board
+                        boardRows={state.boardRows}
+                        boardCols={state.boardCols}
+                        wallNodes={state.wallNodes}
+                        startNode={state.startNode}
+                        finishNode={state.finishNode}
+                        algorithmKey={key as keyof typeof Algorithms}
+                        parentDispatch={dispatch}
+                    />
+                )}
+            </BoardContainer>
+        </MainPage>
     )
 }
 

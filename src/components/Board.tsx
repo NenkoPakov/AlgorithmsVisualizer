@@ -12,8 +12,19 @@ const BoardSection = styled.section`
 position:relative;
 display: flex;
 flex-direction:column;
-width:100%;
 height:100%;
+background-color:white;
+padding:5px 20px 20px 20px;
+border-radius:20px;
+`;
+
+const BoardInfo = styled.div`
+position:relative;
+
+h2{
+    margin:0;
+    margin-bottom:5px;
+}
 `;
 
 const ButtonWrapper = styled.div`
@@ -26,8 +37,7 @@ position:relative;
 display: flex;
 flex-basis:100%;
 flex-direction:column;
-border:solid 5px gray;
-border-radius:10px;
+/* border:solid 5px gray; */
 gap:1px;
 overflow:hidden;
 `;
@@ -259,14 +269,14 @@ const Board = ({ boardRows, boardCols, wallNodes, startNode, finishNode, algorit
     };
 
     const boardRenderFunc = () => {
-        const board:INodeFactory[][] = [];
+        const board: INodeFactory[][] = [];
 
         //boardRows and wallNodes are passed by the BoardManager component. Because the useEffect is executed after the rendering we have to work with the smaller matrix to prevent exceptions during rendering
         //I chose to use state.pathNodes but here could be used any of the matrixes in the Board state
         const lessRows = Math.min(boardRows, state.pathNodes.length);
         const lessCols = Math.min(boardCols, state.pathNodes[0].length);
         for (let rowIndex = 0; rowIndex < lessRows; rowIndex++) {
-            board[rowIndex]=[];
+            board[rowIndex] = [];
             for (let colIndex = 0; colIndex < lessCols; colIndex++) {
                 let isStartNode = rowIndex === startNode.row && colIndex === startNode.col;
                 let isFinishNode = rowIndex === finishNode.row && colIndex === finishNode.col;
@@ -291,6 +301,11 @@ const Board = ({ boardRows, boardCols, wallNodes, startNode, finishNode, algorit
 
     return (
         <BoardSection>
+            <BoardInfo>
+                <h2>
+                    {algorithmKey}
+                </h2>
+            </BoardInfo>
             {/* <ButtonWrapper>
                 <button key='execute' onClick={() => executeAlgorithm()}>Execute</button>
                 <button key='clear' onClick={() => reset()}>Clear board</button>
