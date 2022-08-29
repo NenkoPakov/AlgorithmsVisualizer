@@ -17,6 +17,7 @@ interface State {
     isDrawingWallAction: boolean,
     isUnmarkWallAction: boolean,
     isInExecution: boolean,
+    isPaused: boolean,
     boards: BoardsIteration,
 }
 
@@ -33,6 +34,8 @@ export const ActionTypes = {
     STEP_FURTHER: 'stepFurther',
     STEP_BACK: 'stepBack',
     MARK_COMPLETED: 'markCompleted',
+    SET_PAUSE: 'setPaused',
+    REMOVE_PAUSE: 'removePaused',
     SET_ITERATIONS_COUNT: 'setIterationsCount',
     RESET: 'reset',
 }
@@ -100,6 +103,12 @@ function reducer(state: State, action: any) {
             state.boards[completedAlgorithmKey].isCompleted = true
             return { ...state };
 
+        case ActionTypes.SET_PAUSE:
+            return { ...state, isPaused: true };
+
+        case ActionTypes.REMOVE_PAUSE:
+            return { ...state, isPaused: false };
+
         case ActionTypes.SET_ITERATIONS_COUNT:
             const { iterationsAlgorithmKey, iterationsCount } = action.payload;
             state.boards[iterationsAlgorithmKey].iterationsCount = iterationsCount;
@@ -110,7 +119,7 @@ function reducer(state: State, action: any) {
                 state.boards[algorithmKey].currentIteration = defaultIteration;
                 state.boards[algorithmKey].isCompleted = false;
             });
-            return { ...state, isInExecution: false };
+            return { ...state, isPaused: false, isInExecution: false };
 
         default:
             return state;
@@ -130,6 +139,7 @@ function BoardProvider({ children }: any) {
         isDrawingWallAction: false,
         isUnmarkWallAction: false,
         isInExecution: false,
+        isPaused: false,
         boards: {
             'BFS': {
                 currentIteration: defaultIteration,
@@ -144,6 +154,7 @@ function BoardProvider({ children }: any) {
 
     const handleCancellationToken = (value: boolean) => {
         cancellationToken.current = value;
+        dispatch({ type: value ? ActionTypes.SET_PAUSE : ActionTypes.REMOVE_PAUSE })
     }
 
     return (

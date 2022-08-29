@@ -12,6 +12,9 @@ import { ActionTypes as ContextActionTypes } from './BoardContext';
 import { getMatrixInitValue, splitNodePosition, matrixDeepCopy, updateMatrixRows, updateMatrixCols } from '../global'
 import Board from './Board';
 import { Algorithms } from '../services/common';
+import Card from './Card';
+import CardContainer from './CardContainer';
+import CircularProgressBar from './CircularProgressBar';
 
 const MainPage = styled.div`
   position:fixed;
@@ -315,6 +318,10 @@ function BoardManager() {
         dispatch({ type: ActionTypes.SET_BOARD_ROWS, payload: Math.max(rowsPerBoard, MIN_SIZE) })
     }, [Object.keys(boardContext.boards).length])
 
+
+    var boardsValues: { iterationsCount: number, currentIteration: number }[] = Object.values(boardContext.boards);
+    let slowestBoardData = boardsValues.reduce((largestBoard, currentBoard) => largestBoard.iterationsCount > currentBoard.iterationsCount ? largestBoard : currentBoard);
+
     return (
         <MainPage>
             <Settings>
@@ -343,6 +350,25 @@ function BoardManager() {
                 <Actions delayFunc={delayFunc} />
             </Settings>
             <BoardContainer>
+                <CardContainer>
+                    <Card title="Rows count" data={state.boardRows}></Card>
+                    <Card title="Cols count" data={state.boardCols}></Card>
+                    <Card title="Status" data={
+                        boardContext.isPaused
+                            ? "Paused"
+                            : boardContext.isInExecution
+                                ? "Running"
+                                // : slowestBoardData.currentIteration > 0 && slowestBoardData.currentIteration < slowestBoardData.iterationsCount
+                                : "Ready"
+                    } />
+                    {slowestBoardData.currentIteration > 0 && <Card title="Operations count" data={slowestBoardData.currentIteration} />}
+                    {/* {slowestBoardData.currentIteration > 0 && */}
+                    <Card title="Progress" data={`${Math.round(100 / (slowestBoardData.iterationsCount / slowestBoardData.currentIteration))}%`}>
+                    </Card>
+                    {/* } */}
+                    <CircularProgressBar progressInPercentages={Math.round(100 / (slowestBoardData.iterationsCount / slowestBoardData.currentIteration))}></CircularProgressBar>
+                </CardContainer>
+
                 {Object.keys(boardContext.boards).map((key: string) =>
                     <Board
                         boardRows={state.boardRows}
