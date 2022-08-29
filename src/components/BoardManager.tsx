@@ -15,6 +15,8 @@ import { Algorithms } from '../services/common';
 import Card from './Card';
 import CardContainer from './CardContainer';
 import CircularProgressBar from './CircularProgressBar';
+import BasicCard from './BasicCard';
+import AnalyticalCard from './AnalyticalCard';
 
 const MainPage = styled.div`
   position:fixed;
@@ -351,9 +353,9 @@ function BoardManager() {
             </Settings>
             <BoardContainer>
                 <CardContainer>
-                    <Card title="Rows count" data={state.boardRows}></Card>
-                    <Card title="Cols count" data={state.boardCols}></Card>
-                    <Card title="Status" data={
+                    <BasicCard title="Rows count" data={state.boardRows}></BasicCard>
+                    <BasicCard title="Cols count" data={state.boardCols}></BasicCard>
+                    <BasicCard title="Status" data={
                         boardContext.isPaused
                             ? "Paused"
                             : boardContext.isInExecution
@@ -361,12 +363,12 @@ function BoardManager() {
                                 // : slowestBoardData.currentIteration > 0 && slowestBoardData.currentIteration < slowestBoardData.iterationsCount
                                 : "Ready"
                     } />
-                    {slowestBoardData.currentIteration > 0 && <Card title="Operations count" data={slowestBoardData.currentIteration} />}
+                    {slowestBoardData.currentIteration > 0 && <BasicCard title="Operations count" data={slowestBoardData.currentIteration} />}
                     {/* {slowestBoardData.currentIteration > 0 && */}
-                    <Card title="Progress" data={`${Math.round(100 / (slowestBoardData.iterationsCount / slowestBoardData.currentIteration))}%`}>
-                    </Card>
+                    <BasicCard title="Progress" data={`${Math.round(100 / (slowestBoardData.iterationsCount / slowestBoardData.currentIteration))}%`}>
+                    </BasicCard>
                     {/* } */}
-                    <CircularProgressBar progressInPercentages={Math.round(100 / (slowestBoardData.iterationsCount / slowestBoardData.currentIteration))}></CircularProgressBar>
+                    <AnalyticalCard progressInPercentages={Math.round(100 / (slowestBoardData.iterationsCount / slowestBoardData.currentIteration))}></AnalyticalCard>
                 </CardContainer>
 
                 {Object.keys(boardContext.boards).map((key: string) =>

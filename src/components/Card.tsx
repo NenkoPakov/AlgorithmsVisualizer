@@ -11,29 +11,13 @@ flex-direction:column;
 background-color:white;
 padding:5px 20px 20px 20px;
 border-radius:20px;
-
-h2{
-margin:0;
-}
-
-h4{
-margin:0;
-font-weight:400;
-text-transform:capitalize;
-color:#7e7e7e;
-}
 `;
 
 
-export default function Card({ title, data }: any) {
+export default function Card({ children }: any) {
     return (
         <CardContainer>
-            <h4>
-                {title}
-            </h4>
-            <h2>
-                {data}
-            </h2>
-    </CardContainer>
+            {children}
+        </CardContainer>
     )
 }
