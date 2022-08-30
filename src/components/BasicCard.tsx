@@ -2,10 +2,11 @@ import React from 'react'
 import styled from 'styled-components'
 import Card from './Card';
 
-const Title = styled.h2`
+const Data = styled.h2`
     margin:0;
 `;
-const Data = styled.h4`
+
+const Title = styled.h4`
 margin:0;
 font-weight:400;
 text-transform:capitalize;

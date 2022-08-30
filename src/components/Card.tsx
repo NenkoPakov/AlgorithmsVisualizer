@@ -6,10 +6,9 @@ const CardContainer = styled.section`
 position:relative;
 display: flex;
 flex-direction:column;
-/* width:200px; */
-/* height:100%; */
+justify-content:center;
 background-color:white;
-padding:5px 20px 20px 20px;
+padding:5px 20px 5px 20px;
 border-radius:20px;
 `;
 

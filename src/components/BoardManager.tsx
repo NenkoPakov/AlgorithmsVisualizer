@@ -17,6 +17,7 @@ import CardContainer from './CardContainer';
 import CircularProgressBar from './CircularProgressBar';
 import BasicCard from './BasicCard';
 import AnalyticalCard from './AnalyticalCard';
+import { time } from 'console';
 
 const MainPage = styled.div`
   position:fixed;
@@ -368,7 +369,8 @@ function BoardManager() {
                     <BasicCard title="Progress" data={`${Math.round(100 / (slowestBoardData.iterationsCount / slowestBoardData.currentIteration))}%`}>
                     </BasicCard>
                     {/* } */}
-                    <AnalyticalCard progressInPercentages={Math.round(100 / (slowestBoardData.iterationsCount / slowestBoardData.currentIteration))}></AnalyticalCard>
+                    <BasicCard title="Timer" data={'10:24:01'}></BasicCard>
+                    <AnalyticalCard title="Progress" currentValue={slowestBoardData.currentIteration} targetValue={slowestBoardData.iterationsCount} progressInPercentages={Math.round(100 / (slowestBoardData.iterationsCount / slowestBoardData.currentIteration))}></AnalyticalCard>
                 </CardContainer>
 
                 {Object.keys(boardContext.boards).map((key: string) =>

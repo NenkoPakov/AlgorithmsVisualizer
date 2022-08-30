@@ -14,17 +14,19 @@ display:block;
 margin:auto;
 width:80px;
 height:80px;
+min-width:80px;
+min-height:80px;
 transform:rotateZ(-90deg);
 `;
 
 const SvgTrack = styled.circle`
     ${SvgCommonParams};
-    stroke: #ddd;
+    stroke: #c5c5c5;
 `;
 
 const SvgIndication = styled.circle<any>`
     ${SvgCommonParams};
-    stroke: #07c;
+    stroke: #fff;
     stroke-dasharray: ${(props: any) => `${props.arcLength}px`};
     stroke-dashoffset: ${(props: any) => `${props.arcOffset}px`};
     transition:transform 50ms ease-in-out;
@@ -32,7 +34,7 @@ const SvgIndication = styled.circle<any>`
 
 const PercentageIndicator = styled.text`
 font-weight: 500;
-color: #dc5a1e;
+fill: #fff;
 font-size: 1.5em;
 transform:rotateZ(90deg);
 text-align: center;
@@ -51,7 +53,6 @@ function CircularProgressBar({ progressInPercentages }: any) {
     return (
         <SvgProgressBar>
             <g>
-
                 <SvgTrack />
                 <SvgIndication arcLength={arcLength} arcOffset={calcArcOffset(progressInPercentages)} />
                 <PercentageIndicator x="40" y="-32">{progressInPercentages ? progressInPercentages : 0}%</PercentageIndicator>
