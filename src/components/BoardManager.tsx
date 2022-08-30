@@ -18,12 +18,14 @@ import CircularProgressBar from './CircularProgressBar';
 import BasicCard from './BasicCard';
 import AnalyticalCard from './AnalyticalCard';
 import { time } from 'console';
+import Dropdown from './Dropdown';
+import Arrows  from '../wwwroot/svg/arrows.svg';
 
 const MainPage = styled.div`
   position:fixed;
   width:100%;
   height:100%;
-  background-color:#4251f1;
+  background-color:#181b3b;
   display:flex;
   flex-direction:row;
 `;
@@ -38,49 +40,6 @@ const BoardContainer = styled.section`
   justify-content:space-around;
   padding:40px;
   gap:10px 0;
-  `;
-
-const Dropdown = styled.div<any>`
-  width: 100%;
-  position: relative;
-  display: inline-block;
-
-  button {
-    border: solid black 2px;
-    border-radius:10px;
-    padding: 0;
-    width: 100%;
-    border: 0;
-    background-color: #bdb5b571;
-    color: #333;
-    cursor: pointer;
-    outline: 0;
-    font-size: 40px;
-  }
-
-  ul {
-    display:${(props: any) => props.isDropdownOpened ? 'block' : 'none'};
-    position: absolute;
-    top: 100%;
-    left: 0;
-    width: 100%;
-    z-index: 2;
-    border: 1px solid rgba(0, 0, 0, 0.04);
-    box-shadow: 0 16px 24px 2px rgba(0, 0, 0, 0.14);
-
-    list-style: none;
-    padding: 0;
-    margin: 0;
-  }
-
-  li {
-    padding: 8px 12px;
-  }
-
-  li:hover {
-    background-color: rgba(0, 0, 0, 0.14);
-    cursor: pointer;
-  }
   `;
 
 const generateWall = (targetNode: Node, wallStartNode: Node, wallNodes: boolean[][]) => {
@@ -329,26 +288,12 @@ function BoardManager() {
         <MainPage>
             <Settings>
                 <div>
-                    <RangeSlider key='range-slider-rows' defaultValue={INITIAL_SIZE_SLIDER_DEFAULT_VALUE} sliderType={SliderType.rowsSlider} updateBoardSizeFunc={handleSliderUpdate} />
-                    <RangeSlider key='range-slider-cols' defaultValue={INITIAL_SIZE_SLIDER_DEFAULT_VALUE} sliderType={SliderType.colsSlider} updateBoardSizeFunc={handleSliderUpdate} />
-                    <RangeSlider key='range-slider-speed' defaultValue={speed.current} sliderType={SliderType.speedSlider} updateBoardSizeFunc={handleSliderUpdate} />
-                    <RangeSlider key='range-slider-progress' defaultValue={INITIAL_ITERATION} sliderType={SliderType.progressSlider} updateBoardSizeFunc={handleSliderUpdate} />
+                    <RangeSlider key='range-slider-rows' icon={Arrows} defaultValue={INITIAL_SIZE_SLIDER_DEFAULT_VALUE} sliderType={SliderType.rowsSlider} updateBoardSizeFunc={handleSliderUpdate} />
+                    <RangeSlider key='range-slider-cols' icon={Arrows} defaultValue={INITIAL_SIZE_SLIDER_DEFAULT_VALUE} sliderType={SliderType.colsSlider} updateBoardSizeFunc={handleSliderUpdate} />
+                    <RangeSlider key='range-slider-speed'icon={Arrows} defaultValue={speed.current} sliderType={SliderType.speedSlider} updateBoardSizeFunc={handleSliderUpdate} />
+                    <RangeSlider key='range-slider-progress' icon={Arrows} defaultValue={INITIAL_ITERATION} sliderType={SliderType.progressSlider} updateBoardSizeFunc={handleSliderUpdate} />
 
-                    <Dropdown isDropdownOpened={isDropdownOpened}>
-                        <button type="button" onClick={() => setIsDropdownOpened(!isDropdownOpened)}>
-                            ALGORITHMS:
-                            {Object.keys(boardContext.boards).map(algorithm => <div>{algorithm}</div>)}
-                        </button>
-                        <ul>
-                            {
-                                Object.keys(Algorithms).map((algorithm: string) =>
-                                    <li onClick={() => { boardUpdateContext.dispatch({ type: boardContext.boards.hasOwnProperty(algorithm) ? ContextActionTypes.REMOVE_BOARD : ContextActionTypes.ADD_BOARD, payload: algorithm }) }}>
-                                        <input type="checkbox" value={algorithm} checked={boardContext.boards.hasOwnProperty(algorithm)} />
-                                        {algorithm}
-                                    </li>)
-                            }
-                        </ul>
-                    </Dropdown>
+                    <Dropdown isDropdownOpened={isDropdownOpened} handleDropdownClick={setIsDropdownOpened}></Dropdown>
                 </div>
                 <Actions delayFunc={delayFunc} />
             </Settings>
@@ -356,6 +301,7 @@ function BoardManager() {
                 <CardContainer>
                     <BasicCard title="Rows count" data={state.boardRows}></BasicCard>
                     <BasicCard title="Cols count" data={state.boardCols}></BasicCard>
+                    <BasicCard title="Walls count" data={state.wallNodes.reduce((curr, row) => curr + row.filter(node => node == true).length, 0)}></BasicCard>
                     <BasicCard title="Status" data={
                         boardContext.isPaused
                             ? "Paused"
@@ -364,13 +310,8 @@ function BoardManager() {
                                 // : slowestBoardData.currentIteration > 0 && slowestBoardData.currentIteration < slowestBoardData.iterationsCount
                                 : "Ready"
                     } />
-                    {slowestBoardData.currentIteration > 0 && <BasicCard title="Operations count" data={slowestBoardData.currentIteration} />}
-                    {/* {slowestBoardData.currentIteration > 0 && */}
-                    <BasicCard title="Progress" data={`${Math.round(100 / (slowestBoardData.iterationsCount / slowestBoardData.currentIteration))}%`}>
-                    </BasicCard>
-                    {/* } */}
-                    <BasicCard title="Timer" data={'10:24:01'}></BasicCard>
-                    <AnalyticalCard title="Progress" currentValue={slowestBoardData.currentIteration} targetValue={slowestBoardData.iterationsCount} progressInPercentages={Math.round(100 / (slowestBoardData.iterationsCount / slowestBoardData.currentIteration))}></AnalyticalCard>
+                    {slowestBoardData.currentIteration > 0 && <BasicCard title="Timer" data={'10:24:01'}></BasicCard>}
+                    {slowestBoardData.currentIteration > 0 && <AnalyticalCard title="Progress" currentValue={slowestBoardData.currentIteration} targetValue={slowestBoardData.iterationsCount} progressInPercentages={Math.round(100 / (slowestBoardData.iterationsCount / slowestBoardData.currentIteration))}></AnalyticalCard>}
                 </CardContainer>
 
                 {Object.keys(boardContext.boards).map((key: string) =>

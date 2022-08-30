@@ -5,6 +5,10 @@ import { IFreeNode } from '../interfaces/Cell.interface';
 import { SliderType, ISlider } from '../interfaces/Slider.interface';
 import { useBoardContext } from './BoardContext';
 
+const SliderContainer = styled.div`
+margin-bottom:20px;
+`;
+
 const Slider = styled.input`
 		position:relative;
 		outline: 0;
@@ -73,7 +77,23 @@ const Slider = styled.input`
 		}
 `;
 
-function RangeSlider({ defaultValue, sliderType, updateBoardSizeFunc }: ISlider) {
+const SliderInfo = styled.div`
+	display:flex;
+	flex-direction:row;
+	justify-content:center;
+	align-items:center;
+`;
+
+const Icon = styled.img`
+height: 45px;
+`;
+
+const Label = styled.h4`
+margin:0;
+color:white;
+`;
+
+function RangeSlider({ icon, defaultValue, sliderType, updateBoardSizeFunc }: ISlider) {
 
 	const boardContext = useBoardContext();
 
@@ -86,15 +106,19 @@ function RangeSlider({ defaultValue, sliderType, updateBoardSizeFunc }: ISlider)
 	if (sliderType == SliderType.progressSlider) {
 		currentValue = largestBoardValues.currentIteration ? 100 / (largestBoardValues.iterationsCount / largestBoardValues.currentIteration) : 0;
 	}
-	
-	return <React.Fragment>
+
+	return <SliderContainer>
+		<SliderInfo>
+			<Icon src={icon}></Icon>
+			<Label> Cols </Label>
+		</SliderInfo>
 		<Slider sliderType={sliderType} type="range" onChange={(e: any) => updateBoardSizeFunc((parseInt(e.target.value)), sliderType)} defaultValue={defaultValue} value={currentValue} disabled={isDisabled} />
-		{/* <SizeIndicatorContainer >
-                <SizeIndicator>
-                    {58}
-                </SizeIndicator>
-        </SizeIndicatorContainer> */}
-	</React.Fragment>
+	</SliderContainer>
+	{/* <SizeIndicatorContainer >
+						<SizeIndicator>
+							{58}
+						</SizeIndicator>
+				</SizeIndicatorContainer> */}
 
 
 }
