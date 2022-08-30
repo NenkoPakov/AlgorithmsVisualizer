@@ -80,20 +80,22 @@ const Slider = styled.input`
 const SliderInfo = styled.div`
 	display:flex;
 	flex-direction:row;
-	justify-content:center;
+	gap:10px;
 	align-items:center;
 `;
 
 const Icon = styled.img`
-height: 45px;
+height: 30px;
 `;
 
-const Label = styled.h4`
+const Label = styled.h3`
 margin:0;
+font-weight:500;
+text-transform:capitalize;
 color:white;
 `;
 
-function RangeSlider({ icon, defaultValue, sliderType, updateBoardSizeFunc }: ISlider) {
+function RangeSlider({ icon, label, defaultValue, sliderType, updateBoardSizeFunc }: ISlider) {
 
 	const boardContext = useBoardContext();
 
@@ -110,7 +112,7 @@ function RangeSlider({ icon, defaultValue, sliderType, updateBoardSizeFunc }: IS
 	return <SliderContainer>
 		<SliderInfo>
 			<Icon src={icon}></Icon>
-			<Label> Cols </Label>
+			<Label> {label} </Label>
 		</SliderInfo>
 		<Slider sliderType={sliderType} type="range" onChange={(e: any) => updateBoardSizeFunc((parseInt(e.target.value)), sliderType)} defaultValue={defaultValue} value={currentValue} disabled={isDisabled} />
 	</SliderContainer>

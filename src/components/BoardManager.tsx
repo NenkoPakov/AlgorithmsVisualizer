@@ -19,7 +19,10 @@ import BasicCard from './BasicCard';
 import AnalyticalCard from './AnalyticalCard';
 import { time } from 'console';
 import Dropdown from './Dropdown';
-import Arrows  from '../wwwroot/svg/arrows.svg';
+import ArrowsRowIcon  from '../wwwroot/svg/arrow-ew.svg';
+import ArrowsColIcon  from '../wwwroot/svg/arrow-ns.svg';
+import SpeedIcon  from '../wwwroot/svg/speed.svg';
+import ProgressIcon  from '../wwwroot/svg/progress.svg';
 
 const MainPage = styled.div`
   position:fixed;
@@ -288,10 +291,10 @@ function BoardManager() {
         <MainPage>
             <Settings>
                 <div>
-                    <RangeSlider key='range-slider-rows' icon={Arrows} defaultValue={INITIAL_SIZE_SLIDER_DEFAULT_VALUE} sliderType={SliderType.rowsSlider} updateBoardSizeFunc={handleSliderUpdate} />
-                    <RangeSlider key='range-slider-cols' icon={Arrows} defaultValue={INITIAL_SIZE_SLIDER_DEFAULT_VALUE} sliderType={SliderType.colsSlider} updateBoardSizeFunc={handleSliderUpdate} />
-                    <RangeSlider key='range-slider-speed'icon={Arrows} defaultValue={speed.current} sliderType={SliderType.speedSlider} updateBoardSizeFunc={handleSliderUpdate} />
-                    <RangeSlider key='range-slider-progress' icon={Arrows} defaultValue={INITIAL_ITERATION} sliderType={SliderType.progressSlider} updateBoardSizeFunc={handleSliderUpdate} />
+                    <RangeSlider key='range-slider-rows' icon={ArrowsRowIcon} label='row' defaultValue={INITIAL_SIZE_SLIDER_DEFAULT_VALUE} sliderType={SliderType.rowsSlider} updateBoardSizeFunc={handleSliderUpdate} />
+                    <RangeSlider key='range-slider-cols' icon={ArrowsColIcon} label='col' defaultValue={INITIAL_SIZE_SLIDER_DEFAULT_VALUE} sliderType={SliderType.colsSlider} updateBoardSizeFunc={handleSliderUpdate} />
+                    <RangeSlider key='range-slider-speed'icon={SpeedIcon} label='speed' defaultValue={speed.current} sliderType={SliderType.speedSlider} updateBoardSizeFunc={handleSliderUpdate} />
+                    <RangeSlider key='range-slider-progress' icon={ProgressIcon} label='progress' defaultValue={INITIAL_ITERATION} sliderType={SliderType.progressSlider} updateBoardSizeFunc={handleSliderUpdate} />
 
                     <Dropdown isDropdownOpened={isDropdownOpened} handleDropdownClick={setIsDropdownOpened}></Dropdown>
                 </div>
