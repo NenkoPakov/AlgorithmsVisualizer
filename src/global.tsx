@@ -19,6 +19,14 @@ font-size:2vmin;
 }
 `;
 
+export const ButtonTypes = {
+    Start: 'startButton',
+    Pause: 'pauseButton',
+    Reset: 'resetButton',
+    Next: 'nextButton',
+    Previous: 'previousButton',
+}
+
 export const getMatrixInitValue = (rows: number, cols: number, isNumeric = false) => {
     let initMatrix: boolean[][] | number[][] = Array(rows);
 
@@ -69,7 +77,7 @@ export const updateMatrixCols = (newSize: number, currentSize: number, matrix: b
             }
         }
     } else {
-        matrix.map(row=>row.length = newSize);
+        matrix.map(row => row.length = newSize);
     }
 
     return matrix;

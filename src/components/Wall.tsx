@@ -9,7 +9,7 @@ import { useBoardContext, useBoardUpdateContext } from './BoardContext';
 
 const WallCell = styled.div<any>`
 ${NodeBase};
-background-color:black;
+background-color:#786b78;
 transition: background-color 0.5s ease-out ;
 `;
 

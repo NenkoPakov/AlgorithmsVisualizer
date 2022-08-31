@@ -7,7 +7,7 @@ import { ActionTypes } from './BoardManager';
 
 const FinishNode = styled.div<any>`
 ${NodeBase};
-background-color:blue;
+background-color:#e36161;
 cursor:move;
 
 opacity: ${(props: any) => props.isDragged?.5:1};

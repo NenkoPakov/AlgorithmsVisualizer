@@ -4,6 +4,7 @@ import Card from './Card';
 
 const Data = styled.h2`
     margin:0;
+    text-transform:capitalize;
 `;
 
 const Title = styled.h4`

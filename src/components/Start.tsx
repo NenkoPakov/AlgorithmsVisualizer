@@ -6,7 +6,7 @@ import { ActionTypes } from './BoardManager';
 
 const StartNode = styled.div<any>`
   ${NodeBase};
-  background-color:green;
+  background-color:#8cbf5b;
   cursor:move;
 
   opacity: ${(props: any) => props.isDragged ? .5 : 1};

@@ -10,6 +10,7 @@ interface BoardsIteration {
         currentIteration: number,
         iterationsCount?: number,
         isCompleted: boolean,
+        finishTime?: string,
     }
 }
 
@@ -119,7 +120,7 @@ function reducer(state: State, action: any) {
                 state.boards[algorithmKey].currentIteration = defaultIteration;
                 state.boards[algorithmKey].isCompleted = false;
             });
-            return { ...state, isPaused: false, isInExecution: false };
+            return { ...state, startTime: undefined, isPaused: false, isInExecution: false };
 
         default:
             return state;
@@ -151,6 +152,7 @@ function BoardProvider({ children }: any) {
     const [state, dispatch] = React.useReducer(reducer, initState);
 
     const cancellationToken = useRef<boolean>(false);
+    const timer = useRef<string>('00:00:00');
 
     const handleCancellationToken = (value: boolean) => {
         cancellationToken.current = value;
@@ -158,7 +160,7 @@ function BoardProvider({ children }: any) {
     }
 
     return (
-        <BoardContext.Provider value={{ ...state, cancellationToken }}>
+        <BoardContext.Provider value={{ ...state, cancellationToken,timer }}>
             <BoardUpdateContext.Provider value={{ dispatch, handleCancellationToken }}>
                 {children}
             </BoardUpdateContext.Provider>

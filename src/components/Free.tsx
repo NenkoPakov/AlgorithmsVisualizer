@@ -11,10 +11,10 @@ ${NodeBase};
 ${NodeText};
 resize:none;
 background-color:${(props: IFreeNode) => props.isVisited
-    ? 'yellow'
+    ? '#95b9f4'
     : props.isPartOfThePath
       ? 'white'
-      : 'lightblue'};
+      : '#c5c5c5'};
 box-sizing: border-box;
 outline:${(props: IFreeNode) => props.isFrontier ? 'solid 0.5px blue' : ''};
 transition: background-color 1.5s ease-out ;

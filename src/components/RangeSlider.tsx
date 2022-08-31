@@ -18,14 +18,6 @@ const Slider = styled.input`
 		border-radius: 500px;
 		width: 100%;
 		transition: box-shadow 0.2s ease-in-out;
-		
-		/* -webkit-transform: rotate(90deg);
-		-moz-transform: rotate(90deg);
-		-o-transform: rotate(90deg);
-		-ms-transform: rotate(90deg);
-		transform: rotate(90deg); */
-		/* transform:${(props: { sliderType: SliderType }) => props.sliderType == SliderType.rowsSlider ? 'rotate(90deg)' : '0'}; */
-		transform:${(props: { sliderType: SliderType }) => props.sliderType == SliderType.rowsSlider ? '0' : '0'};
 
 		// Chrome
 		@media screen and (-webkit-min-device-pixel-ratio:0) {
