@@ -5,12 +5,18 @@ const defaultIteration = 0;
 const BoardContext = React.createContext<any>('');
 const BoardUpdateContext = React.createContext<any>('');
 
+let minutes = 0;
+let seconds = 0;
+let milliseconds = 0;
+let interval: NodeJS.Timer;
+let timer:string;
+
 interface BoardsIteration {
     [name: string]: {
         currentIteration: number,
         iterationsCount?: number,
         isCompleted: boolean,
-        finishTime?: string,
+        duration?: string,
     }
 }
 
@@ -67,9 +73,11 @@ function reducer(state: State, action: any) {
             return { ...state, isUnmarkWallAction: false };
 
         case ActionTypes.START_EXECUTION:
+            startTimer();
             return { ...state, isInExecution: true };
 
         case ActionTypes.STOP_EXECUTION:
+            stopTimer();
             return { ...state, isInExecution: false };
 
         case ActionTypes.JUMP_AT_INDEX:
@@ -101,13 +109,16 @@ function reducer(state: State, action: any) {
 
         case ActionTypes.MARK_COMPLETED:
             const completedAlgorithmKey = action.payload as keyof typeof Algorithms;
-            state.boards[completedAlgorithmKey].isCompleted = true
+            state.boards[completedAlgorithmKey].isCompleted = true;
+            state.boards[completedAlgorithmKey].duration = timer;
             return { ...state };
 
         case ActionTypes.SET_PAUSE:
+            stopTimer();
             return { ...state, isPaused: true };
 
         case ActionTypes.REMOVE_PAUSE:
+            startTimer();
             return { ...state, isPaused: false };
 
         case ActionTypes.SET_ITERATIONS_COUNT:
@@ -120,6 +131,9 @@ function reducer(state: State, action: any) {
                 state.boards[algorithmKey].currentIteration = defaultIteration;
                 state.boards[algorithmKey].isCompleted = false;
             });
+
+
+            resetTimer();
             return { ...state, startTime: undefined, isPaused: false, isInExecution: false };
 
         default:
@@ -133,6 +147,39 @@ export const useBoardContext = () => {
 
 export const useBoardUpdateContext = () => {
     return useContext(BoardUpdateContext);
+}
+
+const timerFunc = () => {
+    milliseconds++;
+
+    if (milliseconds > 99) {
+        seconds++;
+        milliseconds = 0;
+        console.log(`${seconds}:${milliseconds}`);
+    }
+
+    if (seconds > 59) {
+        minutes++;
+        seconds = 0;
+    }
+
+    timer = `${minutes < 10 ? `0${minutes}` : minutes}:${seconds < 10 ? `0${seconds}` : seconds}:${milliseconds < 10 ? `0${milliseconds}` : milliseconds}`;
+}
+
+const startTimer = () => {
+    clearInterval(interval);
+    interval = setInterval(timerFunc, 10);
+}
+
+const stopTimer = () => {
+    clearInterval(interval);
+}
+
+const resetTimer = () => {
+    clearInterval(interval);
+    minutes = 0;
+    seconds = 0;
+    milliseconds = 0;
 }
 
 function BoardProvider({ children }: any) {
@@ -152,7 +199,9 @@ function BoardProvider({ children }: any) {
     const [state, dispatch] = React.useReducer(reducer, initState);
 
     const cancellationToken = useRef<boolean>(false);
-    const timer = useRef<string>('00:00:00');
+    const duration = useRef<string>('00:00:00');
+
+    duration.current=timer;
 
     const handleCancellationToken = (value: boolean) => {
         cancellationToken.current = value;
@@ -160,7 +209,7 @@ function BoardProvider({ children }: any) {
     }
 
     return (
-        <BoardContext.Provider value={{ ...state, cancellationToken,timer }}>
+        <BoardContext.Provider value={{ ...state, cancellationToken, duration }}>
             <BoardUpdateContext.Provider value={{ dispatch, handleCancellationToken }}>
                 {children}
             </BoardUpdateContext.Provider>

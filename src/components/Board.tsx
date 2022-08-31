@@ -305,6 +305,9 @@ const Board = ({ boardRows, boardCols, wallNodes, startNode, finishNode, algorit
                 <h2>
                     {algorithmKey}
                 </h2>
+                <h5>
+                    {boardContext.boards[algorithmKey].duration}
+                </h5>
             </BoardInfo>
             {/* <ButtonWrapper>
                 <button key='execute' onClick={() => executeAlgorithm()}>Execute</button>

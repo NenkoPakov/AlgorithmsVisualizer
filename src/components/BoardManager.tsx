@@ -345,14 +345,13 @@ function BoardManager() {
             </Settings>
             <BoardContainer>
                 <CardContainer>
-                    <BasicCard title="Rows count" data={state.boardRows}></BasicCard>
-                    <BasicCard title="Cols count" data={state.boardCols}></BasicCard>
-                    <BasicCard title="Walls count" data={state.wallNodes.reduce((curr, row) => curr + row.filter(node => node == true).length, 0)}></BasicCard>
-                    <BasicCard title="Delay" data={state.delay}></BasicCard>
-                    <BasicCard title="Status" data={getCurrentStatus()
-                    } />
-                    {slowestBoardData.currentIteration > 0 && <BasicCard title="Timer" data={boardContext.timer.current}></BasicCard>}
-                    {slowestBoardData.currentIteration > 0 && <AnalyticalCard title="Progress" currentValue={slowestBoardData.currentIteration} targetValue={slowestBoardData.iterationsCount} progressInPercentages={Math.round(100 / (slowestBoardData.iterationsCount / slowestBoardData.currentIteration))}></AnalyticalCard>}
+                    <BasicCard title="rows count" data={state.boardRows}></BasicCard>
+                    <BasicCard title="cols count" data={state.boardCols}></BasicCard>
+                    <BasicCard title="walls count" data={state.wallNodes.reduce((curr, row) => curr + row.filter(node => node == true).length, 0)}></BasicCard>
+                    <BasicCard title="delay" data={state.delay}></BasicCard>
+                    <BasicCard title="status" data={getCurrentStatus()} />
+                    {slowestBoardData.currentIteration > 0 && <BasicCard title="duration" data={boardContext.duration.current}></BasicCard>}
+                    {slowestBoardData.currentIteration > 0 && <AnalyticalCard title="progress" currentValue={slowestBoardData.currentIteration} targetValue={slowestBoardData.iterationsCount} progressInPercentages={Math.round(100 / (slowestBoardData.iterationsCount / slowestBoardData.currentIteration))}></AnalyticalCard>}
                 </CardContainer>
 
                 {Object.keys(boardContext.boards).map((key: string) =>

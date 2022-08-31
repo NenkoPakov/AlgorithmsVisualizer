@@ -15,11 +15,6 @@ const ButtonWrapper = styled.div`
   position:relative;
   `;
 
-let minutes = 0;
-let seconds = 0;
-let milliseconds = 0;
-let interval: NodeJS.Timer;
-
 function Actions({ delayFunc }: any) {
     const [isPaused, setIsPaused] = useState(false);
 
@@ -46,12 +41,10 @@ function Actions({ delayFunc }: any) {
         setIsPaused(false);
 
         boardUpdateContext.dispatch({ type: ActionTypes.RESET });
-        resetTimer();
     };
 
     const startAnimation = async () => {
         boardUpdateContext.handleCancellationToken(false);
-        startTimer();
 
         while (!boardContext.cancellationToken.current) {
             Object.keys(boardContext.boards).forEach(algorithmKey => {
@@ -67,7 +60,6 @@ function Actions({ delayFunc }: any) {
     useEffect(() => {
         if (isPaused) {
             boardUpdateContext.handleCancellationToken(true);
-            stopTimer();
         }
     }, [isPaused])
 
@@ -75,41 +67,7 @@ function Actions({ delayFunc }: any) {
         if (boardContext.isInExecution && !isPaused) {
             startAnimation();
         }
-    }, [boardContext.isInExecution, isPaused])
-
-    const timerFunc = () => {
-        milliseconds++;
-
-        if (milliseconds > 99) {
-            seconds++;
-            milliseconds = 0;
-            console.log(`${seconds}:${milliseconds}`);
-        }
-
-        if (seconds > 59) {
-            minutes++;
-            seconds = 0;
-        }
-
-        boardContext.timer.current = `${minutes < 10 ? `0${minutes}` : minutes}:${seconds < 10 ? `0${seconds}` : seconds}:${milliseconds < 10 ? `0${milliseconds}` : milliseconds}`;
-    }
-
-    const startTimer = () => {
-        clearInterval(interval);
-        interval = setInterval(timerFunc, 10);
-    }
-
-    const stopTimer = () => {
-        clearInterval(interval);
-    }
-
-    const resetTimer = () => {
-        clearInterval(interval);
-        minutes = 0;
-        seconds = 0;
-        milliseconds = 0;
-    }
-
+    }, [boardContext.isInExecution, isPaused]);
 
     return (
         <ButtonWrapper>
