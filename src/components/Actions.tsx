@@ -72,13 +72,13 @@ function Actions({ delayFunc }: any) {
     return (
         <ButtonWrapper>
             {Object.values(boardContext.boards).filter((board: any) => !board.isCompleted).length == 0
-                ? <Button key='reset' handleClickFunc={() => resetFunc()} isForStart={false} >Reset</Button>
+                ? <Button key='reset' buttonType={ButtonTypes.Reset} handleClickFunc={() => resetFunc()} isForStart={false} >Reset</Button>
                 : isPaused
                     ? <>
-                        <Button key='prev' buttonType={ButtonTypes.Previous} handleClickFunc={() => stepBack()} isForStart={true} ></Button>
+                        <Button key='prev' buttonType={ButtonTypes.Previous} handleClickFunc={() => stepBack()} isForStart={true}></Button>
                         <Button key='next' buttonType={ButtonTypes.Next} handleClickFunc={() => stepFurther()} isForStart={true} ></Button>
                         <Button key='continue' buttonType={ButtonTypes.Start} handleClickFunc={() => setIsPaused(false)} isForStart={true} ></Button>
-                        <Button key='reset' buttonType={ButtonTypes.Reset} handleClickFunc={() => resetFunc()} isForStart={false} ></Button>
+                        <Button key='reset1' buttonType={ButtonTypes.Reset} handleClickFunc={() => resetFunc()} isForStart={false} ></Button>
 
                     </>
                     : !boardContext.isInExecution

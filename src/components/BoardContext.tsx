@@ -9,7 +9,7 @@ let minutes = 0;
 let seconds = 0;
 let milliseconds = 0;
 let interval: NodeJS.Timer;
-let timer:string;
+let timer: string;
 
 interface BoardsIteration {
     [name: string]: {
@@ -96,6 +96,9 @@ function reducer(state: State, action: any) {
 
         case ActionTypes.STEP_BACK:
             const stepBackAlgorithmKey = action.payload;
+            if (state.boards[stepBackAlgorithmKey].currentIteration == 0) {
+                return { ...state };
+            }
 
             if (!state.boards[stepBackAlgorithmKey].isCompleted) {
                 --state.boards[stepBackAlgorithmKey].currentIteration;
@@ -128,10 +131,12 @@ function reducer(state: State, action: any) {
 
         case ActionTypes.RESET:
             Object.keys(state.boards).forEach(algorithmKey => {
-                state.boards[algorithmKey].currentIteration = defaultIteration;
-                state.boards[algorithmKey].isCompleted = false;
+                state.boards[algorithmKey] = {
+                    currentIteration: defaultIteration,
+                    isCompleted: false,
+                    iterationsCount: state.boards[algorithmKey].iterationsCount,
+                }
             });
-
 
             resetTimer();
             return { ...state, startTime: undefined, isPaused: false, isInExecution: false };
@@ -155,7 +160,6 @@ const timerFunc = () => {
     if (milliseconds > 99) {
         seconds++;
         milliseconds = 0;
-        console.log(`${seconds}:${milliseconds}`);
     }
 
     if (seconds > 59) {
@@ -201,7 +205,7 @@ function BoardProvider({ children }: any) {
     const cancellationToken = useRef<boolean>(false);
     const duration = useRef<string>('00:00:00');
 
-    duration.current=timer;
+    duration.current = timer;
 
     const handleCancellationToken = (value: boolean) => {
         cancellationToken.current = value;

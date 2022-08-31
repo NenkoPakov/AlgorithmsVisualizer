@@ -20,11 +20,26 @@ border-radius:20px;
 
 const BoardInfo = styled.div`
 position:relative;
+display: flex;
+flex-direction:row;
+margin-bottom:5px;
+`;
 
-h2{
-    margin:0;
-    margin-bottom:5px;
-}
+const AlgorithmName = styled.h2`
+justify-content:flex-start;
+margin:0;
+`;
+
+const Duration = styled.h3`
+position:absolute;
+left:50%;
+margin:0;
+`;
+
+const Rank = styled.h2`
+position:absolute;
+right:0;
+margin:0;
 `;
 
 const ButtonWrapper = styled.div`
@@ -203,56 +218,61 @@ const Board = ({ boardRows, boardCols, wallNodes, startNode, finishNode, algorit
     useEffect(() => {
         const currentIteration = boardContext.boards[algorithmKey].currentIteration;
 
+        // if (currentIteration < 0) {
+        //     return;
+        // }
+
         if (currentIteration === 0) {
             reset();
-        }
-
-        if (currentIteration == state.algorithmResult.length - 1) {
-            boardUpdateContext.dispatch({ type: ContextActionTypes.MARK_COMPLETED, payload: algorithmKey });
         }
 
         let isStepFurther = previousIteration.current < currentIteration;
 
         let iterationsCount = state.algorithmResult.length;
 
-        if (currentIteration >= 0 && currentIteration < iterationsCount) {
-            while (previousIteration.current != currentIteration) {
-                let useIndex = previousIteration.current;
+        // if (currentIteration >= 0 && currentIteration < iterationsCount) {
+        while (previousIteration.current != currentIteration && !boardContext.boards[algorithmKey].isCompleted) {
+            let useIndex = previousIteration.current;
 
-                state.algorithmResult[useIndex] && Object.keys(state.algorithmResult[useIndex]).forEach(currentKey => {
-                    const currentNode = state.algorithmResult[useIndex][currentKey];
-                    let frontier: Node = splitNodePosition(currentKey);
-                    let parent: Node | undefined = currentNode.parent ? splitNodePosition(currentNode.parent!) : undefined;
-                    let value: number = currentNode.value;
+            state.algorithmResult[useIndex] && Object.keys(state.algorithmResult[useIndex]).forEach(currentKey => {
+                const currentNode = state.algorithmResult[useIndex][currentKey];
+                let frontier: Node = splitNodePosition(currentKey);
+                let parent: Node | undefined = currentNode.parent ? splitNodePosition(currentNode.parent!) : undefined;
+                let value: number = currentNode.value;
 
-                    switch (isStepFurther) {
-                        case true:
-                            if (parent) {
-                                dispatch({ type: ActionTypes.SET_VISITED_NODE, payload: parent });
-                            }
+                switch (isStepFurther) {
+                    case true:
+                        if (parent) {
+                            dispatch({ type: ActionTypes.SET_VISITED_NODE, payload: parent });
+                        }
 
-                            dispatch({ type: ActionTypes.SET_NODE_VALUE, payload: { frontier, value } });
-                            dispatch({ type: ActionTypes.SET_FRONTIER_NODE, payload: frontier });
-                            break;
+                        dispatch({ type: ActionTypes.SET_NODE_VALUE, payload: { frontier, value } });
+                        dispatch({ type: ActionTypes.SET_FRONTIER_NODE, payload: frontier });
+                        break;
 
-                        case false:
-                            dispatch({ type: ActionTypes.SET_FREE_NODE, payload: frontier });
+                    case false:
+                        dispatch({ type: ActionTypes.SET_FREE_NODE, payload: frontier });
 
-                            if (parent) {
-                                dispatch({ type: ActionTypes.REMOVE_VISITED_NODE, payload: parent });
-                            }
+                        if (parent) {
+                            dispatch({ type: ActionTypes.REMOVE_VISITED_NODE, payload: parent });
+                        }
 
-                            break;
+                        break;
 
-                        default:
-                            break;
-                    }
+                    default:
+                        break;
+                }
 
-                });
+            });
 
-                previousIteration.current += isStepFurther ? +1 : -1;
+            if (currentIteration == state.algorithmResult.length - 1) {
+                boardUpdateContext.dispatch({ type: ContextActionTypes.MARK_COMPLETED, payload: algorithmKey });
+                break;
             }
+
+            previousIteration.current += isStepFurther ? +1 : -1;
         }
+        // }
 
         previousIteration.current = currentIteration;
     }, [boardContext.boards[algorithmKey].currentIteration])
@@ -302,12 +322,17 @@ const Board = ({ boardRows, boardCols, wallNodes, startNode, finishNode, algorit
     return (
         <BoardSection>
             <BoardInfo>
-                <h2>
-                    {algorithmKey}
-                </h2>
-                <h5>
-                    {boardContext.boards[algorithmKey].duration}
-                </h5>
+                <AlgorithmName>{algorithmKey}</AlgorithmName>
+                {boardContext.boards[algorithmKey].duration &&
+                    <Duration>
+                        {boardContext.boards[algorithmKey].duration}
+                    </Duration>}
+                {boardContext.boards[algorithmKey].isCompleted && Object.keys(boardContext.boards).length > 1 &&
+                    <Rank>
+                        #{
+                            Object.keys(boardContext.boards).sort((key1, key2) => boardContext.boards[key1].iterationsCount - boardContext.boards[key2].iterationsCount).indexOf(algorithmKey) + 1
+                        }
+                    </Rank>}
             </BoardInfo>
             {/* <ButtonWrapper>
                 <button key='execute' onClick={() => executeAlgorithm()}>Execute</button>
