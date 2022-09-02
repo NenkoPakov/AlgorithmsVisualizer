@@ -242,6 +242,13 @@ const Board = ({ boardRows, boardCols, wallNodes, startNode, finishNode, algorit
         updateCells(targetIteration);
     }, [boardContext.boards[algorithmKey].currentIteration])
 
+    // when vizualisation is done. Checking for path between start and finish 
+    useEffect(() => {
+        if (boardContext.boards[algorithmKey].isCompleted && boardContext.isFoundPath) {
+            startPathAnimationAsync();
+        }
+    }, [boardContext.boards[algorithmKey].isCompleted])
+
     //when boards size is changed
     useEffect(() => {
         dispatch({ type: ActionTypes.UPDATE_SIZE, payload: { booleanMatrix: getMatrixInitValue(boardRows, boardCols), numericMatrix: getMatrixInitValue(boardRows, boardCols, true) } });
@@ -262,6 +269,27 @@ const Board = ({ boardRows, boardCols, wallNodes, startNode, finishNode, algorit
         dispatch({ type: ActionTypes.RESET, payload: getMatrixInitValue(boardRows, boardCols) });
         lastUsedIterationIndex.current = INITIAL_INDEX;
     };
+
+    const startPathAnimationAsync = () => {
+        //last element of state.algorithmResult must be the target node
+        let currentNode = state.algorithmResult[state.algorithmResult.length - 1];
+        let currentNodeValues: any = Object.values(currentNode);
+        let parentNode = currentNodeValues[0].parent;
+        
+        while (parentNode) {
+            const [row,col] = parentNode.split('-');
+            dispatch({ type: ActionTypes.SET_PATH_NODE, payload: {row,col} });
+
+            let parentNodeIndex = state.algorithmResult.findIndex((x:any)=>
+            { 
+                return Object.keys(x).includes(parentNode)
+            });
+
+            currentNode = state.algorithmResult[parentNodeIndex];
+            currentNodeValues = Object.values(currentNode);
+            parentNode = currentNodeValues[0].parent;
+        }
+    }
 
     const startAnimationAsync = async () => {
         boardUpdateContext.handleCancellationToken(false);

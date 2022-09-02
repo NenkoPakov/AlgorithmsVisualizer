@@ -13,7 +13,7 @@ resize:none;
 background-color:${(props: IFreeNode) => props.isVisited
     ? '#95b9f4'
     : props.isPartOfThePath
-      ? 'white'
+      ? '#c7b66efc'
       : '#c5c5c5'};
 box-sizing: border-box;
 outline:${(props: IFreeNode) => props.isFrontier ? 'solid 0.5px blue' : ''};
@@ -55,7 +55,7 @@ function Free({ value, row, col, isVisited, isFrontier, isPartOfThePath, boardMa
       }
     }
   }
-
+  
   return <FreeNode
     id={key}
     key={`free-node-${key}`}
@@ -67,8 +67,7 @@ function Free({ value, row, col, isVisited, isFrontier, isPartOfThePath, boardMa
     onClick={(e: MouseEvent) => handleClick(e)}
     onMouseEnter={() => boardManagerDispatch({ type: ActionTypes.GENERATE_PROPOSAL_WALL, payload: { node: { row, col }, isUnmarkWallAction: boardContext.isUnmarkWallAction } })}
   >
-    {/* {key} */}
-    {value}
+    {/* {value} */}
   </FreeNode>
 
 };
