@@ -9,6 +9,7 @@ export interface BoardProps {
     boardCols: number,
     wallNodes:boolean[][],
     parentDispatch:Function,
+    delayFunc:Function,
 };
 
 export interface ComeFromData {

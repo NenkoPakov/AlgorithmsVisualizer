@@ -351,6 +351,7 @@ function BoardManager() {
                     <BasicCard title="delay" data={state.delay}></BasicCard>
                     <BasicCard title="status" data={getCurrentStatus()} />
                     {slowestBoardData.currentIteration > 0 && <BasicCard title="duration" data={boardContext.duration.current}></BasicCard>}
+                    {slowestBoardData.currentIteration > 0 && <BasicCard title="found path" data={"yes/no"}></BasicCard>}
                     {slowestBoardData.currentIteration > 0 && <AnalyticalCard title="progress" currentValue={slowestBoardData.currentIteration} targetValue={slowestBoardData.iterationsCount} progressInPercentages={Math.round(100 / (slowestBoardData.iterationsCount / slowestBoardData.currentIteration))}></AnalyticalCard>}
                 </CardContainer>
 
@@ -363,6 +364,7 @@ function BoardManager() {
                         finishNode={state.finishNode}
                         algorithmKey={key as keyof typeof Algorithms}
                         parentDispatch={dispatch}
+                        delayFunc={delayFunc}
                     />
                 )}
             </BoardContainer>

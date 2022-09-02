@@ -14,8 +14,8 @@ let timer: string;
 interface BoardsIteration {
     [name: string]: {
         currentIteration: number,
-        iterationsCount?: number,
         isCompleted: boolean,
+        iterationsCount?: number,
         duration?: string,
     }
 }

@@ -33,20 +33,24 @@ const breadthFirstSearch = async (wallMatrix: boolean[][], startNode: Node, fini
         const graphNeighbors: Node[] = getValidNeighbors(tempMatrix, currentNode.node);
         
         currentIteration++;
-        comeFrom.push({});
 
+        const latestComeFrom:ComeFrom = {};
+        
         graphNeighbors.forEach(neighbor => {
             tempMatrix[neighbor.row][neighbor.col].isVisited = true;
-
+            
             const priority = heuristic(startNode, neighbor);
             frontier.push({ node: neighbor, priority });
-
-            comeFrom[currentIteration][`${neighbor.row}-${neighbor.col}`] = { parent: `${currentNode.node.row}-${currentNode.node.col}`, value: priority };
-
+            
+            latestComeFrom[`${neighbor.row}-${neighbor.col}`] = { parent: `${currentNode.node.row}-${currentNode.node.col}`, value: priority };
+            // latestComeFrom[`${neighbor.row}-${neighbor.col}`] = { parent: `${currentNode.node.row}-${currentNode.node.col}`, value: comeFrom.length };
+            
             if (areEqual(neighbor, finishNode)) isTargetFound = true;
         });
-
-        // yield roundComeFrom;
+        
+        if (Object.keys(latestComeFrom).length) {
+            comeFrom.push(latestComeFrom);
+        }
     }
 
     return comeFrom;

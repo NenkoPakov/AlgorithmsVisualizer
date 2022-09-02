@@ -8,6 +8,8 @@ import { getMatrixInitValue, splitNodePosition, matrixDeepCopy } from '../global
 import { IndexInfo, IndexKind } from 'typescript';
 import { Algorithms } from '../services/common';
 
+const INITIAL_INDEX = 0;
+
 const BoardSection = styled.section`
 position:relative;
 display: flex;
@@ -190,7 +192,7 @@ function reducer(state: State, action: any) {
     }
 }
 
-const Board = ({ boardRows, boardCols, wallNodes, startNode, finishNode, algorithmKey, parentDispatch }: BoardProps) => {
+const Board = ({ boardRows, boardCols, wallNodes, startNode, finishNode, algorithmKey, parentDispatch, delayFunc }: BoardProps) => {
 
     const initState = {
         visitedNodes: getMatrixInitValue(boardRows, boardCols) as boolean[][],
@@ -202,91 +204,129 @@ const Board = ({ boardRows, boardCols, wallNodes, startNode, finishNode, algorit
     }
 
     const [state, dispatch] = React.useReducer(reducer, initState);
-    const previousIteration = useRef<number>(0);
+    const lastUsedIterationIndex = useRef<number>(INITIAL_INDEX);
 
     const boardContext = useBoardContext();
     const boardUpdateContext = useBoardUpdateContext();
 
     useEffect(() => {
-        executeAlgorithm();
-    }, [])
+        //when start button is pressed
+        if (boardContext.isInExecution) {
+            getAlgorithmResultAsync();
+        } else{
+            //when reset button is pressed
+            reset();
+        }
+    }, [boardContext.isInExecution])
 
+    // when getAlgorithmResultAsync() finish and state.algorithmResult has been set
+    useEffect(() => {
+        if (state.algorithmResult.length > 0) {
+            startAnimationAsync();
+        }
+    }, [state.algorithmResult])
+
+    useEffect(() => {
+        if (boardContext.isInExecution && !boardContext.isPaused) {
+            startAnimationAsync();
+        }
+    }, [boardContext.isPaused])
+
+    //update cells on a single step forward or back
+    useEffect(() => {
+        if (!boardContext.isInExecution || !boardContext.isPaused) {
+            return;
+        }
+
+        updateCells(boardContext.boards[algorithmKey].currentIteration);
+    }, [boardContext.boards[algorithmKey].currentIteration])
+
+    //when boards size is changed
     useEffect(() => {
         dispatch({ type: ActionTypes.UPDATE_SIZE, payload: { booleanMatrix: getMatrixInitValue(boardRows, boardCols), numericMatrix: getMatrixInitValue(boardRows, boardCols, true) } });
     }, [boardRows, boardCols])
 
-    useEffect(() => {
-        const currentIteration = boardContext.boards[algorithmKey].currentIteration;
-
-        // if (currentIteration < 0) {
-        //     return;
-        // }
-
-        if (currentIteration === 0) {
-            reset();
-        }
-
-        let isStepFurther = previousIteration.current < currentIteration;
-
-        let iterationsCount = state.algorithmResult.length;
-
-        // if (currentIteration >= 0 && currentIteration < iterationsCount) {
-        while (previousIteration.current != currentIteration && !boardContext.boards[algorithmKey].isCompleted) {
-            let useIndex = previousIteration.current;
-
-            state.algorithmResult[useIndex] && Object.keys(state.algorithmResult[useIndex]).forEach(currentKey => {
-                const currentNode = state.algorithmResult[useIndex][currentKey];
-                let frontier: Node = splitNodePosition(currentKey);
-                let parent: Node | undefined = currentNode.parent ? splitNodePosition(currentNode.parent!) : undefined;
-                let value: number = currentNode.value;
-
-                switch (isStepFurther) {
-                    case true:
-                        if (parent) {
-                            dispatch({ type: ActionTypes.SET_VISITED_NODE, payload: parent });
-                        }
-
-                        dispatch({ type: ActionTypes.SET_NODE_VALUE, payload: { frontier, value } });
-                        dispatch({ type: ActionTypes.SET_FRONTIER_NODE, payload: frontier });
-                        break;
-
-                    case false:
-                        dispatch({ type: ActionTypes.SET_FREE_NODE, payload: frontier });
-
-                        if (parent) {
-                            dispatch({ type: ActionTypes.REMOVE_VISITED_NODE, payload: parent });
-                        }
-
-                        break;
-
-                    default:
-                        break;
-                }
-
-            });
-
-            if (currentIteration == state.algorithmResult.length - 1) {
-                boardUpdateContext.dispatch({ type: ContextActionTypes.MARK_COMPLETED, payload: algorithmKey });
-                break;
-            }
-
-            previousIteration.current += isStepFurther ? +1 : -1;
-        }
-        // }
-
-        previousIteration.current = currentIteration;
-    }, [boardContext.boards[algorithmKey].currentIteration])
-
-    const executeAlgorithm = async () => {
+    const getAlgorithmResultAsync = async () => {
         const algorithmFunc = Algorithms[algorithmKey];
         var cameFrom = await algorithmFunc(wallNodes, startNode, finishNode);
-        boardUpdateContext.dispatch({ type: ContextActionTypes.SET_ITERATIONS_COUNT, payload: { iterationsAlgorithmKey: algorithmKey, iterationsCount: cameFrom.length } })
         dispatch({ type: ActionTypes.SET_ALGORITHM_RESULT, payload: cameFrom });
+        boardUpdateContext.dispatch({ type: ContextActionTypes.SET_ITERATIONS_COUNT, payload: { iterationsAlgorithmKey: algorithmKey, iterationsCount: cameFrom.length } })
     };
 
     const reset = () => {
         dispatch({ type: ActionTypes.RESET, payload: getMatrixInitValue(boardRows, boardCols) });
+        lastUsedIterationIndex.current = INITIAL_INDEX;
     };
+
+    const startAnimationAsync = async () => {
+        boardUpdateContext.handleCancellationToken(false);
+
+        while (!boardContext.cancellationToken.current) {
+            if (!boardContext.boards[algorithmKey].isCompleted) {
+                if (lastUsedIterationIndex.current == state.algorithmResult.length - 1) {
+                    break;
+                }
+
+                updateCells(boardContext.boards[algorithmKey].currentIteration);
+
+                boardUpdateContext.dispatch({ type: ContextActionTypes.STEP_FURTHER, payload: algorithmKey });
+            }
+
+            await delayFunc();
+        }
+
+    }
+
+    const updateCells = (targetIteration: number) => {
+
+        const isStepForward = targetIteration >= lastUsedIterationIndex.current
+
+        isStepForward
+            ? stepForward()
+            : stepBack();
+    }
+
+    const stepForward = () => {
+        //state.algorithmResult[0] is for the start node which we want to skip
+        lastUsedIterationIndex.current += 1;
+        let useIndex = lastUsedIterationIndex.current;
+
+        state.algorithmResult[useIndex] && Object.keys(state.algorithmResult[useIndex]).forEach(currentKey => {
+            const currentNode = state.algorithmResult[useIndex][currentKey];
+            let frontier: Node = splitNodePosition(currentKey);
+            let parent: Node | undefined = currentNode.parent ? splitNodePosition(currentNode.parent!) : undefined;
+            let value: number = currentNode.value;
+            if (parent) {
+                dispatch({ type: ActionTypes.SET_VISITED_NODE, payload: parent });
+            }
+
+            dispatch({ type: ActionTypes.SET_NODE_VALUE, payload: { frontier, value } });
+            dispatch({ type: ActionTypes.SET_FRONTIER_NODE, payload: frontier });
+        });
+
+        if (useIndex == state.algorithmResult.length - 1) {
+            boardUpdateContext.dispatch({ type: ContextActionTypes.MARK_COMPLETED, payload: algorithmKey });
+            return;
+        }
+    }
+
+    const stepBack = () => {
+        let useIndex = lastUsedIterationIndex.current;
+
+        state.algorithmResult[useIndex] && Object.keys(state.algorithmResult[useIndex]).forEach(currentKey => {
+            const currentNode = state.algorithmResult[useIndex][currentKey];
+            let frontier: Node = splitNodePosition(currentKey);
+            let parent: Node | undefined = currentNode.parent ? splitNodePosition(currentNode.parent!) : undefined;
+
+            dispatch({ type: ActionTypes.SET_FREE_NODE, payload: frontier });
+
+            if (parent) {
+                dispatch({ type: ActionTypes.REMOVE_VISITED_NODE, payload: parent });
+            }
+        });
+
+        lastUsedIterationIndex.current -= 1;
+    }
 
     const boardRenderFunc = () => {
         const board: INodeFactory[][] = [];
