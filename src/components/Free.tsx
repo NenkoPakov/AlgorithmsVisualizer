@@ -24,7 +24,7 @@ transition: background-color 1.5s ease-out ;
 } 
 `;
 
-function Free({ value, row, col, isVisited, isFrontier, isPartOfThePath, dispatch }: IFreeNode) {
+function Free({ value, row, col, isVisited, isFrontier, isPartOfThePath, boardManagerDispatch }: IFreeNode) {
   const boardContext = useBoardContext();
   const boardUpdateContext = useBoardUpdateContext();
 
@@ -32,7 +32,7 @@ function Free({ value, row, col, isVisited, isFrontier, isPartOfThePath, dispatc
 
   const onDragOver = (e: MouseEvent) => {
     e.preventDefault();
-    dispatch({ type: ActionTypes.SET_DRAGGED_NODE_POSITION, payload: { row, col } });
+    boardManagerDispatch({ type: ActionTypes.SET_DRAGGED_NODE_POSITION, payload: { row, col } });
   }
 
   const handleClick = (e: MouseEvent) => {
@@ -40,18 +40,18 @@ function Free({ value, row, col, isVisited, isFrontier, isPartOfThePath, dispatc
 
     if (boardContext.isDrawingWallAction) {
       if (e.button === 0) {
-        dispatch({ type: ActionTypes.UNMARK_WALL_NODE, payload: { row, col } });
+        boardManagerDispatch({ type: ActionTypes.UNMARK_WALL_NODE, payload: { row, col } });
       } else if (e.button === 2) {
         boardUpdateContext.dispatch({ type: ContextActionTypes.STOP_DRAWING_WALL_ACTION });
-        dispatch({ type: ActionTypes.STOP_WALL_SELECTION });
+        boardManagerDispatch({ type: ActionTypes.STOP_WALL_SELECTION });
       }
     } else {
       if (e.button === 0) {
-        dispatch({ type: ActionTypes.SET_WALL_NODE, payload: { row, col } });
+        boardManagerDispatch({ type: ActionTypes.SET_WALL_NODE, payload: { row, col } });
       } else if (e.button === 2) {
         boardUpdateContext.dispatch({ type: ContextActionTypes.START_DRAWING_WALL_ACTION });
         boardUpdateContext.dispatch({ type: ContextActionTypes.STOP_UNMARK_WALL_ACTION });
-        dispatch({ type: ActionTypes.SET_WALL_START_NODE, payload: { row, col } });
+        boardManagerDispatch({ type: ActionTypes.SET_WALL_START_NODE, payload: { row, col } });
       }
     }
   }
@@ -65,7 +65,7 @@ function Free({ value, row, col, isVisited, isFrontier, isPartOfThePath, dispatc
     onDragOver={(e: MouseEvent) => onDragOver(e)}
     onContextMenu={(e: MouseEvent) => handleClick(e)}
     onClick={(e: MouseEvent) => handleClick(e)}
-    onMouseEnter={() => dispatch({ type: ActionTypes.GENERATE_PROPOSAL_WALL, payload: { node: { row, col }, isUnmarkWallAction: boardContext.isUnmarkWallAction } })}
+    onMouseEnter={() => boardManagerDispatch({ type: ActionTypes.GENERATE_PROPOSAL_WALL, payload: { node: { row, col }, isUnmarkWallAction: boardContext.isUnmarkWallAction } })}
   >
     {/* {key} */}
     {value}

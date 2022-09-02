@@ -14,7 +14,7 @@ transition: background-color 0.5s ease-out ;
 `;
 
 
-function Wall({ row, col, dispatch }: INode) {
+function Wall({ row, col, boardManagerDispatch }: INode) {
   const boardContext = useBoardContext();
   const boardUpdateContext = useBoardUpdateContext();
   
@@ -22,7 +22,7 @@ function Wall({ row, col, dispatch }: INode) {
 
   const onDragOver = (e: MouseEvent) => {
     e.preventDefault();
-    dispatch({ type: ActionTypes.SET_DRAGGED_NODE_POSITION, payload: { row, col } })
+    boardManagerDispatch({ type: ActionTypes.SET_DRAGGED_NODE_POSITION, payload: { row, col } })
   }
 
   const handleClick = (e: MouseEvent) => {
@@ -30,19 +30,19 @@ function Wall({ row, col, dispatch }: INode) {
 
     if (boardContext.isDrawingWallAction) {
       if (e.button === 0) {
-        dispatch({ type: ActionTypes.SET_WALL_START_NODE, payload: { row, col } });
+        boardManagerDispatch({ type: ActionTypes.SET_WALL_START_NODE, payload: { row, col } });
       } else if (e.button === 2) {
         boardUpdateContext.dispatch({ type: ContextActionTypes.STOP_DRAWING_WALL_ACTION });
-        dispatch({ type: ActionTypes.STOP_WALL_SELECTION });
+        boardManagerDispatch({ type: ActionTypes.STOP_WALL_SELECTION });
       }
     } else {
       if (e.button === 0) {
-        dispatch({ type: ActionTypes.UNMARK_WALL_NODE, payload: { row, col } });
+        boardManagerDispatch({ type: ActionTypes.UNMARK_WALL_NODE, payload: { row, col } });
       } else if (e.button === 2) {
         // handleWallDrawingEvent();
         // boardUpdateContext.dispatch({ type: ContextActionTypes.START_DRAWING_WALL_ACTION });
         boardUpdateContext.dispatch({ type: ContextActionTypes.START_UNMARK_WALL_ACTION });
-        dispatch({ type: ActionTypes.SET_UNMARK_WALL_START_NODE, payload: { row, col } });
+        boardManagerDispatch({ type: ActionTypes.SET_UNMARK_WALL_START_NODE, payload: { row, col } });
       }
     }
   }
@@ -55,7 +55,7 @@ function Wall({ row, col, dispatch }: INode) {
     onDragOver={(e: MouseEvent) => { onDragOver(e) }}
     onContextMenu={(e: MouseEvent) => handleClick(e)}
     onClick={(e: MouseEvent) => handleClick(e)}
-    onMouseEnter={(e: MouseEvent) => dispatch({ type: ActionTypes.GENERATE_PROPOSAL_WALL, payload: { node: { row, col },isUnmarkWallAction: boardContext.isUnmarkWallAction } })}
+    onMouseEnter={(e: MouseEvent) => boardManagerDispatch({ type: ActionTypes.GENERATE_PROPOSAL_WALL, payload: { node: { row, col },isUnmarkWallAction: boardContext.isUnmarkWallAction } })}
   />
 }
 

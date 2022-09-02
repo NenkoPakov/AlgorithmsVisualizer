@@ -192,7 +192,7 @@ function reducer(state: State, action: any) {
     }
 }
 
-const Board = ({ boardRows, boardCols, wallNodes, startNode, finishNode, algorithmKey, parentDispatch, delayFunc }: BoardProps) => {
+const Board = ({ boardRows, boardCols, wallNodes, startNode, finishNode, algorithmKey, boardManagerDispatch: boardManagerDispatch, delayFunc }: BoardProps) => {
 
     const initState = {
         visitedNodes: getMatrixInitValue(boardRows, boardCols) as boolean[][],
@@ -213,7 +213,7 @@ const Board = ({ boardRows, boardCols, wallNodes, startNode, finishNode, algorit
         //when start button is pressed
         if (boardContext.isInExecution) {
             getAlgorithmResultAsync();
-        } else{
+        } else {
             //when reset button is pressed
             reset();
         }
@@ -221,7 +221,7 @@ const Board = ({ boardRows, boardCols, wallNodes, startNode, finishNode, algorit
 
     // when getAlgorithmResultAsync() finish and state.algorithmResult has been set
     useEffect(() => {
-        if (state.algorithmResult.length > 0) {
+        if (state.algorithmResult && state.algorithmResult.length > 0) {
             startAnimationAsync();
         }
     }, [state.algorithmResult])
@@ -234,11 +234,12 @@ const Board = ({ boardRows, boardCols, wallNodes, startNode, finishNode, algorit
 
     //update cells on a single step forward or back
     useEffect(() => {
-        if (!boardContext.isInExecution || !boardContext.isPaused) {
+        if (!boardContext.isInExecution) {
             return;
         }
 
-        updateCells(boardContext.boards[algorithmKey].currentIteration);
+        const targetIteration = boardContext.boards[algorithmKey].currentIteration;
+        updateCells(targetIteration);
     }, [boardContext.boards[algorithmKey].currentIteration])
 
     //when boards size is changed
@@ -248,9 +249,13 @@ const Board = ({ boardRows, boardCols, wallNodes, startNode, finishNode, algorit
 
     const getAlgorithmResultAsync = async () => {
         const algorithmFunc = Algorithms[algorithmKey];
-        var cameFrom = await algorithmFunc(wallNodes, startNode, finishNode);
-        dispatch({ type: ActionTypes.SET_ALGORITHM_RESULT, payload: cameFrom });
-        boardUpdateContext.dispatch({ type: ContextActionTypes.SET_ITERATIONS_COUNT, payload: { iterationsAlgorithmKey: algorithmKey, iterationsCount: cameFrom.length } })
+        let { result, isFoundPath }: any = await algorithmFunc(wallNodes, startNode, finishNode);
+        dispatch({ type: ActionTypes.SET_ALGORITHM_RESULT, payload: result });
+        boardUpdateContext.dispatch({ type: ContextActionTypes.SET_ITERATIONS_COUNT, payload: { iterationsAlgorithmKey: algorithmKey, iterationsCount: result.length } })
+
+        if (boardContext.isFoundPath == undefined) {
+            boardUpdateContext.dispatch({ type: ContextActionTypes.SET_PATH_RESULT, payload: isFoundPath })
+        }
     };
 
     const reset = () => {
@@ -267,8 +272,6 @@ const Board = ({ boardRows, boardCols, wallNodes, startNode, finishNode, algorit
                     break;
                 }
 
-                updateCells(boardContext.boards[algorithmKey].currentIteration);
-
                 boardUpdateContext.dispatch({ type: ContextActionTypes.STEP_FURTHER, payload: algorithmKey });
             }
 
@@ -278,16 +281,17 @@ const Board = ({ boardRows, boardCols, wallNodes, startNode, finishNode, algorit
     }
 
     const updateCells = (targetIteration: number) => {
-
         const isStepForward = targetIteration >= lastUsedIterationIndex.current
 
-        isStepForward
-            ? stepForward()
-            : stepBack();
+        while (lastUsedIterationIndex.current != targetIteration) {
+            isStepForward
+                ? stepForward()
+                : stepBack();
+        }
+
     }
 
     const stepForward = () => {
-        //state.algorithmResult[0] is for the start node which we want to skip
         lastUsedIterationIndex.current += 1;
         let useIndex = lastUsedIterationIndex.current;
 
@@ -308,6 +312,8 @@ const Board = ({ boardRows, boardCols, wallNodes, startNode, finishNode, algorit
             boardUpdateContext.dispatch({ type: ContextActionTypes.MARK_COMPLETED, payload: algorithmKey });
             return;
         }
+
+        //state.algorithmResult[0] is for the start node which we want to skip
     }
 
     const stepBack = () => {
@@ -351,7 +357,7 @@ const Board = ({ boardRows, boardCols, wallNodes, startNode, finishNode, algorit
                     isFinish: isFinishNode,
                     row: rowIndex,
                     col: colIndex,
-                    dispatch: parentDispatch,
+                    boardManagerDispatch: boardManagerDispatch,
                 }
             }
         }

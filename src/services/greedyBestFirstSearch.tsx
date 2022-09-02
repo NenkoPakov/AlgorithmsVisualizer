@@ -19,14 +19,14 @@ const greedyBestFirstSearch = async (wallMatrix: boolean[][], startNode: Node, f
 
     const comeFrom: ComeFrom[] = [];
 
-    let isTargetFound = false;
+    let isFoundPath = false;
     let currentIteration = 0;
 
     let obj: any = {};
     comeFrom.push(obj);
     obj[`${startNode.row}-${startNode.col}`] = { parent: undefined, value: heuristic(startNode, finishNode) };
 
-    while (frontier.length && !isTargetFound) {
+    while (frontier.length && !isFoundPath) {
         const currentNode: { node: Node, priority: number } = frontier.shift()!;
 
         tempMatrix[currentNode.node.row][currentNode.node.col].isVisited = true;
@@ -43,7 +43,7 @@ const greedyBestFirstSearch = async (wallMatrix: boolean[][], startNode: Node, f
 
             comeFrom[currentIteration][`${neighbor.row}-${neighbor.col}`] = { parent: `${currentNode.node.row}-${currentNode.node.col}`, value: priority }
 
-            if (areEqual(neighbor, finishNode)) isTargetFound = true;
+            if (areEqual(neighbor, finishNode)) isFoundPath = true;
         });
 
         frontier.sort((prev, next) => prev.priority - next.priority);
@@ -51,7 +51,8 @@ const greedyBestFirstSearch = async (wallMatrix: boolean[][], startNode: Node, f
         // yield roundComeFrom;
     }
 
-    return comeFrom;
+
+    return {result:comeFrom, isFoundPath};
 };
 
 export default greedyBestFirstSearch;

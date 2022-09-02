@@ -17,7 +17,7 @@ opacity: ${(props: any) => props.isDragged?.5:1};
 } 
 `;
 
-const Finish = ({ row, col, dispatch }: ITargetNode) => {
+const Finish = ({ row, col, boardManagerDispatch }: ITargetNode) => {
   const key: string = `${row}-${col}`;
 
   const [isDragged, setIsDragged] = useState(false);
@@ -25,7 +25,7 @@ const Finish = ({ row, col, dispatch }: ITargetNode) => {
   const _onDragEnd = (e: MouseEvent) => {
     e.preventDefault();
 
-    dispatch({ type: ActionTypes.SET_FINISH_NODE });
+    boardManagerDispatch({ type: ActionTypes.SET_FINISH_NODE });
     setIsDragged(false);
   }
 

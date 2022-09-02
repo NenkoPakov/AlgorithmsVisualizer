@@ -107,6 +107,7 @@ interface State {
     proposedWall: Node[],
     draggedNodePosition: Node,
     delay: string,
+    // foundPath: boolean | undefined,
 }
 
 export const ActionTypes = {
@@ -337,8 +338,7 @@ function BoardManager() {
                     <RangeSlider key='range-slider-rows' icon={ArrowsRowIcon} label='row' defaultValue={INITIAL_SIZE_SLIDER_DEFAULT_VALUE} sliderType={SliderType.rowsSlider} updateBoardSizeFunc={handleSliderUpdate} />
                     <RangeSlider key='range-slider-cols' icon={ArrowsColIcon} label='col' defaultValue={INITIAL_SIZE_SLIDER_DEFAULT_VALUE} sliderType={SliderType.colsSlider} updateBoardSizeFunc={handleSliderUpdate} />
                     <RangeSlider key='range-slider-speed' icon={SpeedIcon} label='delay' defaultValue={speed.current} sliderType={SliderType.speedSlider} updateBoardSizeFunc={handleSliderUpdate} />
-                    <RangeSlider key='range-slider-progress' icon={ProgressIcon} label='progress' defaultValue={INITIAL_ITERATION} sliderType={SliderType.progressSlider} updateBoardSizeFunc={handleSliderUpdate} />
-
+                    {boardContext.isInExecution && <RangeSlider key='range-slider-progress' icon={ProgressIcon} label='progress' defaultValue={INITIAL_ITERATION} sliderType={SliderType.progressSlider} updateBoardSizeFunc={handleSliderUpdate} />}
                     <Dropdown isDropdownOpened={isDropdownOpened} handleDropdownClick={setIsDropdownOpened}></Dropdown>
                 </div>
                 <Actions delayFunc={delayFunc} />
@@ -351,7 +351,7 @@ function BoardManager() {
                     <BasicCard title="delay" data={state.delay}></BasicCard>
                     <BasicCard title="status" data={getCurrentStatus()} />
                     {slowestBoardData.currentIteration > 0 && <BasicCard title="duration" data={boardContext.duration.current}></BasicCard>}
-                    {slowestBoardData.currentIteration > 0 && <BasicCard title="found path" data={"yes/no"}></BasicCard>}
+                    {Object.values(boardContext.boards).filter((board: any) => board.isCompleted == true).length > 0 && <BasicCard title="found path" data={boardContext.isFoundPath?'yes':'no'}></BasicCard>}
                     {slowestBoardData.currentIteration > 0 && <AnalyticalCard title="progress" currentValue={slowestBoardData.currentIteration} targetValue={slowestBoardData.iterationsCount} progressInPercentages={Math.round(100 / (slowestBoardData.iterationsCount / slowestBoardData.currentIteration))}></AnalyticalCard>}
                 </CardContainer>
 
@@ -363,7 +363,7 @@ function BoardManager() {
                         startNode={state.startNode}
                         finishNode={state.finishNode}
                         algorithmKey={key as keyof typeof Algorithms}
-                        parentDispatch={dispatch}
+                        boardManagerDispatch={dispatch}
                         delayFunc={delayFunc}
                     />
                 )}

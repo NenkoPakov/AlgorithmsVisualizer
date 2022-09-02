@@ -19,14 +19,14 @@ const breadthFirstSearch = async (wallMatrix: boolean[][], startNode: Node, fini
 
     const comeFrom: ComeFrom[] = [];
 
-    let isTargetFound = false;
+    let isFoundPath = false;
     let currentIteration = 0;
 
     let obj: any = {};
     comeFrom.push(obj);
     obj[`${startNode.row}-${startNode.col}`] = { parent: undefined, value: heuristic(startNode, finishNode) };
 
-    while (frontier.length && !isTargetFound) {
+    while (frontier.length && !isFoundPath) {
         const currentNode: { node: Node, priority: number } = frontier.shift()!;
 
         tempMatrix[currentNode.node.row][currentNode.node.col].isVisited = true;
@@ -45,7 +45,7 @@ const breadthFirstSearch = async (wallMatrix: boolean[][], startNode: Node, fini
             latestComeFrom[`${neighbor.row}-${neighbor.col}`] = { parent: `${currentNode.node.row}-${currentNode.node.col}`, value: priority };
             // latestComeFrom[`${neighbor.row}-${neighbor.col}`] = { parent: `${currentNode.node.row}-${currentNode.node.col}`, value: comeFrom.length };
             
-            if (areEqual(neighbor, finishNode)) isTargetFound = true;
+            if (areEqual(neighbor, finishNode)) isFoundPath = true;
         });
         
         if (Object.keys(latestComeFrom).length) {
@@ -53,7 +53,7 @@ const breadthFirstSearch = async (wallMatrix: boolean[][], startNode: Node, fini
         }
     }
 
-    return comeFrom;
+    return {result:comeFrom, isFoundPath};
 };
 
 export default breadthFirstSearch

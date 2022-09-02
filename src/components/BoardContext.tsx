@@ -26,6 +26,7 @@ interface State {
     isInExecution: boolean,
     isPaused: boolean,
     boards: BoardsIteration,
+    isFoundPath?: boolean,
 }
 
 export const ActionTypes = {
@@ -44,6 +45,7 @@ export const ActionTypes = {
     SET_PAUSE: 'setPaused',
     REMOVE_PAUSE: 'removePaused',
     SET_ITERATIONS_COUNT: 'setIterationsCount',
+    SET_PATH_RESULT: 'setPathResult',
     RESET: 'reset',
 }
 
@@ -129,6 +131,9 @@ function reducer(state: State, action: any) {
             state.boards[iterationsAlgorithmKey].iterationsCount = iterationsCount;
             return { ...state };
 
+        case ActionTypes.SET_PATH_RESULT:
+            return { ...state, isFoundPath: action.payload };
+
         case ActionTypes.RESET:
             Object.keys(state.boards).forEach(algorithmKey => {
                 state.boards[algorithmKey] = {
@@ -138,7 +143,9 @@ function reducer(state: State, action: any) {
                 }
             });
 
+            delete state.isFoundPath;
             resetTimer();
+
             return { ...state, startTime: undefined, isPaused: false, isInExecution: false };
 
         default:

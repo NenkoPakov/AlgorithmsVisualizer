@@ -5,7 +5,7 @@ import { memo, useRef } from 'react';
 
 const Cell =
   memo(
-    ({ value, isVisited, isFrontier, isWall, isPartOfThePath, isStart, isFinish, row, col, dispatch }: INodeFactory) => {
+    ({ value, isVisited, isFrontier, isWall, isPartOfThePath, isStart, isFinish, row, col, boardManagerDispatch }: INodeFactory) => {
       const getCellType = () => {
         return isStart
           ? 'start'
@@ -22,7 +22,7 @@ const Cell =
                     : 'free';
       }
 
-      return createNode(value, row, col, getCellType(), dispatch);
+      return createNode(value, row, col, getCellType(), boardManagerDispatch);
     }
     , (prevProps, nextProps) => JSON.stringify(prevProps) === JSON.stringify(nextProps));
 

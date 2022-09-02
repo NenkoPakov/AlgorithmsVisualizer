@@ -16,7 +16,7 @@ const StartNode = styled.div<any>`
   } 
   `;
 
-function Start({ row, col, dispatch }: ITargetNode) {
+function Start({ row, col, boardManagerDispatch }: ITargetNode) {
   const key: string = `${row}-${col}`;
 
   const [isDragged, setIsDragged] = useState(false);
@@ -24,7 +24,7 @@ function Start({ row, col, dispatch }: ITargetNode) {
   const _onDragEnd = async (e: MouseEvent) => {
     e.preventDefault();
 
-    dispatch({ type: ActionTypes.SET_START_NODE });
+    boardManagerDispatch({ type: ActionTypes.SET_START_NODE });
     setIsDragged(false);
   }
 

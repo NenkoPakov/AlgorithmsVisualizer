@@ -8,7 +8,7 @@ export interface BoardProps {
     boardRows: number,
     boardCols: number,
     wallNodes:boolean[][],
-    parentDispatch:Function,
+    boardManagerDispatch:Function,
     delayFunc:Function,
 };
 

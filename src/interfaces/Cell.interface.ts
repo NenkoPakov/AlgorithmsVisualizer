@@ -1,7 +1,7 @@
 export interface INode {
     row: number,
     col: number,
-    dispatch: Function,
+    boardManagerDispatch: Function,
 }
 
 export interface ITargetNode extends INode {
@@ -23,6 +23,7 @@ export interface INodeFactory extends INode {
     isPartOfThePath: boolean,
     isStart: boolean,
     isFinish: boolean,
+    boardManagerDispatch:Function
 }
 
 export enum NodeType {
