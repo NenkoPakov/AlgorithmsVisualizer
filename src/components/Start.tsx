@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import styled from 'styled-components'
 import { NodeBase} from '../global';
-import { ITargetNode } from '../interfaces/Cell.interface';
+import { BaseProps } from '../interfaces/Cell.interface';
 import { ActionTypes } from './BoardManager';
 
 const StartNode = styled.div<any>`
@@ -16,7 +16,7 @@ const StartNode = styled.div<any>`
   } 
   `;
 
-function Start({ row, col, boardManagerDispatch }: ITargetNode) {
+function Start({ row, col, boardManagerDispatch }: BaseProps) {
   const key: string = `${row}-${col}`;
 
   const [isDragged, setIsDragged] = useState(false);

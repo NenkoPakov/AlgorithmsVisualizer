@@ -1,7 +1,7 @@
 import React from 'react';
 import styled from 'styled-components'
 import { NodeBase, NodeText } from '../global';
-import { IFreeNode, } from '../interfaces/Cell.interface';
+import { FreeProps, } from '../interfaces/Cell.interface';
 import { ActionTypes } from './BoardManager';
 import { ActionTypes as ContextActionTypes } from './BoardContext';
 import { useBoardContext, useBoardUpdateContext } from './BoardContext';
@@ -10,21 +10,21 @@ const FreeNode = styled.div<any>`
 ${NodeBase};
 ${NodeText};
 resize:none;
-background-color:${(props: IFreeNode) => props.isVisited
+background-color:${(props: FreeProps) => props.isVisited
     ? '#95b9f4'
     : props.isPartOfThePath
       ? '#c7b66efc'
       : '#c5c5c5'};
 box-sizing: border-box;
-outline:${(props: IFreeNode) => props.isFrontier ? 'solid 0.5px blue' : ''};
+outline:${(props: FreeProps) => props.isFrontier ? 'solid 0.5px blue' : ''};
 transition: background-color 1.5s ease-out ;
 
 :hover{
-  background-color:black ;
+  background-color:#786b78 ;
 } 
 `;
 
-function Free({ value, row, col, isVisited, isFrontier, isPartOfThePath, boardManagerDispatch }: IFreeNode) {
+function Free({ value, row, col, isVisited, isFrontier, isPartOfThePath, boardManagerDispatch }: FreeProps) {
   const boardContext = useBoardContext();
   const boardUpdateContext = useBoardUpdateContext();
 
@@ -55,7 +55,7 @@ function Free({ value, row, col, isVisited, isFrontier, isPartOfThePath, boardMa
       }
     }
   }
-  
+
   return <FreeNode
     id={key}
     key={`free-node-${key}`}

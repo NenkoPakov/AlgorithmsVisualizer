@@ -1,10 +1,10 @@
-import { Algorithms } from "../services/common"
+import { Algorithm } from "../global"
 import { Node } from "./Cell.interface"
 
 export interface BoardProps {
     startNode:Node,
     finishNode:Node,
-    algorithmKey: keyof typeof Algorithms,
+    algorithmKey: keyof typeof Algorithm,
     boardRows: number,
     boardCols: number,
     wallNodes:boolean[][],
@@ -12,11 +12,12 @@ export interface BoardProps {
     delayFunc:Function,
 };
 
-export interface ComeFromData {
+export interface AlgorithmData {
     parent: string | undefined,
     value: number,
 }
 
-export interface ComeFrom {
-    [name: string]: ComeFromData
+export interface AlgorithmResult {
+    [name: string]: AlgorithmData
 }
+

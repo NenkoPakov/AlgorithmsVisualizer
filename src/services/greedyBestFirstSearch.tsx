@@ -1,4 +1,4 @@
-import { ComeFrom } from '../interfaces/Board.interface';
+import { AlgorithmResult } from '../interfaces/Board.interface';
 import { Node } from '../interfaces/Cell.interface';
 import { getValidNeighbors, areEqual, heuristic } from './common';
 
@@ -17,7 +17,7 @@ const greedyBestFirstSearch = async (wallMatrix: boolean[][], startNode: Node, f
     const frontier: { node: Node, priority: number }[] = [];
     frontier.push({ node: startNode, priority: 0 });
 
-    const comeFrom: ComeFrom[] = [];
+    const comeFrom: AlgorithmResult[] = [];
 
     let isFoundPath = false;
     let currentIteration = 0;

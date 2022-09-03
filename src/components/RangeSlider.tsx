@@ -1,7 +1,6 @@
-import React, { useState } from 'react';
+import React from 'react';
 import styled from 'styled-components'
-import { NodeBase } from '../global';
-import { IFreeNode } from '../interfaces/Cell.interface';
+import { BoardData } from '../interfaces/Context.interface';
 import { SliderType, ISlider } from '../interfaces/Slider.interface';
 import { useBoardContext } from './BoardContext';
 
@@ -93,12 +92,12 @@ function RangeSlider({ icon, label, defaultValue, sliderType, updateBoardSizeFun
 
 	const isDisabled = [SliderType.speedSlider, SliderType.progressSlider].includes(sliderType) ? false : boardContext.isInExecution;
 
-	var boardsValues: { iterationsCount: number, currentIteration: number }[] = Object.values(boardContext.boards);
-	let largestBoardValues = boardsValues.reduce((largestBoard, currentBoard) => largestBoard.iterationsCount > currentBoard.iterationsCount ? largestBoard : currentBoard);
+	var boardsValues: BoardData[] = Object.values(boardContext.boards);
+	let largestBoardValues = boardsValues.reduce((largestBoard, currentBoard) => largestBoard.iterationsCount! > currentBoard.iterationsCount! ? largestBoard : currentBoard);
 
 	let currentValue;
 	if (sliderType == SliderType.progressSlider) {
-		currentValue = largestBoardValues.currentIteration ? 100 / (largestBoardValues.iterationsCount / largestBoardValues.currentIteration) : 0;
+		currentValue = largestBoardValues.currentIteration ? 100 / (largestBoardValues.iterationsCount! / largestBoardValues.currentIteration) : 0;
 	}
 
 	return <SliderContainer>

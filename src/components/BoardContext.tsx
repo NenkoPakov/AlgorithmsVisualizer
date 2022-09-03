@@ -1,33 +1,32 @@
 import React, { useContext, useRef } from 'react'
-import { Algorithms } from '../services/common';
+import { Algorithm } from '../global';
+import { BoardContextProvider, BoardUpdateContextProvider, State } from '../interfaces/Context.interface';
 
-const defaultIteration = 0;
-const BoardContext = React.createContext<any>('');
-const BoardUpdateContext = React.createContext<any>('');
+const DEFAULT_ITERATION = 0;
+const INITIAL_TIMER_VALUE = '00:00:00';
+const BOARD_INITIAL_CONTEXT: BoardContextProvider = {
+    cancellationToken: {current:false},
+    duration: {current:''},
+    isDrawingWallAction: false,
+    isUnmarkWallAction: false,
+    isInExecution: false,
+    isPaused: false,
+    boards: {},
+}
+
+const BOARD_UPDATE_INITIAL_CONTEXT: BoardUpdateContextProvider = {
+    dispatch: Function,
+    handleCancellationToken: Function,
+}
+
+const BoardContext = React.createContext<BoardContextProvider>(BOARD_INITIAL_CONTEXT);
+const BoardUpdateContext = React.createContext<BoardUpdateContextProvider>(BOARD_UPDATE_INITIAL_CONTEXT);
 
 let minutes = 0;
 let seconds = 0;
 let milliseconds = 0;
 let interval: NodeJS.Timer;
 let timer: string;
-
-interface BoardsIteration {
-    [name: string]: {
-        currentIteration: number,
-        isCompleted: boolean,
-        iterationsCount?: number,
-        duration?: string,
-    }
-}
-
-interface State {
-    isDrawingWallAction: boolean,
-    isUnmarkWallAction: boolean,
-    isInExecution: boolean,
-    isPaused: boolean,
-    boards: BoardsIteration,
-    isFoundPath?: boolean,
-}
 
 export const ActionTypes = {
     ADD_BOARD: 'addBoard',
@@ -39,7 +38,7 @@ export const ActionTypes = {
     START_UNMARK_WALL_ACTION: 'startUnmarkWallAction',
     STOP_UNMARK_WALL_ACTION: 'stopUnmarkWallAction',
     JUMP_AT_INDEX: 'jumpAtIndex',
-    STEP_FURTHER: 'stepFurther',
+    STEP_FORWARD: 'stepForward',
     STEP_BACK: 'stepBack',
     MARK_COMPLETED: 'markCompleted',
     SET_PAUSE: 'setPaused',
@@ -53,12 +52,12 @@ function reducer(state: State, action: any) {
     switch (action.type) {
 
         case ActionTypes.ADD_BOARD:
-            const addAlgorithmKey = action.payload as keyof typeof Algorithms;
-            state.boards[addAlgorithmKey] = { currentIteration: defaultIteration, isCompleted: false };
+            const addAlgorithmKey = action.payload as keyof typeof Algorithm;
+            state.boards[addAlgorithmKey] = { currentIteration: DEFAULT_ITERATION, isCompleted: false };
             return { ...state };
 
         case ActionTypes.REMOVE_BOARD:
-            const removeAlgorithmKey = action.payload as keyof typeof Algorithms;
+            const removeAlgorithmKey = action.payload as keyof typeof Algorithm;
             delete state.boards[removeAlgorithmKey];
             return { ...state };
 
@@ -87,11 +86,11 @@ function reducer(state: State, action: any) {
             state.boards[jumpAlgorithmKey].currentIteration = jumpTargetIteration;
             return { ...state };
 
-        case ActionTypes.STEP_FURTHER:
-            const stepFurtherAlgorithmKey = action.payload;
+        case ActionTypes.STEP_FORWARD:
+            const stepForwardAlgorithmKey = action.payload;
 
-            if (!state.boards[stepFurtherAlgorithmKey].isCompleted) {
-                ++state.boards[stepFurtherAlgorithmKey].currentIteration;
+            if (!state.boards[stepForwardAlgorithmKey].isCompleted) {
+                ++state.boards[stepForwardAlgorithmKey].currentIteration;
             }
 
             return { ...state };
@@ -113,7 +112,7 @@ function reducer(state: State, action: any) {
             return { ...state };
 
         case ActionTypes.MARK_COMPLETED:
-            const completedAlgorithmKey = action.payload as keyof typeof Algorithms;
+            const completedAlgorithmKey = action.payload as keyof typeof Algorithm;
             state.boards[completedAlgorithmKey].isCompleted = true;
             state.boards[completedAlgorithmKey].duration = timer;
             return { ...state };
@@ -137,7 +136,7 @@ function reducer(state: State, action: any) {
         case ActionTypes.RESET:
             Object.keys(state.boards).forEach(algorithmKey => {
                 state.boards[algorithmKey] = {
-                    currentIteration: defaultIteration,
+                    currentIteration: DEFAULT_ITERATION,
                     isCompleted: false,
                     iterationsCount: state.boards[algorithmKey].iterationsCount,
                 }
@@ -201,7 +200,7 @@ function BoardProvider({ children }: any) {
         isPaused: false,
         boards: {
             'BFS': {
-                currentIteration: defaultIteration,
+                currentIteration: DEFAULT_ITERATION,
                 isCompleted: false,
             }
         },
@@ -210,7 +209,7 @@ function BoardProvider({ children }: any) {
     const [state, dispatch] = React.useReducer(reducer, initState);
 
     const cancellationToken = useRef<boolean>(false);
-    const duration = useRef<string>('00:00:00');
+    const duration = useRef<string>(INITIAL_TIMER_VALUE);
 
     duration.current = timer;
 

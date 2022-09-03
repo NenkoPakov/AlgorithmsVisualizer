@@ -1,7 +1,7 @@
 import React from 'react';
 import styled from 'styled-components'
 import { NodeBase } from '../global';
-import { INode } from '../interfaces/Cell.interface';
+import { BaseProps } from '../interfaces/Cell.interface';
 import { ActionTypes } from './BoardManager';
 import { ActionTypes as ContextActionTypes } from './BoardContext';
 import { useBoardContext, useBoardUpdateContext } from './BoardContext';
@@ -14,7 +14,7 @@ transition: background-color 0.5s ease-out ;
 `;
 
 
-function Wall({ row, col, boardManagerDispatch }: INode) {
+function Wall({ row, col, boardManagerDispatch }: BaseProps) {
   const boardContext = useBoardContext();
   const boardUpdateContext = useBoardUpdateContext();
   

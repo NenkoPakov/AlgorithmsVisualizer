@@ -1,4 +1,6 @@
-import { css } from 'styled-components'
+import { css } from 'styled-components';
+import breadthFirstSearch from './services/breadthFirstSearch';
+import greedyBestFirstSearch from './services/greedyBestFirstSearch';
 
 export const NodeBase = css`
 flex-basis:100%;
@@ -19,12 +21,32 @@ font-size:2vmin;
 }
 `;
 
-export const ButtonTypes = {
+export const Algorithm = {
+    'BFS': breadthFirstSearch,
+    'Greedy Best FS': greedyBestFirstSearch,
+    'TEST1': breadthFirstSearch,
+    'TEST2': greedyBestFirstSearch,
+}
+
+export const ButtonType = {
     Start: 'startButton',
     Pause: 'pauseButton',
     Reset: 'resetButton',
     Next: 'nextButton',
     Previous: 'previousButton',
+}
+
+export enum TextColorType {
+    Positive = '#8cbf5b',
+    Neutral = '#464646',
+    Negative = '#e36161',
+    Title = '#c5c5c5'
+}
+
+export const BackgroundColorType = {
+    Purple: '#645df7',
+    TransparentWhite: '#ffffff2f',
+    White: '#fff',
 }
 
 export const getMatrixInitValue = (rows: number, cols: number, isNumeric = false) => {
@@ -83,10 +105,8 @@ export const updateMatrixCols = (newSize: number, currentSize: number, matrix: b
     return matrix;
 };
 
-export const splitNodePosition = (currentKey: string) => {
-    let currentKeyData = currentKey.split('-');
-    let row = parseInt(currentKeyData[0]);
-    let col = parseInt(currentKeyData[1]);
+export const parseNodeData = (currentKey: string) => {
+    const [row, col] = currentKey.split('-').map(value => parseInt(value));
     return { row, col };
 }
 

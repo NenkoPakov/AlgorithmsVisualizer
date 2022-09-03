@@ -1,4 +1,4 @@
-import { ComeFrom } from '../interfaces/Board.interface';
+import { AlgorithmResult } from '../interfaces/Board.interface';
 import { Node } from '../interfaces/Cell.interface';
 import { LinkedList } from '../interfaces/LinkedList.interface';
 import { areEqual, getValidNeighbors, heuristic } from './common';
@@ -17,7 +17,7 @@ const breadthFirstSearch = async (wallMatrix: boolean[][], startNode: Node, fini
     const frontier: { node: Node, priority: number }[] = [];
     frontier.push({ node: startNode, priority: 0 });
 
-    const comeFrom: ComeFrom[] = [];
+    const comeFrom: AlgorithmResult[] = [];
 
     let isFoundPath = false;
     let currentIteration = 0;
@@ -34,7 +34,7 @@ const breadthFirstSearch = async (wallMatrix: boolean[][], startNode: Node, fini
         
         currentIteration++;
 
-        const latestComeFrom:ComeFrom = {};
+        const latestComeFrom:AlgorithmResult = {};
         
         graphNeighbors.forEach(neighbor => {
             tempMatrix[neighbor.row][neighbor.col].isVisited = true;

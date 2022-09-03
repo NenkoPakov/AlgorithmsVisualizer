@@ -1,11 +1,11 @@
-import { INodeFactory } from '../interfaces/Cell.interface';
+import { CellProps as CellProps } from '../interfaces/Cell.interface';
 import { createNode } from '../factories/NodeFactory';
-import { memo, useRef } from 'react';
+import { memo } from 'react';
 
 
 const Cell =
   memo(
-    ({ value, isVisited, isFrontier, isWall, isPartOfThePath, isStart, isFinish, row, col, boardManagerDispatch }: INodeFactory) => {
+    ({ value, isVisited, isFrontier, isWall, isPartOfThePath, isStart, isFinish, row, col, boardManagerDispatch }: CellProps) => {
       const getCellType = () => {
         return isStart
           ? 'start'

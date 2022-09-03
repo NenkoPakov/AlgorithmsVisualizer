@@ -7,9 +7,6 @@ display:flex;
 justify-content:space-between;
 flex-direction:column;
 max-width:300px;
-/* background-color:#c8d8e4; */
-/* border:solid 5px gray; */
-/* border-radius:35px ; */
 padding:35px;
 `;
 

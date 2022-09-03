@@ -1,21 +1,17 @@
-export interface INode {
+export interface BaseProps {
     row: number,
     col: number,
     boardManagerDispatch: Function,
 }
 
-export interface ITargetNode extends INode {
-    // handleAlgorithm: Function
-}
-
-export interface IFreeNode extends INode {
-    value?:number,
+export interface FreeProps extends BaseProps {
+    value?: number,
     isVisited?: boolean,
     isFrontier?: boolean,
     isPartOfThePath?: boolean,
 }
 
-export interface INodeFactory extends INode {
+export interface CellProps extends BaseProps {
     value: number,
     isVisited: boolean,
     isFrontier: boolean,
@@ -23,7 +19,7 @@ export interface INodeFactory extends INode {
     isPartOfThePath: boolean,
     isStart: boolean,
     isFinish: boolean,
-    boardManagerDispatch:Function
+    boardManagerDispatch: Function
 }
 
 export enum NodeType {

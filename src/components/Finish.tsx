@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import styled from 'styled-components'
 import { NodeBase } from '../global';
-import {  ITargetNode } from '../interfaces/Cell.interface';
+import {  BaseProps } from '../interfaces/Cell.interface';
 import { ActionTypes } from './BoardManager';
 
 
@@ -17,7 +17,7 @@ opacity: ${(props: any) => props.isDragged?.5:1};
 } 
 `;
 
-const Finish = ({ row, col, boardManagerDispatch }: ITargetNode) => {
+const Finish = ({ row, col, boardManagerDispatch }: BaseProps) => {
   const key: string = `${row}-${col}`;
 
   const [isDragged, setIsDragged] = useState(false);

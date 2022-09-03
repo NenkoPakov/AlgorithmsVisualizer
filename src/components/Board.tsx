@@ -1,71 +1,71 @@
 import Cell from './Cell';
-import React, { useEffect, useMemo, useRef, useState } from 'react';
+import React, { ReducerAction, useEffect, useRef } from 'react';
 import styled from 'styled-components';
-import { ComeFrom, ComeFromData, BoardProps } from '../interfaces/Board.interface';
-import { INodeFactory, Node } from '../interfaces/Cell.interface';
+import { AlgorithmData, AlgorithmResult, BoardProps } from '../interfaces/Board.interface';
+import { CellProps, Node } from '../interfaces/Cell.interface';
 import { useBoardContext, useBoardUpdateContext, ActionTypes as ContextActionTypes } from './BoardContext';
-import { getMatrixInitValue, splitNodePosition, matrixDeepCopy } from '../global'
-import { IndexInfo, IndexKind } from 'typescript';
-import { Algorithms } from '../services/common';
+import { getMatrixInitValue, parseNodeData, matrixDeepCopy, BackgroundColorType } from '../global'
+import { Algorithm } from '../global';
+import { Action } from '../interfaces/Reducer.interface';
 
 const INITIAL_INDEX = 0;
 
 const BoardSection = styled.section`
-position:relative;
-display: flex;
-flex-direction:column;
-height:100%;
-background-color:white;
-padding:5px 20px 20px 20px;
-border-radius:20px;
+    position:relative;
+    display: flex;
+    flex-direction:column;
+    height:100%;
+    background-color:${BackgroundColorType.White};
+    padding:5px 20px 20px 20px;
+    border-radius:20px;
 `;
 
 const BoardInfo = styled.div`
-position:relative;
-display: flex;
-flex-direction:row;
-margin-bottom:5px;
+    position:relative;
+    display: flex;
+    flex-direction:row;
+    margin-bottom:5px;
 `;
 
 const AlgorithmName = styled.h2`
-justify-content:flex-start;
-margin:0;
+    justify-content:flex-start;
+    margin:0;
 `;
 
 const Duration = styled.h3`
-position:absolute;
-left:50%;
-margin:0;
+    position:absolute;
+    left:50%;
+    margin:0;
 `;
 
 const Rank = styled.h2`
-position:absolute;
-right:0;
-margin:0;
+    position:absolute;
+    right:0;
+    margin:0;
 `;
 
 const ButtonWrapper = styled.div`
-position:relative;
-margin:auto;
+    position:relative;
+    margin:auto;
 `;
 
 const BoardWrapper = styled.div`
-position:relative;
-display: flex;
-flex-basis:100%;
-flex-direction:column;
-/* border:solid 5px gray; */
-gap:1px;
-overflow:hidden;
+    position:relative;
+    display: flex;
+    flex-basis:100%;
+    flex-direction:column;
+    /* border:solid 5px gray; */
+    gap:1px;
+    overflow:hidden;
 `;
 
 const RowWrapper = styled.div`
-width:100%;
-position:relative;
-display: flex;
-flex-basis:100%;
-flex-direction:row;
-gap:1px;
+    width:100%;
+    position:relative;
+    display: flex;
+    flex-basis:100%;
+    flex-direction:row;
+    gap:1px;
 `;
 
 interface State {
@@ -74,7 +74,7 @@ interface State {
     pathNodes: boolean[][],
     nodeValues: number[][],
     foundPath: Node[],
-    algorithmResult: [],
+    algorithmResult: AlgorithmResult[],
 }
 
 export const ActionTypes = {
@@ -94,15 +94,13 @@ export const ActionTypes = {
     SET_ALGORITHM_RESULT: 'setAlgorithmResult',
 }
 
-function reducer(state: State, action: any) {
+function reducer(state: State, action: Action) {
     switch (action.type) {
         case ActionTypes.RESET:
-            // return { ...state, visitedNodes: matrixDeepCopy(action.payload) as boolean[][], frontierNodes: matrixDeepCopy(action.payload) as boolean[][], pathNodes: matrixDeepCopy(action.payload) as boolean[][], wallNodes: matrixDeepCopy(action.payload) as boolean[][] };
             return { ...state, visitedNodes: matrixDeepCopy(action.payload) as boolean[][], frontierNodes: matrixDeepCopy(action.payload) as boolean[][], pathNodes: matrixDeepCopy(action.payload) as boolean[][] };
 
         case ActionTypes.UPDATE_SIZE:
             let { booleanMatrix, numericMatrix } = action.payload;
-            // return { ...state, visitedNodes: matrixDeepCopy(booleanMatrix) as boolean[][], frontierNodes: matrixDeepCopy(booleanMatrix) as boolean[][], pathNodes: matrixDeepCopy(booleanMatrix) as boolean[][], wallNodes: matrixDeepCopy(booleanMatrix) as boolean[][], nodeValues: matrixDeepCopy(numericMatrix) as number[][] };
             return { ...state, visitedNodes: matrixDeepCopy(booleanMatrix) as boolean[][], frontierNodes: matrixDeepCopy(booleanMatrix) as boolean[][], pathNodes: matrixDeepCopy(booleanMatrix) as boolean[][], nodeValues: matrixDeepCopy(numericMatrix) as number[][] };
 
         case ActionTypes.CLEAR_SOLUTION:
@@ -242,7 +240,7 @@ const Board = ({ boardRows, boardCols, wallNodes, startNode, finishNode, algorit
         updateCells(targetIteration);
     }, [boardContext.boards[algorithmKey].currentIteration])
 
-    // when vizualisation is done. Checking for path between start and finish 
+    // when visualization is done. Checking for path between start and finish 
     useEffect(() => {
         if (boardContext.boards[algorithmKey].isCompleted && boardContext.isFoundPath) {
             startPathAnimationAsync();
@@ -254,9 +252,10 @@ const Board = ({ boardRows, boardCols, wallNodes, startNode, finishNode, algorit
         dispatch({ type: ActionTypes.UPDATE_SIZE, payload: { booleanMatrix: getMatrixInitValue(boardRows, boardCols), numericMatrix: getMatrixInitValue(boardRows, boardCols, true) } });
     }, [boardRows, boardCols])
 
-    const getAlgorithmResultAsync = async () => {
-        const algorithmFunc = Algorithms[algorithmKey];
-        let { result, isFoundPath }: any = await algorithmFunc(wallNodes, startNode, finishNode);
+    const getAlgorithmResultAsync = async (): Promise<void> => {
+        const algorithmFunc = Algorithm[algorithmKey];
+        let { result, isFoundPath }: { result: AlgorithmResult[], isFoundPath: boolean } = await algorithmFunc(wallNodes, startNode, finishNode);
+
         dispatch({ type: ActionTypes.SET_ALGORITHM_RESULT, payload: result });
         boardUpdateContext.dispatch({ type: ContextActionTypes.SET_ITERATIONS_COUNT, payload: { iterationsAlgorithmKey: algorithmKey, iterationsCount: result.length } })
 
@@ -265,24 +264,22 @@ const Board = ({ boardRows, boardCols, wallNodes, startNode, finishNode, algorit
         }
     };
 
-    const reset = () => {
+    const reset = (): void => {
         dispatch({ type: ActionTypes.RESET, payload: getMatrixInitValue(boardRows, boardCols) });
         lastUsedIterationIndex.current = INITIAL_INDEX;
     };
 
-    const startPathAnimationAsync = () => {
+    const startPathAnimationAsync = (): void => {
         //last element of state.algorithmResult must be the target node
         let currentNode = state.algorithmResult[state.algorithmResult.length - 1];
-        let currentNodeValues: any = Object.values(currentNode);
+        let currentNodeValues: AlgorithmData[] = Object.values(currentNode);
         let parentNode = currentNodeValues[0].parent;
-        
-        while (parentNode) {
-            const [row,col] = parentNode.split('-');
-            dispatch({ type: ActionTypes.SET_PATH_NODE, payload: {row,col} });
 
-            let parentNodeIndex = state.algorithmResult.findIndex((x:any)=>
-            { 
-                return Object.keys(x).includes(parentNode)
+        while (parentNode) {
+            dispatch({ type: ActionTypes.SET_PATH_NODE, payload: parseNodeData(parentNode) });
+
+            let parentNodeIndex = state.algorithmResult.findIndex((iteration: AlgorithmResult) => {
+                return Object.keys(iteration).includes(parentNode!)
             });
 
             currentNode = state.algorithmResult[parentNodeIndex];
@@ -291,7 +288,7 @@ const Board = ({ boardRows, boardCols, wallNodes, startNode, finishNode, algorit
         }
     }
 
-    const startAnimationAsync = async () => {
+    const startAnimationAsync = async (): Promise<void> => {
         boardUpdateContext.handleCancellationToken(false);
 
         while (!boardContext.cancellationToken.current) {
@@ -300,7 +297,7 @@ const Board = ({ boardRows, boardCols, wallNodes, startNode, finishNode, algorit
                     break;
                 }
 
-                boardUpdateContext.dispatch({ type: ContextActionTypes.STEP_FURTHER, payload: algorithmKey });
+                boardUpdateContext.dispatch({ type: ContextActionTypes.STEP_FORWARD, payload: algorithmKey });
             }
 
             await delayFunc();
@@ -308,7 +305,7 @@ const Board = ({ boardRows, boardCols, wallNodes, startNode, finishNode, algorit
 
     }
 
-    const updateCells = (targetIteration: number) => {
+    const updateCells = (targetIteration: number): void => {
         const isStepForward = targetIteration >= lastUsedIterationIndex.current
 
         while (lastUsedIterationIndex.current != targetIteration) {
@@ -319,14 +316,14 @@ const Board = ({ boardRows, boardCols, wallNodes, startNode, finishNode, algorit
 
     }
 
-    const stepForward = () => {
+    const stepForward = (): void => {
         lastUsedIterationIndex.current += 1;
         let useIndex = lastUsedIterationIndex.current;
 
         state.algorithmResult[useIndex] && Object.keys(state.algorithmResult[useIndex]).forEach(currentKey => {
             const currentNode = state.algorithmResult[useIndex][currentKey];
-            let frontier: Node = splitNodePosition(currentKey);
-            let parent: Node | undefined = currentNode.parent ? splitNodePosition(currentNode.parent!) : undefined;
+            let frontier: Node = parseNodeData(currentKey);
+            let parent: Node | undefined = currentNode.parent ? parseNodeData(currentNode.parent!) : undefined;
             let value: number = currentNode.value;
             if (parent) {
                 dispatch({ type: ActionTypes.SET_VISITED_NODE, payload: parent });
@@ -344,13 +341,13 @@ const Board = ({ boardRows, boardCols, wallNodes, startNode, finishNode, algorit
         //state.algorithmResult[0] is for the start node which we want to skip
     }
 
-    const stepBack = () => {
+    const stepBack = (): void => {
         let useIndex = lastUsedIterationIndex.current;
 
         state.algorithmResult[useIndex] && Object.keys(state.algorithmResult[useIndex]).forEach(currentKey => {
             const currentNode = state.algorithmResult[useIndex][currentKey];
-            let frontier: Node = splitNodePosition(currentKey);
-            let parent: Node | undefined = currentNode.parent ? splitNodePosition(currentNode.parent!) : undefined;
+            let frontier: Node = parseNodeData(currentKey);
+            let parent: Node | undefined = currentNode.parent ? parseNodeData(currentNode.parent!) : undefined;
 
             dispatch({ type: ActionTypes.SET_FREE_NODE, payload: frontier });
 
@@ -362,8 +359,8 @@ const Board = ({ boardRows, boardCols, wallNodes, startNode, finishNode, algorit
         lastUsedIterationIndex.current -= 1;
     }
 
-    const boardRenderFunc = () => {
-        const board: INodeFactory[][] = [];
+    const boardRenderFunc = (): CellProps[][] => {
+        const board: CellProps[][] = [];
 
         //boardRows and wallNodes are passed by the BoardManager component. Because the useEffect is executed after the rendering we have to work with the smaller matrix to prevent exceptions during rendering
         //I chose to use state.pathNodes but here could be used any of the matrixes in the Board state
@@ -404,16 +401,10 @@ const Board = ({ boardRows, boardCols, wallNodes, startNode, finishNode, algorit
                 {boardContext.boards[algorithmKey].isCompleted && Object.keys(boardContext.boards).length > 1 &&
                     <Rank>
                         #{
-                            Object.keys(boardContext.boards).sort((key1, key2) => boardContext.boards[key1].iterationsCount - boardContext.boards[key2].iterationsCount).indexOf(algorithmKey) + 1
+                            Object.keys(boardContext.boards).sort((key1, key2) => boardContext.boards[key1].iterationsCount! - boardContext.boards[key2].iterationsCount!).indexOf(algorithmKey) + 1
                         }
                     </Rank>}
             </BoardInfo>
-            {/* <ButtonWrapper>
-                <button key='execute' onClick={() => executeAlgorithm()}>Execute</button>
-                <button key='clear' onClick={() => reset()}>Clear board</button>
-                <button key='pause' onClick={() => isCancelled.current = true}>Pause</button>
-                <button key='continue' onClick={() => { isCancelled.current = false, executeAlgorithm() }}>Continue</button>
-            </ButtonWrapper> */}
             <BoardWrapper>
                 {boardRenderFunc().map(row => (
                     <RowWrapper>

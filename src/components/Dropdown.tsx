@@ -1,7 +1,8 @@
 import React from 'react'
 import styled from 'styled-components';
-import { Algorithms } from '../services/common';
+import { Algorithm } from '../global';
 import { useBoardContext, useBoardUpdateContext, ActionTypes as ContextActionTypes } from './BoardContext';
+import { DropdownProps } from '../interfaces/Dropdown.interface';
 
 const DropdownContainer = styled.div<any>`
   width: 100%;
@@ -26,7 +27,7 @@ const DropdownContainer = styled.div<any>`
   }
 
   ul {
-    display:${(props: any) => props.isDropdownOpened ? 'block' : 'none'};
+    display:${(props: {isDropdownOpened:boolean}) => props.isDropdownOpened ? 'block' : 'none'};
     position: absolute;
     top: 100%;
     left: 0;
@@ -50,7 +51,7 @@ const DropdownContainer = styled.div<any>`
   }
   `;
 
-function Dropdown({ isDropdownOpened, handleDropdownClick }: any) {
+function Dropdown({ isDropdownOpened, handleDropdownClick }: DropdownProps) {
 
     const boardContext = useBoardContext();
     const boardUpdateContext = useBoardUpdateContext();
@@ -63,7 +64,7 @@ function Dropdown({ isDropdownOpened, handleDropdownClick }: any) {
             </button>
             <ul>
                 {
-                    Object.keys(Algorithms).map((algorithm: string) =>
+                    Object.keys(Algorithm).map((algorithm: string) =>
                         <li onClick={() => { boardUpdateContext.dispatch({ type: boardContext.boards.hasOwnProperty(algorithm) ? ContextActionTypes.REMOVE_BOARD : ContextActionTypes.ADD_BOARD, payload: algorithm }) }}>
                             <input type="checkbox" value={algorithm} checked={boardContext.boards.hasOwnProperty(algorithm)} />
                             {algorithm}
