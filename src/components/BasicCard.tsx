@@ -8,7 +8,7 @@ const Title = styled.h4`
   margin:0;
   font-weight:400;
   text-transform:capitalize;
-  color:${TextColorType.Title};
+  color:${TextColorType.Gray};
 `;
 
 const Data = styled.h2`

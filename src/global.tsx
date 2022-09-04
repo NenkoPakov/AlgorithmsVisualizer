@@ -1,6 +1,11 @@
 import { css } from 'styled-components';
 import breadthFirstSearch from './services/breadthFirstSearch';
 import greedyBestFirstSearch from './services/greedyBestFirstSearch';
+import PreviousIcon from './wwwroot/svg/prev.svg';
+import NextIcon from './wwwroot/svg/next.svg';
+import StartIcon from './wwwroot/svg/start.svg';
+import PauseIcon from './wwwroot/svg/pause.svg';
+import ResetIcon from './wwwroot/svg/reset.svg';
 
 export const NodeBase = css`
 flex-basis:100%;
@@ -28,25 +33,44 @@ export const Algorithm = {
     'TEST2': greedyBestFirstSearch,
 }
 
-export const ButtonType = {
-    Start: 'startButton',
-    Pause: 'pauseButton',
-    Reset: 'resetButton',
-    Next: 'nextButton',
-    Previous: 'previousButton',
+export enum ButtonType {
+    Start = 'startButton',
+    Pause = 'pauseButton',
+    Reset = 'resetButton',
+    Next = 'nextButton',
+    Previous = 'previousButton',
+    Default = 'defaultButton',
 }
 
 export enum TextColorType {
-    Positive = '#8cbf5b',
-    Neutral = '#464646',
-    Negative = '#e36161',
-    Title = '#c5c5c5'
+    Green = '#8cbf5b',
+    DarkGray = '#464646',
+    Red = '#e36161',
+    Gray = '#c5c5c5',
+    White = '#fff',
 }
+
+export const Icon = {
+    Start: StartIcon,
+    Pause: PauseIcon,
+    Reset: ResetIcon,
+    Next: NextIcon,
+    Previous: PreviousIcon,
+};
 
 export const BackgroundColorType = {
     Purple: '#645df7',
     TransparentWhite: '#ffffff2f',
     White: '#fff',
+    Gray: '#c5c5c5',
+    LightGray: '#ddd',
+    LightBlue: '#99DDFF',
+    Blue: '#95b9f4',
+    Red: '#e36161',
+    Green: '#8cbf5b',
+    Gold: '#c7b66efc',
+    Brown: '#786b78',
+    TransparentBlack: '#00000023',
 }
 
 export const getMatrixInitValue = (rows: number, cols: number, isNumeric = false) => {

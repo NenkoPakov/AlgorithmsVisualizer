@@ -18,7 +18,8 @@ import ArrowsColIcon from '../wwwroot/svg/arrow-ew.svg';
 import ArrowsRowIcon from '../wwwroot/svg/arrow-ns.svg';
 import SpeedIcon from '../wwwroot/svg/speed.svg';
 import ProgressIcon from '../wwwroot/svg/progress.svg';
-import { BoardData, Boards } from '../interfaces/Context.interface';
+import { BoardData } from '../interfaces/Context.interface';
+import { DelayType, State, StatusType } from '../interfaces/BoardManager.interface';
 
 const SPEED_MULTIPLIER = 2;
 
@@ -41,7 +42,13 @@ const BoardContainer = styled.section`
   justify-content:space-around;
   padding:40px;
   gap:10px 0;
-  `;
+ `;
+
+
+const Controls = styled.section`
+  position:relative;
+  width:100%;
+`;
 
 const generateWall = (targetNode: Node, wallStartNode: Node, wallNodes: boolean[][]) => {
     const proposedNodes: Node[] = [];
@@ -80,27 +87,6 @@ const generateWall = (targetNode: Node, wallStartNode: Node, wallNodes: boolean[
     return proposedNodes;
 }
 
-enum DelayType {
-    'small', 'medium', 'large'
-};
-
-enum StatusType {
-    'ready', 'paused', 'running', 'done'
-};
-
-interface State {
-    boardRows: number,
-    boardCols: number,
-    startNode: Node,
-    finishNode: Node,
-    wallNodes: boolean[][],
-    wallSelectionStartNode: Node,
-    proposedWall: Node[],
-    draggedNodePosition: Node,
-    delay: DelayType,
-    // foundPath: boolean | undefined,
-}
-
 export const ActionTypes = {
     SET_BOARD_ROWS: 'setBoardRows',
     SET_BOARD_COLS: 'setBoardCols',
@@ -115,13 +101,13 @@ export const ActionTypes = {
     SET_DELAY: 'setDelay',
     UNMARK_WALL_NODE: 'unmarkWallNode',
     RESET: 'reset',
-}
+};
 
 const getDelayType = (value: number): string => {
     const smallThreshold = 100 / 3;
     const normalThreshold = smallThreshold * 2;
     return value < smallThreshold ? DelayType[DelayType.small] : value < normalThreshold ? DelayType[DelayType.medium] : DelayType[DelayType.large];
-}
+};
 
 function reducer(state: State, action: any) {
     switch (action.type) {
@@ -248,7 +234,7 @@ function BoardManager() {
         proposedWall: [],
         draggedNodePosition: { row: -1, col: -1 },
         delay: getDelayType(INITIAL_TIMEOUT_MILLISECONDS),
-    }
+    };
 
     const [state, dispatch] = React.useReducer(reducer, initState);
     const speed = useRef<number>(INITIAL_TIMEOUT_MILLISECONDS);
@@ -261,10 +247,9 @@ function BoardManager() {
 
 
 
-    const handleSliderUpdate = (sliderValue: number, sliderType: SliderType) => {
+    const handleSliderUpdate = (sliderValue: number, sliderType: SliderType):void => {
         const newSize = MIN_SIZE + Math.ceil(SIZE_RATIO * sliderValue / 100);
 
-        console.log('sliderValue: ' + sliderValue)
         switch (sliderType) {
             case SliderType.rowsSlider:
                 dispatch({ type: ActionTypes.SET_BOARD_ROWS, payload: newSize })
@@ -299,11 +284,11 @@ function BoardManager() {
 
     };
 
-    const delayFunc = useCallback(async () => {
+    const delayFunc = useCallback(async () :Promise<Function>=> {
         return new Promise(resolve => setTimeout(resolve, speed.current));
     }, [speed]);
 
-    const getCurrentStatus = () => {
+    const getCurrentStatus = () : string=> {
         return Object.values(boardContext.boards).filter((board: any) => !board.isCompleted).length == 0
             ? StatusType[StatusType.done]
             : boardContext.isPaused
@@ -311,12 +296,12 @@ function BoardManager() {
                 : boardContext.isInExecution
                     ? StatusType[StatusType.running]
                     : StatusType[StatusType.ready]
-    }
+    };
 
     useEffect(() => {
         let rowsPerBoard = Math.floor(state.boardRows / Object.keys(boardContext.boards).length);
         dispatch({ type: ActionTypes.SET_BOARD_ROWS, payload: Math.max(rowsPerBoard, MIN_SIZE) })
-    }, [Object.keys(boardContext.boards).length])
+    }, [Object.keys(boardContext.boards).length]);
 
 
     var boardsValues: BoardData[] = Object.values(boardContext.boards);
@@ -325,51 +310,51 @@ function BoardManager() {
     return (
         <MainPage>
             <Settings>
-                <div>
+                <Controls>
                     <RangeSlider key='range-slider-rows' icon={ArrowsRowIcon} label='row' defaultValue={INITIAL_SIZE_SLIDER_DEFAULT_VALUE} sliderType={SliderType.rowsSlider} updateBoardSizeFunc={handleSliderUpdate} />
                     <RangeSlider key='range-slider-cols' icon={ArrowsColIcon} label='col' defaultValue={INITIAL_SIZE_SLIDER_DEFAULT_VALUE} sliderType={SliderType.colsSlider} updateBoardSizeFunc={handleSliderUpdate} />
                     <RangeSlider key='range-slider-speed' icon={SpeedIcon} label='delay' defaultValue={speed.current} sliderType={SliderType.speedSlider} updateBoardSizeFunc={handleSliderUpdate} />
                     {boardContext.isInExecution && <RangeSlider key='range-slider-progress' icon={ProgressIcon} label='progress' defaultValue={INITIAL_ITERATION} sliderType={SliderType.progressSlider} updateBoardSizeFunc={handleSliderUpdate} />}
                     <Dropdown isDropdownOpened={isDropdownOpened} handleDropdownClick={setIsDropdownOpened}></Dropdown>
-                </div>
+                </Controls>
                 <Actions />
             </Settings>
             <BoardContainer>
                 <CardContainer>
-                    <BasicCard title="rows count" data={state.boardRows} textColor={TextColorType.Neutral}></BasicCard>
-                    <BasicCard title="cols count" data={state.boardCols} textColor={TextColorType.Neutral}></BasicCard>
+                    <BasicCard title="rows count" data={state.boardRows} textColor={TextColorType.DarkGray}></BasicCard>
+                    <BasicCard title="cols count" data={state.boardCols} textColor={TextColorType.DarkGray}></BasicCard>
                     <BasicCard
                         title="walls count"
                         data={state.wallNodes.reduce((curr, row) => curr + row.filter(node => node == true).length, 0)}
-                        textColor={TextColorType.Neutral}></BasicCard>
+                        textColor={TextColorType.DarkGray}></BasicCard>
                     <BasicCard
                         title="delay"
                         data={state.delay}
                         textColor={state.delay == DelayType[DelayType.small]
-                            ? TextColorType.Positive
+                            ? TextColorType.Green
                             : state.delay == DelayType[DelayType.large]
-                                ? TextColorType.Negative
-                                : TextColorType.Neutral} />
+                                ? TextColorType.Red
+                                : TextColorType.DarkGray} />
                     <BasicCard
                         title="status"
                         data={getCurrentStatus()}
                         textColor={getCurrentStatus() == StatusType[StatusType.done]
-                            ? TextColorType.Positive
+                            ? TextColorType.Green
                             : getCurrentStatus() == StatusType[StatusType.paused]
-                                ? TextColorType.Negative
-                                : TextColorType.Neutral} />
+                                ? TextColorType.Red
+                                : TextColorType.DarkGray} />
                     {slowestBoardData.currentIteration > 0 &&
                         <BasicCard
                             title="duration"
                             data={boardContext.duration.current}
-                            textColor={TextColorType.Neutral} />}
+                            textColor={TextColorType.DarkGray} />}
                     {Object.values(boardContext.boards).filter((board: any) => board.isCompleted == true).length > 0 &&
                         <BasicCard
                             title="found path"
                             data={boardContext.isFoundPath ? 'yes' : 'no'}
                             textColor={boardContext.isFoundPath == true
-                                ? TextColorType.Positive
-                                : TextColorType.Negative} />}
+                                ? TextColorType.Green
+                                : TextColorType.Red} />}
                     {slowestBoardData.currentIteration > 0 &&
                         <AnalyticalCard
                             title="progress"
@@ -393,8 +378,8 @@ function BoardManager() {
                 )}
             </BoardContainer>
         </MainPage>
-    )
-}
+    );
+};
 
 export default BoardManager
 

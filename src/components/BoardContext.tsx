@@ -4,9 +4,10 @@ import { BoardContextProvider, BoardUpdateContextProvider, State } from '../inte
 
 const DEFAULT_ITERATION = 0;
 const INITIAL_TIMER_VALUE = '00:00:00';
+
 const BOARD_INITIAL_CONTEXT: BoardContextProvider = {
-    cancellationToken: {current:false},
-    duration: {current:''},
+    cancellationToken: { current: false },
+    duration: { current: '' },
     isDrawingWallAction: false,
     isUnmarkWallAction: false,
     isInExecution: false,
@@ -152,15 +153,15 @@ function reducer(state: State, action: any) {
     }
 }
 
-export const useBoardContext = () => {
+export const useBoardContext = (): BoardContextProvider => {
     return useContext(BoardContext);
-}
+};
 
-export const useBoardUpdateContext = () => {
+export const useBoardUpdateContext = (): BoardUpdateContextProvider => {
     return useContext(BoardUpdateContext);
-}
+};
 
-const timerFunc = () => {
+const timerFunc = (): void => {
     milliseconds++;
 
     if (milliseconds > 99) {
@@ -174,23 +175,23 @@ const timerFunc = () => {
     }
 
     timer = `${minutes < 10 ? `0${minutes}` : minutes}:${seconds < 10 ? `0${seconds}` : seconds}:${milliseconds < 10 ? `0${milliseconds}` : milliseconds}`;
-}
+};
 
-const startTimer = () => {
+const startTimer = (): void => {
     clearInterval(interval);
     interval = setInterval(timerFunc, 10);
-}
+};
 
-const stopTimer = () => {
+const stopTimer = (): void => {
     clearInterval(interval);
-}
+};
 
-const resetTimer = () => {
+const resetTimer = (): void => {
     clearInterval(interval);
     minutes = 0;
     seconds = 0;
     milliseconds = 0;
-}
+};
 
 function BoardProvider({ children }: any) {
     const initState = {
@@ -213,10 +214,10 @@ function BoardProvider({ children }: any) {
 
     duration.current = timer;
 
-    const handleCancellationToken = (value: boolean) => {
+    const handleCancellationToken = (value: boolean): void => {
         cancellationToken.current = value;
         dispatch({ type: value ? ActionTypes.SET_PAUSE : ActionTypes.REMOVE_PAUSE })
-    }
+    };
 
     return (
         <BoardContext.Provider value={{ ...state, cancellationToken, duration }}>
@@ -224,7 +225,7 @@ function BoardProvider({ children }: any) {
                 {children}
             </BoardUpdateContext.Provider>
         </BoardContext.Provider>
-    )
+    );
 };
 
 export default BoardProvider;

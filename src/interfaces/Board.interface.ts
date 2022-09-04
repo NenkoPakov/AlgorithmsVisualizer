@@ -1,6 +1,15 @@
 import { Algorithm } from "../global"
 import { Node } from "./Cell.interface"
 
+export interface State {
+    visitedNodes: boolean[][],
+    frontierNodes: boolean[][],
+    pathNodes: boolean[][],
+    nodeValues: number[][],
+    foundPath: Node[],
+    algorithmResult: AlgorithmResult[],
+};
+
 export interface BoardProps {
     startNode:Node,
     finishNode:Node,

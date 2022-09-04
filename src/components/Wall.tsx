@@ -1,18 +1,16 @@
 import React from 'react';
 import styled from 'styled-components'
-import { NodeBase } from '../global';
+import { BackgroundColorType, NodeBase } from '../global';
 import { BaseProps } from '../interfaces/Cell.interface';
 import { ActionTypes } from './BoardManager';
 import { ActionTypes as ContextActionTypes } from './BoardContext';
 import { useBoardContext, useBoardUpdateContext } from './BoardContext';
 
-
 const WallCell = styled.div<any>`
-${NodeBase};
-background-color:#786b78;
-transition: background-color 0.5s ease-out ;
+  ${NodeBase};
+  background-color:${BackgroundColorType.Brown};
+  transition: background-color 0.5s ease-out ;
 `;
-
 
 function Wall({ row, col, boardManagerDispatch }: BaseProps) {
   const boardContext = useBoardContext();
@@ -20,12 +18,12 @@ function Wall({ row, col, boardManagerDispatch }: BaseProps) {
   
   const key: string = `${row}-${col}`;
 
-  const onDragOver = (e: MouseEvent) => {
+  const onDragOver = (e: MouseEvent):void => {
     e.preventDefault();
     boardManagerDispatch({ type: ActionTypes.SET_DRAGGED_NODE_POSITION, payload: { row, col } })
-  }
+  };
 
-  const handleClick = (e: MouseEvent) => {
+  const handleClick = (e: MouseEvent):void => {
     e.preventDefault();
 
     if (boardContext.isDrawingWallAction) {
@@ -39,13 +37,11 @@ function Wall({ row, col, boardManagerDispatch }: BaseProps) {
       if (e.button === 0) {
         boardManagerDispatch({ type: ActionTypes.UNMARK_WALL_NODE, payload: { row, col } });
       } else if (e.button === 2) {
-        // handleWallDrawingEvent();
-        // boardUpdateContext.dispatch({ type: ContextActionTypes.START_DRAWING_WALL_ACTION });
         boardUpdateContext.dispatch({ type: ContextActionTypes.START_UNMARK_WALL_ACTION });
         boardManagerDispatch({ type: ActionTypes.SET_UNMARK_WALL_START_NODE, payload: { row, col } });
       }
     }
-  }
+  };
 
   return <WallCell
     row={row}
@@ -57,6 +53,6 @@ function Wall({ row, col, boardManagerDispatch }: BaseProps) {
     onClick={(e: MouseEvent) => handleClick(e)}
     onMouseEnter={(e: MouseEvent) => boardManagerDispatch({ type: ActionTypes.GENERATE_PROPOSAL_WALL, payload: { node: { row, col },isUnmarkWallAction: boardContext.isUnmarkWallAction } })}
   />
-}
+};
 
 export default Wall;

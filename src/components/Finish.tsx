@@ -1,20 +1,18 @@
 import React, { useState } from 'react';
 import styled from 'styled-components'
-import { NodeBase } from '../global';
+import { BackgroundColorType, NodeBase } from '../global';
 import {  BaseProps } from '../interfaces/Cell.interface';
 import { ActionTypes } from './BoardManager';
 
-
 const FinishNode = styled.div<any>`
-${NodeBase};
-background-color:#e36161;
-cursor:move;
+  ${NodeBase};
+  background-color:${BackgroundColorType.Red};
+  cursor:move;
+  opacity: ${(props: {isDragged:boolean}) => props.isDragged?.5:1};
 
-opacity: ${(props: any) => props.isDragged?.5:1};
-
-:hover{
-  transform:scale(1.2);
-} 
+  :hover{
+    transform:scale(1.2);
+  } 
 `;
 
 const Finish = ({ row, col, boardManagerDispatch }: BaseProps) => {
@@ -27,7 +25,7 @@ const Finish = ({ row, col, boardManagerDispatch }: BaseProps) => {
 
     boardManagerDispatch({ type: ActionTypes.SET_FINISH_NODE });
     setIsDragged(false);
-  }
+  };
 
   return <FinishNode
     draggable={true}
@@ -39,7 +37,6 @@ const Finish = ({ row, col, boardManagerDispatch }: BaseProps) => {
     onDragStart={() => setIsDragged(true)}
     onDragEnd={(e: MouseEvent) => _onDragEnd(e)}
   />
-
 };
 
 export default Finish;

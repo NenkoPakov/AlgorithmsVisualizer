@@ -1,7 +1,7 @@
 import Cell from './Cell';
 import React, { ReducerAction, useEffect, useRef } from 'react';
 import styled from 'styled-components';
-import { AlgorithmData, AlgorithmResult, BoardProps } from '../interfaces/Board.interface';
+import { AlgorithmData, AlgorithmResult, BoardProps, State } from '../interfaces/Board.interface';
 import { CellProps, Node } from '../interfaces/Cell.interface';
 import { useBoardContext, useBoardUpdateContext, ActionTypes as ContextActionTypes } from './BoardContext';
 import { getMatrixInitValue, parseNodeData, matrixDeepCopy, BackgroundColorType } from '../global'
@@ -44,11 +44,6 @@ const Rank = styled.h2`
     margin:0;
 `;
 
-const ButtonWrapper = styled.div`
-    position:relative;
-    margin:auto;
-`;
-
 const BoardWrapper = styled.div`
     position:relative;
     display: flex;
@@ -67,15 +62,6 @@ const RowWrapper = styled.div`
     flex-direction:row;
     gap:1px;
 `;
-
-interface State {
-    visitedNodes: boolean[][],
-    frontierNodes: boolean[][],
-    pathNodes: boolean[][],
-    nodeValues: number[][],
-    foundPath: Node[],
-    algorithmResult: AlgorithmResult[],
-}
 
 export const ActionTypes = {
     UPDATE_SIZE: 'updateSize',

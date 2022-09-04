@@ -13,7 +13,7 @@ const ButtonWrapper = styled.div`
     gap:10px;
     width:100%;
     position:relative;
-  `;
+`;
 
 function Actions() {
 
@@ -51,22 +51,22 @@ function Actions() {
     return (
         <ButtonWrapper>
             {Object.values<BoardData>(boardContext.boards).filter(board => !board.isCompleted).length == 0
-                ? <Button key='done-reset' buttonType={ButtonType.Reset} handleClickFunc={() => resetFunc()} isForStart={false} >Reset</Button>
+                ? <Button key='done-reset' buttonType={ButtonType.Reset} handleClickFunc={() => resetFunc()} />
                 : boardContext.isPaused
                     ? <>
-                        <Button key='prev' buttonType={ButtonType.Previous} handleClickFunc={() => stepBack()} isForStart={true} ></Button>
-                        <Button key='next' buttonType={ButtonType.Next} handleClickFunc={() => stepForward()} isForStart={true} ></Button>
-                        <Button key='continue' buttonType={ButtonType.Start} handleClickFunc={() => boardUpdateContext.dispatch({ type: ActionTypes.REMOVE_PAUSE })} isForStart={true} ></Button>
-                        <Button key='pause-reset' buttonType={ButtonType.Reset} handleClickFunc={() => resetFunc()} isForStart={false} ></Button>
+                        <Button key='prev' buttonType={ButtonType.Previous} handleClickFunc={() => stepBack()}/>
+                        <Button key='next' buttonType={ButtonType.Next} handleClickFunc={() => stepForward()}/>
+                        <Button key='continue' buttonType={ButtonType.Start} handleClickFunc={() => boardUpdateContext.dispatch({ type: ActionTypes.REMOVE_PAUSE })}/>
+                        <Button key='pause-reset' buttonType={ButtonType.Reset} handleClickFunc={() => resetFunc()} />
 
                     </>
                     : !boardContext.isInExecution
                         ? <>
-                            <Button key='execute' buttonType={ButtonType.Start} handleClickFunc={() => boardUpdateContext.dispatch({ type: ActionTypes.START_EXECUTION })} isForStart={true} ></Button>
+                            <Button key='execute' buttonType={ButtonType.Start} handleClickFunc={() => boardUpdateContext.dispatch({ type: ActionTypes.START_EXECUTION })}/>
                         </>
                         : <>
-                            <Button key='pause' buttonType={ButtonType.Pause} handleClickFunc={() => { boardUpdateContext.dispatch({ type: ActionTypes.SET_PAUSE }) }} isForStart={false} >Pause</Button>
-                            <Button key='execute-reset' buttonType={ButtonType.Reset} handleClickFunc={() => resetFunc()} isForStart={false} >Reset</Button>
+                            <Button key='pause' buttonType={ButtonType.Pause} handleClickFunc={() => { boardUpdateContext.dispatch({ type: ActionTypes.SET_PAUSE }) }} />
+                            <Button key='execute-reset' buttonType={ButtonType.Reset} handleClickFunc={() => resetFunc()} />
                         </>
             }
         </ButtonWrapper>
