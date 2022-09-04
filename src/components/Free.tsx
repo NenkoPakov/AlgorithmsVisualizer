@@ -1,27 +1,27 @@
 import React from 'react';
 import styled from 'styled-components'
-import { NodeBase, NodeText } from '../global';
+import { BackgroundColorType, NodeBase, NodeText } from '../global';
 import { FreeProps, } from '../interfaces/Cell.interface';
 import { ActionTypes } from './BoardManager';
 import { ActionTypes as ContextActionTypes } from './BoardContext';
 import { useBoardContext, useBoardUpdateContext } from './BoardContext';
 
 const FreeNode = styled.div<any>`
-${NodeBase};
-${NodeText};
-resize:none;
-background-color:${(props: FreeProps) => props.isVisited
-    ? '#95b9f4'
+  ${NodeBase};
+  ${NodeText};
+  resize:none;
+  background-color:${(props: FreeProps) => props.isVisited
+    ? BackgroundColorType.Blue
     : props.isPartOfThePath
-      ? '#c7b66efc'
-      : '#c5c5c5'};
-box-sizing: border-box;
-outline:${(props: FreeProps) => props.isFrontier ? 'solid 0.5px blue' : ''};
-transition: background-color 1.5s ease-out ;
+      ? BackgroundColorType.Gold
+      : BackgroundColorType.Gray};
+  box-sizing: border-box;
+  outline:${(props: FreeProps) => props.isFrontier ? 'solid 0.5px blue' : 'unset'};
+  transition: background-color 1.5s ease-out ;
 
-:hover{
-  background-color:#786b78 ;
-} 
+  :hover{
+    background-color:${BackgroundColorType.Brown} ;
+  } 
 `;
 
 function Free({ value, row, col, isVisited, isFrontier, isPartOfThePath, boardManagerDispatch }: FreeProps) {
@@ -30,12 +30,12 @@ function Free({ value, row, col, isVisited, isFrontier, isPartOfThePath, boardMa
 
   const key: string = `${row}-${col}`;
 
-  const onDragOver = (e: MouseEvent) => {
+  const onDragOver = (e: MouseEvent): void => {
     e.preventDefault();
     boardManagerDispatch({ type: ActionTypes.SET_DRAGGED_NODE_POSITION, payload: { row, col } });
   }
 
-  const handleClick = (e: MouseEvent) => {
+  const handleClick = (e: MouseEvent): void => {
     e.preventDefault();
 
     if (boardContext.isDrawingWallAction) {
@@ -54,7 +54,7 @@ function Free({ value, row, col, isVisited, isFrontier, isPartOfThePath, boardMa
         boardManagerDispatch({ type: ActionTypes.SET_WALL_START_NODE, payload: { row, col } });
       }
     }
-  }
+  };
 
   return <FreeNode
     id={key}
@@ -69,7 +69,6 @@ function Free({ value, row, col, isVisited, isFrontier, isPartOfThePath, boardMa
   >
     {/* {value} */}
   </FreeNode>
-
 };
 
 export default Free;
