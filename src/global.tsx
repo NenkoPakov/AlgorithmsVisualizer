@@ -6,6 +6,10 @@ import NextIcon from './wwwroot/svg/next.svg';
 import StartIcon from './wwwroot/svg/start.svg';
 import PauseIcon from './wwwroot/svg/pause.svg';
 import ResetIcon from './wwwroot/svg/reset.svg';
+import ArrowsColIcon from './wwwroot/svg/arrow-ew.svg';
+import ArrowsRowIcon from './wwwroot/svg/arrow-ns.svg';
+import DelayIcon from './wwwroot/svg/speed.svg';
+import ProgressIcon from './wwwroot/svg/progress.svg';
 
 export const NodeBase = css`
 flex-basis:100%;
@@ -56,12 +60,17 @@ export const Icon = {
     Reset: ResetIcon,
     Next: NextIcon,
     Previous: PreviousIcon,
+    ArrowsCol: ArrowsColIcon,
+    ArrowsRow: ArrowsRowIcon,
+    Delay: DelayIcon,
+    Progress: ProgressIcon,
 };
 
 export const BackgroundColorType = {
     Purple: '#645df7',
     TransparentWhite: '#ffffff2f',
     White: '#fff',
+    SmokedWhite:'#ececec',
     Gray: '#c5c5c5',
     LightGray: '#ddd',
     LightBlue: '#99DDFF',
@@ -70,6 +79,7 @@ export const BackgroundColorType = {
     Green: '#8cbf5b',
     Gold: '#c7b66efc',
     Brown: '#786b78',
+    Beige: '#817c66fc',
     TransparentBlack: '#00000023',
 }
 

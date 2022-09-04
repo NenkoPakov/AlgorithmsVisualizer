@@ -1,53 +1,40 @@
-import React, { useCallback, useEffect, useRef, useState } from 'react';
-import RangeSlider from '../components/RangeSlider';
+import React, { useCallback, useEffect, useRef } from 'react';
 import styled from 'styled-components';
-import { useBoardContext, useBoardUpdateContext } from '../components/BoardContext';
-import { SliderType } from '../interfaces/Slider.interface';
+import { useBoardContext } from '../components/BoardContext';
 import Settings from '../components/Settings';
 import Actions from '../components/Actions';
 import { Node } from '../interfaces/Cell.interface';
-import { ActionTypes as ContextActionTypes } from './BoardContext';
-import { getMatrixInitValue, updateMatrixRows, updateMatrixCols, TextColorType } from '../global'
+import { getMatrixInitValue, updateMatrixRows, updateMatrixCols, Algorithm, BackgroundColorType } from '../global'
 import Board from './Board';
-import { Algorithm } from '../global';
-import CardContainer from './CardContainer';
-import BasicCard from './BasicCard';
-import AnalyticalCard from "./AnalyticalCard";
-import Dropdown from './Dropdown';
-import ArrowsColIcon from '../wwwroot/svg/arrow-ew.svg';
-import ArrowsRowIcon from '../wwwroot/svg/arrow-ns.svg';
-import SpeedIcon from '../wwwroot/svg/speed.svg';
-import ProgressIcon from '../wwwroot/svg/progress.svg';
-import { BoardData } from '../interfaces/Context.interface';
-import { DelayType, State, StatusType } from '../interfaces/BoardManager.interface';
-
-const SPEED_MULTIPLIER = 2;
+import { DelayType, State } from '../interfaces/BoardManager.interface';
+import Controls from './Controls';
+import CardManager from './CardManager';
 
 const MainPage = styled.div`
   position:fixed;
   width:100%;
   height:100%;
-  background-color:#817c66fc;
+  background-color:${BackgroundColorType.Beige};
   display:flex;
   flex-direction:row;
 `;
 
-const BoardContainer = styled.section`
+const SectionBase = styled.section`
   position:relative;
-  background-color: #ececec;
-  border-radius:40px 0 0 40px;
+  background-color: ${BackgroundColorType.SmokedWhite};
   display:flex;
   flex-grow:1;
   flex-direction:column;
   justify-content:space-around;
-  padding:40px;
   gap:10px 0;
- `;
+`;
 
+const VisualizationContainer = styled(SectionBase)`
+padding:40px;
+`;
 
-const Controls = styled.section`
-  position:relative;
-  width:100%;
+const BoardsContainer = styled(SectionBase)`
+overflow-y:auto;
 `;
 
 const generateWall = (targetNode: Node, wallStartNode: Node, wallNodes: boolean[][]) => {
@@ -101,12 +88,6 @@ export const ActionTypes = {
     SET_DELAY: 'setDelay',
     UNMARK_WALL_NODE: 'unmarkWallNode',
     RESET: 'reset',
-};
-
-const getDelayType = (value: number): string => {
-    const smallThreshold = 100 / 3;
-    const normalThreshold = smallThreshold * 2;
-    return value < smallThreshold ? DelayType[DelayType.small] : value < normalThreshold ? DelayType[DelayType.medium] : DelayType[DelayType.large];
 };
 
 function reducer(state: State, action: any) {
@@ -216,13 +197,15 @@ function reducer(state: State, action: any) {
 
 
 function BoardManager() {
-    const MIN_SIZE = 15;
-    const MAX_SIZE = 30;
-    const SIZE_RATIO = MAX_SIZE - MIN_SIZE;
     const INITIAL_SIZE = 15;
-    const INITIAL_SIZE_SLIDER_DEFAULT_VALUE = 0;
     const INITIAL_TIMEOUT_MILLISECONDS = 80;
-    const INITIAL_ITERATION = 0;
+    const MIN_SIZE = 15;
+
+    const getDelayType = (value: number): string => {
+        const smallThreshold = 100 / 3;
+        const normalThreshold = smallThreshold * 2;
+        return value < smallThreshold ? DelayType[DelayType.small] : value < normalThreshold ? DelayType[DelayType.medium] : DelayType[DelayType.large];
+    };
 
     const initState = {
         boardRows: INITIAL_SIZE,
@@ -237,66 +220,14 @@ function BoardManager() {
     };
 
     const [state, dispatch] = React.useReducer(reducer, initState);
-    const speed = useRef<number>(INITIAL_TIMEOUT_MILLISECONDS);
-    const lastIterationIndex = useRef<number>(INITIAL_ITERATION);
-
-    const [isDropdownOpened, setIsDropdownOpened] = useState(false);
+    const delay = useRef<number>(INITIAL_TIMEOUT_MILLISECONDS);
 
     const boardContext = useBoardContext();
-    const boardUpdateContext = useBoardUpdateContext();
 
+    const delayFunc = useCallback(async (): Promise<Function> => {
+        return new Promise(resolve => setTimeout(resolve, delay.current));
+    }, [delay.current]);
 
-
-    const handleSliderUpdate = (sliderValue: number, sliderType: SliderType):void => {
-        const newSize = MIN_SIZE + Math.ceil(SIZE_RATIO * sliderValue / 100);
-
-        switch (sliderType) {
-            case SliderType.rowsSlider:
-                dispatch({ type: ActionTypes.SET_BOARD_ROWS, payload: newSize })
-                break;
-            case SliderType.colsSlider:
-                dispatch({ type: ActionTypes.SET_BOARD_COLS, payload: newSize })
-                break;
-            case SliderType.speedSlider:
-                speed.current = sliderValue * SPEED_MULTIPLIER;
-
-                let delayType = getDelayType(sliderValue);
-                if (state.delay != delayType) {
-                    dispatch({ type: ActionTypes.SET_DELAY, payload: delayType });
-                }
-                break;
-            case SliderType.progressSlider:
-                const maxIterationsCount = Math.max(...Object.values(boardContext.boards).map((board: any) => board.iterationsCount));
-                const targetIteration = Math.ceil(maxIterationsCount * sliderValue / 100);
-
-                Object.keys(boardContext.boards).forEach((algorithmKey: any) => {
-                    boardUpdateContext.dispatch({ type: ContextActionTypes.JUMP_AT_INDEX, payload: { algorithmKey, targetIteration } })
-                })
-
-                lastIterationIndex.current = targetIteration;
-
-                break;
-
-            default:
-                //throw exception
-                break;
-        }
-
-    };
-
-    const delayFunc = useCallback(async () :Promise<Function>=> {
-        return new Promise(resolve => setTimeout(resolve, speed.current));
-    }, [speed]);
-
-    const getCurrentStatus = () : string=> {
-        return Object.values(boardContext.boards).filter((board: any) => !board.isCompleted).length == 0
-            ? StatusType[StatusType.done]
-            : boardContext.isPaused
-                ? StatusType[StatusType.paused]
-                : boardContext.isInExecution
-                    ? StatusType[StatusType.running]
-                    : StatusType[StatusType.ready]
-    };
 
     useEffect(() => {
         let rowsPerBoard = Math.floor(state.boardRows / Object.keys(boardContext.boards).length);
@@ -304,79 +235,29 @@ function BoardManager() {
     }, [Object.keys(boardContext.boards).length]);
 
 
-    var boardsValues: BoardData[] = Object.values(boardContext.boards);
-    let slowestBoardData = boardsValues.reduce((largestBoard, currentBoard) => largestBoard.iterationsCount! > currentBoard.iterationsCount! ? largestBoard : currentBoard);
-
     return (
         <MainPage>
             <Settings>
-                <Controls>
-                    <RangeSlider key='range-slider-rows' icon={ArrowsRowIcon} label='row' defaultValue={INITIAL_SIZE_SLIDER_DEFAULT_VALUE} sliderType={SliderType.rowsSlider} updateBoardSizeFunc={handleSliderUpdate} />
-                    <RangeSlider key='range-slider-cols' icon={ArrowsColIcon} label='col' defaultValue={INITIAL_SIZE_SLIDER_DEFAULT_VALUE} sliderType={SliderType.colsSlider} updateBoardSizeFunc={handleSliderUpdate} />
-                    <RangeSlider key='range-slider-speed' icon={SpeedIcon} label='delay' defaultValue={speed.current} sliderType={SliderType.speedSlider} updateBoardSizeFunc={handleSliderUpdate} />
-                    {boardContext.isInExecution && <RangeSlider key='range-slider-progress' icon={ProgressIcon} label='progress' defaultValue={INITIAL_ITERATION} sliderType={SliderType.progressSlider} updateBoardSizeFunc={handleSliderUpdate} />}
-                    <Dropdown isDropdownOpened={isDropdownOpened} handleDropdownClick={setIsDropdownOpened}></Dropdown>
-                </Controls>
+                <Controls boardManagerDispatch={dispatch} delayState={state.delay} delayFunc={delayFunc} delayRef={delay} getDelayTypeFunc={getDelayType} />
                 <Actions />
             </Settings>
-            <BoardContainer>
-                <CardContainer>
-                    <BasicCard title="rows count" data={state.boardRows} textColor={TextColorType.DarkGray}></BasicCard>
-                    <BasicCard title="cols count" data={state.boardCols} textColor={TextColorType.DarkGray}></BasicCard>
-                    <BasicCard
-                        title="walls count"
-                        data={state.wallNodes.reduce((curr, row) => curr + row.filter(node => node == true).length, 0)}
-                        textColor={TextColorType.DarkGray}></BasicCard>
-                    <BasicCard
-                        title="delay"
-                        data={state.delay}
-                        textColor={state.delay == DelayType[DelayType.small]
-                            ? TextColorType.Green
-                            : state.delay == DelayType[DelayType.large]
-                                ? TextColorType.Red
-                                : TextColorType.DarkGray} />
-                    <BasicCard
-                        title="status"
-                        data={getCurrentStatus()}
-                        textColor={getCurrentStatus() == StatusType[StatusType.done]
-                            ? TextColorType.Green
-                            : getCurrentStatus() == StatusType[StatusType.paused]
-                                ? TextColorType.Red
-                                : TextColorType.DarkGray} />
-                    {slowestBoardData.currentIteration > 0 &&
-                        <BasicCard
-                            title="duration"
-                            data={boardContext.duration.current}
-                            textColor={TextColorType.DarkGray} />}
-                    {Object.values(boardContext.boards).filter((board: any) => board.isCompleted == true).length > 0 &&
-                        <BasicCard
-                            title="found path"
-                            data={boardContext.isFoundPath ? 'yes' : 'no'}
-                            textColor={boardContext.isFoundPath == true
-                                ? TextColorType.Green
-                                : TextColorType.Red} />}
-                    {slowestBoardData.currentIteration > 0 &&
-                        <AnalyticalCard
-                            title="progress"
-                            currentValue={slowestBoardData.currentIteration}
-                            //slowestBoardData.iterationsCount-1 because we are skipping the entry for the StartNode
-                            targetValue={slowestBoardData.iterationsCount! - 1}
-                            progressInPercentages={Math.round(100 / ((slowestBoardData.iterationsCount! - 1) / slowestBoardData.currentIteration))} />}
-                </CardContainer>
-
-                {Object.keys(boardContext.boards).map((key: string) =>
-                    <Board
-                        boardRows={state.boardRows}
-                        boardCols={state.boardCols}
-                        wallNodes={state.wallNodes}
-                        startNode={state.startNode}
-                        finishNode={state.finishNode}
-                        algorithmKey={key as keyof typeof Algorithm}
-                        boardManagerDispatch={dispatch}
-                        delayFunc={delayFunc}
-                    />
-                )}
-            </BoardContainer>
+            <VisualizationContainer>
+                <CardManager rows={state.boardRows} cols={state.boardCols} wallNodes={state.wallNodes} delay={state.delay} />
+                <BoardsContainer>
+                    {Object.keys(boardContext.boards).map((key: string) =>
+                        <Board
+                            boardRows={state.boardRows}
+                            boardCols={state.boardCols}
+                            wallNodes={state.wallNodes}
+                            startNode={state.startNode}
+                            finishNode={state.finishNode}
+                            algorithmKey={key as keyof typeof Algorithm}
+                            boardManagerDispatch={dispatch}
+                            delayFunc={delayFunc}
+                        />
+                    )}
+                </BoardsContainer>
+            </VisualizationContainer>
         </MainPage>
     );
 };

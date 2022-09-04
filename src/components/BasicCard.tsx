@@ -1,8 +1,17 @@
 import React from 'react'
 import styled from 'styled-components'
-import { TextColorType } from '../global';
+import { BackgroundColorType, TextColorType } from '../global';
 import { BasicCardProps } from '../interfaces/BasicCard.interface';
-import Card from './Card';
+
+const Card = styled.section`
+    position:relative;
+    display: flex;
+    flex-direction:column;
+    justify-content:center;
+    background-color:${BackgroundColorType.White};
+    padding:5px 20px 5px 20px;
+    border-radius:20px;
+`;
 
 const Title = styled.h4`
   margin:0;

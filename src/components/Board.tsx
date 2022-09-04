@@ -15,6 +15,7 @@ const BoardSection = styled.section`
     display: flex;
     flex-direction:column;
     height:100%;
+    min-height:500px;
     background-color:${BackgroundColorType.White};
     padding:5px 20px 20px 20px;
     border-radius:20px;

@@ -17,6 +17,6 @@ export interface State {
     wallSelectionStartNode: Node,
     proposedWall: Node[],
     draggedNodePosition: Node,
-    delay: DelayType,
+    delay: string,
     // foundPath: boolean | undefined,
 }
