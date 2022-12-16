@@ -11,6 +11,7 @@ import { useBoardContext } from './BoardContext';
 const CardWrapper = styled.section`
     display:flex;
     flex-direction:row;
+    flex-wrap:wrap;
     gap:10px;
 `;
 
