@@ -393,11 +393,11 @@ const Board = ({ boardRows, boardCols, wallNodes, startNode, finishNode, algorit
                     </Rank>}
             </BoardInfo>
             <BoardWrapper>
-                {boardRenderFunc().map(row => (
-                    <RowWrapper>
+                {boardRenderFunc().map((row,index) => (
+                    <RowWrapper  key={`board-${algorithmKey}-row-${index}`}>
                         {row.map(cell => {
                             return <Cell
-                                key={`board-cell-${cell.row}-${cell.col}`}
+                                key={`board-${algorithmKey}-cell-${cell.row}-${cell.col}`}
                                 {...cell} />
                         })}
                     </RowWrapper>

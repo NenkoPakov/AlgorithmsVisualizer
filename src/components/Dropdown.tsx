@@ -53,8 +53,8 @@ function Dropdown({ isDropdownOpened, handleDropdownClick }: DropdownProps) {
       <ul>
         {
           Object.keys(Algorithm).map((algorithm: string) =>
-            <li onClick={() => { boardUpdateContext.dispatch({ type: boardContext.boards.hasOwnProperty(algorithm) ? ContextActionTypes.REMOVE_BOARD : ContextActionTypes.ADD_BOARD, payload: algorithm }) }}>
-              <input type="checkbox" value={algorithm} checked={boardContext.boards.hasOwnProperty(algorithm)} />
+            <li key={`dropdown-item-${algorithm}`} onClick={() => { boardUpdateContext.dispatch({ type: boardContext.boards.hasOwnProperty(algorithm) ? ContextActionTypes.REMOVE_BOARD : ContextActionTypes.ADD_BOARD, payload: algorithm }) }}>
+              <input type="checkbox" value={algorithm} defaultChecked={boardContext.boards.hasOwnProperty(algorithm)} />
               {algorithm}
             </li>)
         }

@@ -53,11 +53,11 @@ function CardManager({ rows, cols, wallNodes, delay }: CardManagerProps) {
                     : getCurrentStatus() == StatusType[StatusType.paused]
                         ? TextColorType.Red
                         : TextColorType.DarkGray} />
-            {slowestBoardData.currentIteration > 0 &&
+            {/* {slowestBoardData.currentIteration > 0 &&
                 <BasicCard
                     title="duration"
                     data={boardContext.duration.current}
-                    textColor={TextColorType.DarkGray} />}
+                    textColor={TextColorType.DarkGray} />} */}
             {Object.values(boardContext.boards).filter((board: any) => board.isCompleted == true).length > 0 &&
                 <BasicCard
                     title="found path"

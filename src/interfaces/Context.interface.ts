@@ -20,8 +20,7 @@ export interface State {
 }
 
 export interface BoardContextProvider extends State {
-    cancellationToken: { current: boolean },
-    duration: { current: string }
+    cancellationToken: { current: boolean }
 }
 
 export interface BoardUpdateContextProvider {

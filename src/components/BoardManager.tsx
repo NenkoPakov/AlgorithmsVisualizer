@@ -235,16 +235,17 @@ function BoardManager() {
 
 
     return (
-        <MainPage>
-            <Settings>
-                <Controls boardManagerDispatch={dispatch} delayState={state.delay} delayFunc={delayFunc} delayRef={delay} getDelayTypeFunc={getDelayType} />
-                <Actions />
+        <MainPage key='main-page'>
+            <Settings key='settings'>
+                <Controls  key='controls' boardManagerDispatch={dispatch} delayState={state.delay} delayFunc={delayFunc} delayRef={delay} getDelayTypeFunc={getDelayType} />
+                <Actions key='actions' />
             </Settings>
-            <VisualizationContainer>
-                <CardManager rows={state.boardRows} cols={state.boardCols} wallNodes={state.wallNodes} delay={state.delay} />
-                <BoardsContainer>
+            <VisualizationContainer  key='visualization-container'>
+                <CardManager key='card-manager' rows={state.boardRows} cols={state.boardCols} wallNodes={state.wallNodes} delay={state.delay} />
+                <BoardsContainer key='boards-container'>
                     {Object.keys(boardContext.boards).map((key: string) =>
-                        <Board
+                        <Board  
+                            key={`board-${key}`}
                             boardRows={state.boardRows}
                             boardCols={state.boardCols}
                             wallNodes={state.wallNodes}
