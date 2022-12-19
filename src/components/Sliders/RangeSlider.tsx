@@ -1,9 +1,8 @@
 import React from 'react';
 import styled from 'styled-components'
-import { BackgroundColorType, TextColorType } from '../global';
-import { BoardData } from '../interfaces/Context.interface';
-import { SliderType, ISlider } from '../interfaces/Slider.interface';
-import { useBoardContext } from './BoardContext';
+import { BackgroundColorType, TextColorType } from '../../global';
+import { SliderType, ISlider } from '../../interfaces/Slider.interface';
+import { useBoardContext } from '../BoardContext';
 
 const SliderContainer = styled.div`
 	margin-bottom:20px;
@@ -82,25 +81,16 @@ const Label = styled.h3`
 	color:${TextColorType.White};
 `;
 
-function RangeSlider({ icon, label, defaultValue, sliderType, updateBoardSizeFunc }: ISlider) {
+function RangeSlider({ icon, label, defaultValue, value, sliderType, updateBoardSizeFunc, disabled }: ISlider) {
 	const boardContext = useBoardContext();
 
-	const isDisabled = [SliderType.speedSlider, SliderType.progressSlider].includes(sliderType) ? false : boardContext.isInExecution;
-
-	let largestBoardValues = Object.values<BoardData>(boardContext.boards).reduce((largestBoard, currentBoard) => largestBoard.iterationsCount! > currentBoard.iterationsCount! ? largestBoard : currentBoard);
-
-	let currentValue;
-	if (sliderType == SliderType.progressSlider) {
-		currentValue = largestBoardValues.currentIteration ? 100 / (largestBoardValues.iterationsCount! / largestBoardValues.currentIteration) : 0;
-	}
-
 	return (
-		<SliderContainer>
+		<SliderContainer  key={`range-slider-${label}`}>
 			<SliderInfo>
 				<Icon src={icon} />
 				<Label> {label} </Label>
 			</SliderInfo>
-			<Slider sliderType={sliderType} type="range" onChange={(e: any) => updateBoardSizeFunc((parseInt(e.target.value)), sliderType)} defaultValue={defaultValue} value={currentValue} disabled={isDisabled} />
+			<Slider sliderType={sliderType!} type="range" onChange={(e: any) => updateBoardSizeFunc(e.target.value)} defaultValue={defaultValue} value={value} disabled={disabled && boardContext.isInExecution} />
 		</SliderContainer>
 	);
 };

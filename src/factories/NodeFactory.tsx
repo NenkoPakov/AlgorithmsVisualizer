@@ -1,8 +1,8 @@
 import React from 'react';
-import Wall from "../components/Wall"
-import Start from "../components/Start"
-import Finish from "../components/Finish"
-import Free from "../components/Free"
+import Wall from "../components/Cells/Wall"
+import Start from "../components/Cells/Start"
+import Finish from "../components/Cells/Finish"
+import Free from "../components/Cells/Free"
 
 export function createNode(value: number, row: number, col: number, type: string, boardManagerDispatch: Function) {
     switch (type) {

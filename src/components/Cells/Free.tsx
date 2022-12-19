@@ -1,10 +1,10 @@
 import React from 'react';
 import styled from 'styled-components'
-import { BackgroundColorType, NodeBase, NodeText } from '../global';
-import { FreeProps, } from '../interfaces/Cell.interface';
-import { ActionTypes } from './BoardManager';
-import { ActionTypes as ContextActionTypes } from './BoardContext';
-import { useBoardContext, useBoardUpdateContext } from './BoardContext';
+import { BackgroundColorType, NodeBase, NodeText } from '../../global';
+import { FreeProps, } from '../../interfaces/Cell.interface';
+import { ActionTypes } from '../BoardManager';
+import { ActionTypes as ContextActionTypes } from '../BoardContext';
+import { useBoardContext, useBoardUpdateContext } from '../BoardContext';
 
 const FreeNode = styled.div<any>`
   ${NodeBase};

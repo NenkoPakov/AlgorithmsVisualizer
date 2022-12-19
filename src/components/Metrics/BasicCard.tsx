@@ -1,7 +1,7 @@
 import React from 'react'
 import styled from 'styled-components'
-import { BackgroundColorType, TextColorType } from '../global';
-import { BasicCardProps } from '../interfaces/BasicCard.interface';
+import { BackgroundColorType, TextColorType } from '../../global';
+import { BasicCardProps } from '../../interfaces/BasicCard.interface';
 
 const Card = styled.section`
     position:relative;

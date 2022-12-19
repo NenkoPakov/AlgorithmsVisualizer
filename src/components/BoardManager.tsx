@@ -1,14 +1,12 @@
 import React, { useCallback, useEffect, useRef } from 'react';
 import styled from 'styled-components';
 import { useBoardContext } from '../components/BoardContext';
-import Settings from '../components/Settings';
-import Actions from '../components/Actions';
+import Settings from '../components/Settings/Settings';
 import { Node } from '../interfaces/Cell.interface';
 import { getMatrixInitValue, updateMatrixRows, updateMatrixCols, Algorithm, BackgroundColorType } from '../global'
 import Board from './Board';
 import { DelayType, State } from '../interfaces/BoardManager.interface';
-import Controls from './Controls';
-import CardManager from './CardManager';
+import CardManager from './Metrics/CardManager';
 
 const MainPage = styled.div`
   position:fixed;
@@ -229,20 +227,19 @@ function BoardManager() {
 
 
     useEffect(() => {
-        let rowsPerBoard = Math.floor(state.boardRows / Object.keys(boardContext.boards).length);
-        dispatch({ type: ActionTypes.SET_BOARD_ROWS, payload: Math.max(rowsPerBoard, MIN_SIZE) })
+        if(Object.keys(boardContext.boards).length){
+            let rowsPerBoard = Math.floor(state.boardRows / Object.keys(boardContext.boards).length);
+            dispatch({ type: ActionTypes.SET_BOARD_ROWS, payload: Math.max(rowsPerBoard, MIN_SIZE) })
+        }
     }, [Object.keys(boardContext.boards).length]);
 
 
     return (
-        <MainPage key='main-page'>
-            <Settings key='settings'>
-                <Controls  key='controls' boardManagerDispatch={dispatch} delayState={state.delay} delayFunc={delayFunc} delayRef={delay} getDelayTypeFunc={getDelayType} />
-                <Actions key='actions' />
-            </Settings>
-            <VisualizationContainer  key='visualization-container'>
-                <CardManager key='card-manager' rows={state.boardRows} cols={state.boardCols} wallNodes={state.wallNodes} delay={state.delay} />
-                <BoardsContainer key='boards-container'>
+        <MainPage>
+            <Settings boardManagerDispatch={dispatch} delayState={state.delay} delayFunc={delayFunc} delayRef={delay} getDelayTypeFunc={getDelayType} />
+            <VisualizationContainer>
+                <CardManager rows={state.boardRows} cols={state.boardCols} wallNodes={state.wallNodes} delay={state.delay} />
+                {Object.keys(boardContext.boards).length>0 && <BoardsContainer >
                     {Object.keys(boardContext.boards).map((key: string) =>
                         <Board  
                             key={`board-${key}`}
@@ -256,7 +253,7 @@ function BoardManager() {
                             delayFunc={delayFunc}
                         />
                     )}
-                </BoardsContainer>
+                </BoardsContainer>}
             </VisualizationContainer>
         </MainPage>
     );

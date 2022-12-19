@@ -1,5 +1,5 @@
-import { CellProps as CellProps } from '../interfaces/Cell.interface';
-import { createNode } from '../factories/NodeFactory';
+import { CellProps as CellProps } from '../../interfaces/Cell.interface';
+import { createNode } from '../../factories/NodeFactory';
 import { memo } from 'react';
 
 

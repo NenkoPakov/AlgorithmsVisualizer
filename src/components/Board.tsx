@@ -1,4 +1,4 @@
-import Cell from './Cell';
+import Cell from './Cells/Cell';
 import React, { ReducerAction, useEffect, useRef } from 'react';
 import styled from 'styled-components';
 import { AlgorithmData, AlgorithmResult, BoardProps, State } from '../interfaces/Board.interface';

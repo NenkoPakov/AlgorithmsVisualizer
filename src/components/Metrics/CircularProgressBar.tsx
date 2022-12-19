@@ -1,6 +1,6 @@
 import React from 'react'
 import styled, { css } from 'styled-components';
-import { BackgroundColorType } from '../global';
+import { BackgroundColorType } from '../../global';
 
 const SvgCommonParams = css`
     cx: 40px;

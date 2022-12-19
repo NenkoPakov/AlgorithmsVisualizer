@@ -1,10 +1,10 @@
 import React, { useEffect } from 'react'
 import styled from 'styled-components';
-import { ActionTypes } from './BoardContext';
-import { useBoardContext, useBoardUpdateContext } from './BoardContext';
-import Button from './Button';
-import { ButtonType } from '../global';
-import { BoardData, Boards } from '../interfaces/Context.interface';
+import { ActionTypes } from '../BoardContext';
+import { useBoardContext, useBoardUpdateContext } from '../BoardContext';
+import Button from '../Button';
+import { ButtonType } from '../../global';
+import { BoardData, Boards } from '../../interfaces/Context.interface';
 
 const ButtonWrapper = styled.div`
     display:flex;
@@ -12,7 +12,10 @@ const ButtonWrapper = styled.div`
     flex-wrap:wrap;
     gap:10px;
     width:100%;
-    position:relative;
+    position:absolute;
+    transform-origin:bottom;
+    padding-bottom:35px;
+    bottom:0;
 `;
 
 function Actions() {
@@ -49,7 +52,9 @@ function Actions() {
     }, [boardContext.isPaused])
 
     return (
-        <ButtonWrapper>
+        !Object.keys(boardContext.boards).length
+        ?null
+        :<ButtonWrapper>
             {Object.values<BoardData>(boardContext.boards).filter(board => !board.isCompleted).length == 0
                 ? <Button key='done-reset' buttonType={ButtonType.Reset} handleClickFunc={() => resetFunc()} />
                 : boardContext.isPaused

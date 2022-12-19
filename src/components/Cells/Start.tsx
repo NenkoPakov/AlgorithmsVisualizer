@@ -1,8 +1,8 @@
 import React, { useState } from 'react';
 import styled from 'styled-components'
-import { BackgroundColorType, NodeBase} from '../global';
-import { BaseProps } from '../interfaces/Cell.interface';
-import { ActionTypes } from './BoardManager';
+import { BackgroundColorType, NodeBase} from '../../global';
+import { BaseProps } from '../../interfaces/Cell.interface';
+import { ActionTypes } from './../BoardManager';
 
 const StartNode = styled.div<any>`
   ${NodeBase};

@@ -8,7 +8,7 @@ import PauseIcon from './wwwroot/svg/pause.svg';
 import ResetIcon from './wwwroot/svg/reset.svg';
 import ArrowsColIcon from './wwwroot/svg/arrow-ew.svg';
 import ArrowsRowIcon from './wwwroot/svg/arrow-ns.svg';
-import DelayIcon from './wwwroot/svg/speed.svg';
+import DelayIcon from './wwwroot/svg/delay.svg';
 import ProgressIcon from './wwwroot/svg/progress.svg';
 
 export const NodeBase = css`

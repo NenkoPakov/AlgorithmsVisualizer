@@ -1,8 +1,10 @@
 import React from 'react'
 import styled from 'styled-components';
 import CircularProgressBar from './CircularProgressBar'
-import { BackgroundColorType, TextColorType } from '../global'
-import { AnalyticalCardProps } from '../interfaces/AnalyticalCard.interface';
+import { BackgroundColorType, TextColorType } from '../../global'
+import { AnalyticalCardProps } from '../../interfaces/AnalyticalCard.interface';
+import { useBoardContext } from '../BoardContext';
+import { BoardData } from '../../interfaces/Context.interface';
 
 const CardContainer = styled.section`
   position:relative;
@@ -51,18 +53,23 @@ const Target = styled.h5`
   font-weight:400;
 `;
 
-function AnalyticalCard({ title, currentValue, targetValue, progressInPercentages }: AnalyticalCardProps) {
+function ProgressCard() {
+  const boardContext = useBoardContext();
+  let slowestBoardData = Object.values<BoardData>(boardContext.boards).reduce((largestBoard, currentBoard) => largestBoard.iterationsCount! > currentBoard.iterationsCount! ? largestBoard : currentBoard);
+
+  let progressInPercentages = Math.round(100 / ((slowestBoardData.iterationsCount! - 1) / slowestBoardData.currentIteration));
+
   return (
     <CardContainer>
       <LightBubble></LightBubble>
       <DataContainer>
-        <Title>{title}</Title>
-        <Current>{currentValue}</Current>
-        <Target>/{targetValue}</Target>
+        <Title>Progress</Title>
+        <Current>{slowestBoardData.currentIteration}</Current>
+        <Target>/{slowestBoardData.iterationsCount! - 1}</Target>
       </DataContainer>
       <CircularProgressBar progressInPercentages={progressInPercentages} />
     </CardContainer>
   )
 }
 
-export default AnalyticalCard
+export default ProgressCard
