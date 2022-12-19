@@ -1,6 +1,6 @@
 import { css } from 'styled-components';
-import breadthFirstSearch from './services/breadthFirstSearch';
-import greedyBestFirstSearch from './services/greedyBestFirstSearch';
+import breadthFirstSearch from './algorithms/breadthFirstSearch';
+import greedyBestFirstSearch from './algorithms/greedyBestFirstSearch';
 import PreviousIcon from './wwwroot/svg/prev.svg';
 import NextIcon from './wwwroot/svg/next.svg';
 import StartIcon from './wwwroot/svg/start.svg';
