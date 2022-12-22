@@ -1,5 +1,5 @@
 import Cell from './Cells/Cell';
-import React, { ReducerAction, useEffect, useRef } from 'react';
+import React, { ReducerAction, RefObject, useEffect, useRef, useState } from 'react';
 import styled from 'styled-components';
 import { AlgorithmData, AlgorithmResult, BoardProps, State } from '../interfaces/Board.interface';
 import { CellProps, Node } from '../interfaces/Cell.interface';
@@ -15,7 +15,6 @@ const BoardSection = styled.section`
     display: flex;
     flex-direction:column;
     height:100%;
-    min-height:500px;
     background-color:${BackgroundColorType.White};
     padding:5px 20px 20px 20px;
     border-radius:20px;
@@ -49,6 +48,7 @@ const BoardWrapper = styled.div`
     position:relative;
     display: flex;
     flex-basis:100%;
+    width:100%;
     flex-direction:column;
     /* border:solid 5px gray; */
     gap:1px;
@@ -189,10 +189,36 @@ const Board = ({ boardRows, boardCols, wallNodes, startNode, finishNode, algorit
     }
 
     const [state, dispatch] = React.useReducer(reducer, initState);
+    const [cellSideLength, setCellSideLength] = useState(0);
+
     const lastUsedIterationIndex = useRef<number>(INITIAL_INDEX);
+    const boardRef: RefObject<HTMLDivElement> = useRef(null);
 
     const boardContext = useBoardContext();
     const boardUpdateContext = useBoardUpdateContext();
+
+    useEffect(() => {
+        const handleResize = () => {
+            if (boardRef.current) {
+                let cellSideHeight = boardRef.current.offsetHeight / boardRows;
+                let cellSideWidth = boardRef.current.offsetWidth / boardCols;
+
+                setCellSideLength(Math.min(cellSideHeight, cellSideWidth));
+                
+                // console.log('H: '+cellSideHeight);
+                console.log('W: '+boardRef.current.offsetWidth);
+                console.log('MIN: '+Math.min(cellSideHeight, cellSideWidth));
+                console.log('-----------');
+                
+
+                
+            }
+        };
+
+        handleResize();
+        window.addEventListener('resize', handleResize);
+        return () => window.removeEventListener('resize', handleResize);
+    }, []);
 
     useEffect(() => {
         //when start button is pressed
@@ -360,6 +386,7 @@ const Board = ({ boardRows, boardCols, wallNodes, startNode, finishNode, algorit
                 let isFinishNode = rowIndex === finishNode.row && colIndex === finishNode.col;
 
                 board[rowIndex][colIndex] = {
+                    sideLength:cellSideLength+'px',
                     value: state.nodeValues[rowIndex][colIndex],
                     isVisited: state.visitedNodes[rowIndex][colIndex],
                     isFrontier: state.frontierNodes[rowIndex][colIndex],
@@ -392,13 +419,14 @@ const Board = ({ boardRows, boardCols, wallNodes, startNode, finishNode, algorit
                         }
                     </Rank>}
             </BoardInfo>
-            <BoardWrapper>
-                {boardRenderFunc().map((row,index) => (
-                    <RowWrapper  key={`board-${algorithmKey}-row-${index}`}>
+            <BoardWrapper ref={boardRef}>
+                {boardRenderFunc().map((row, index) => (
+                    <RowWrapper key={`board-${algorithmKey}-row-${index}`}>
                         {row.map(cell => {
                             return <Cell
                                 key={`board-${algorithmKey}-cell-${cell.row}-${cell.col}`}
-                                {...cell} />
+                                {...cell}
+                            />
                         })}
                     </RowWrapper>
                 ))}

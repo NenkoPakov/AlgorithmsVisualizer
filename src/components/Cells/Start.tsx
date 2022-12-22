@@ -6,6 +6,8 @@ import { ActionTypes } from './../BoardManager';
 
 const StartNode = styled.div<any>`
   ${NodeBase};
+  max-height:${(props: BaseProps)=>props.sideLength};
+  aspect-ratio:1;
   cursor:move;
   background-color:${BackgroundColorType.Green};
   opacity: ${(props: {isDragged:boolean}) => props.isDragged ? .5 : 1};
@@ -15,7 +17,7 @@ const StartNode = styled.div<any>`
   } 
 `;
 
-function Start({ row, col, boardManagerDispatch }: BaseProps) {
+function Start({sideLength, row, col, boardManagerDispatch }: BaseProps) {
   const key: string = `${row}-${col}`;
 
   const [isDragged, setIsDragged] = useState(false);
@@ -28,6 +30,7 @@ function Start({ row, col, boardManagerDispatch }: BaseProps) {
   };
 
   return <StartNode
+  sideLength={sideLength}
     draggable={true}
     isDragged={isDragged}
     row={row}

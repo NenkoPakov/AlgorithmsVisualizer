@@ -8,22 +8,24 @@ import { useBoardContext, useBoardUpdateContext } from './../BoardContext';
 
 const WallCell = styled.div<any>`
   ${NodeBase};
+  max-height:${(props: BaseProps)=>props.sideLength};
+  aspect-ratio:1;
   background-color:${BackgroundColorType.Brown};
   transition: background-color 0.5s ease-out ;
 `;
 
-function Wall({ row, col, boardManagerDispatch }: BaseProps) {
+function Wall({ sideLength, row, col, boardManagerDispatch }: BaseProps) {
   const boardContext = useBoardContext();
   const boardUpdateContext = useBoardUpdateContext();
-  
+
   const key: string = `${row}-${col}`;
 
-  const onDragOver = (e: MouseEvent):void => {
+  const onDragOver = (e: MouseEvent): void => {
     e.preventDefault();
     boardManagerDispatch({ type: ActionTypes.SET_DRAGGED_NODE_POSITION, payload: { row, col } })
   };
 
-  const handleClick = (e: MouseEvent):void => {
+  const handleClick = (e: MouseEvent): void => {
     e.preventDefault();
 
     if (boardContext.isDrawingWallAction) {
@@ -44,6 +46,7 @@ function Wall({ row, col, boardManagerDispatch }: BaseProps) {
   };
 
   return <WallCell
+    sideLength={sideLength}
     row={row}
     col={col}
     id={key}
@@ -51,7 +54,7 @@ function Wall({ row, col, boardManagerDispatch }: BaseProps) {
     onDragOver={(e: MouseEvent) => { onDragOver(e) }}
     onContextMenu={(e: MouseEvent) => handleClick(e)}
     onClick={(e: MouseEvent) => handleClick(e)}
-    onMouseEnter={(e: MouseEvent) => boardManagerDispatch({ type: ActionTypes.GENERATE_PROPOSAL_WALL, payload: { node: { row, col },isUnmarkWallAction: boardContext.isUnmarkWallAction } })}
+    onMouseEnter={(e: MouseEvent) => boardManagerDispatch({ type: ActionTypes.GENERATE_PROPOSAL_WALL, payload: { node: { row, col }, isUnmarkWallAction: boardContext.isUnmarkWallAction } })}
   />
 };
 

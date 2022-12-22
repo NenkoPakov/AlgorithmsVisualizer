@@ -9,13 +9,15 @@ import { useBoardContext, useBoardUpdateContext } from '../BoardContext';
 const FreeNode = styled.div<any>`
   ${NodeBase};
   ${NodeText};
-  resize:none;
+  max-height:${(props: FreeProps)=>props.sideLength};
+  aspect-ratio:1;
+  /* resize:none; */
   background-color:${(props: FreeProps) => props.isVisited
     ? BackgroundColorType.Blue
     : props.isPartOfThePath
       ? BackgroundColorType.Gold
       : BackgroundColorType.Gray};
-  box-sizing: border-box;
+  /* box-sizing: border-box; */
   outline:${(props: FreeProps) => props.isFrontier ? 'solid 0.5px blue' : 'unset'};
   transition: background-color 1.5s ease-out ;
 
@@ -24,7 +26,7 @@ const FreeNode = styled.div<any>`
   } 
 `;
 
-function Free({ value, row, col, isVisited, isFrontier, isPartOfThePath, boardManagerDispatch }: FreeProps) {
+function Free({ value, sideLength, row, col, isVisited, isFrontier, isPartOfThePath, boardManagerDispatch }: FreeProps) {
   const boardContext = useBoardContext();
   const boardUpdateContext = useBoardUpdateContext();
 
@@ -58,6 +60,7 @@ function Free({ value, row, col, isVisited, isFrontier, isPartOfThePath, boardMa
 
   return <FreeNode
     id={key}
+    sideLength={sideLength}
     key={`free-node-${key}`}
     isVisited={isVisited}
     isFrontier={isFrontier}

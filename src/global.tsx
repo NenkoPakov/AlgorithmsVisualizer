@@ -12,7 +12,7 @@ import DelayIcon from './wwwroot/svg/delay.svg';
 import ProgressIcon from './wwwroot/svg/progress.svg';
 
 export const NodeBase = css`
-flex-basis:100%;
+/* flex-basis:100%; */
 position:relative;
 cursor:pointer;
 border-radius:2px;

@@ -1,10 +1,12 @@
 export interface BaseProps {
+    sideLength:string,
     row: number,
     col: number,
     boardManagerDispatch: Function,
 }
 
 export interface FreeProps extends BaseProps {
+    sideLength:string,
     value?: number,
     isVisited?: boolean,
     isFrontier?: boolean,

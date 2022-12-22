@@ -6,6 +6,8 @@ import { ActionTypes } from './../BoardManager';
 
 const FinishNode = styled.div<any>`
   ${NodeBase};
+  max-height:${(props: BaseProps)=>props.sideLength};
+  aspect-ratio:1;
   background-color:${BackgroundColorType.Red};
   cursor:move;
   opacity: ${(props: {isDragged:boolean}) => props.isDragged?.5:1};
@@ -15,7 +17,7 @@ const FinishNode = styled.div<any>`
   } 
 `;
 
-const Finish = ({ row, col, boardManagerDispatch }: BaseProps) => {
+const Finish = ({sideLength, row, col, boardManagerDispatch }: BaseProps) => {
   const key: string = `${row}-${col}`;
 
   const [isDragged, setIsDragged] = useState(false);
@@ -28,6 +30,7 @@ const Finish = ({ row, col, boardManagerDispatch }: BaseProps) => {
   };
 
   return <FinishNode
+  sideLength={sideLength}
     draggable={true}
     isDragged={isDragged}
     row={row}

@@ -8,9 +8,8 @@ const SettingsContainer = styled.div`
   position:relative;
   display:flex;
   flex-direction:column;
-  max-width:300px;
+  width:20vw;
   margin:20px;
-  width:100%;
   height:100%;
 `;
 

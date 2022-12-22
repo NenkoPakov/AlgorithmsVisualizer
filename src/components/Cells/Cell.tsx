@@ -5,7 +5,7 @@ import { memo } from 'react';
 
 const Cell =
   memo(
-    ({ value, isVisited, isFrontier, isWall, isPartOfThePath, isStart, isFinish, row, col, boardManagerDispatch }: CellProps) => {
+    ({ value,sideLength, isVisited, isFrontier, isWall, isPartOfThePath, isStart, isFinish, row, col, boardManagerDispatch }: CellProps) => {
       const getCellType = () => {
         return isStart
           ? 'start'
@@ -22,7 +22,7 @@ const Cell =
                     : 'free';
       }
 
-      return createNode(value, row, col, getCellType(), boardManagerDispatch);
+      return createNode(value, sideLength, row, col, getCellType(), boardManagerDispatch);
     }
     , (prevProps, nextProps) => JSON.stringify(prevProps) === JSON.stringify(nextProps));
 
