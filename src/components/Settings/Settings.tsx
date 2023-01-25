@@ -8,9 +8,16 @@ const SettingsContainer = styled.div`
   position:relative;
   display:flex;
   flex-direction:column;
+  padding-bottom:35px;
   width:20vw;
   margin:20px;
   height:100%;
+
+    @media (max-width: 600px){
+      display:none;
+
+      /* transform:translateX(-100%); */
+    }
 `;
 
 const Title = styled.h1`

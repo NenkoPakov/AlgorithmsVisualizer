@@ -7,14 +7,13 @@ import { ButtonType } from '../../global';
 import { BoardData, Boards } from '../../interfaces/Context.interface';
 
 const ButtonWrapper = styled.div`
+    position:absolute;
     display:flex;
     flex-direction:row;
     flex-wrap:wrap;
     gap:10px;
     width:100%;
-    position:absolute;
     transform-origin:bottom;
-    padding-bottom:35px;
     bottom:0;
 `;
 

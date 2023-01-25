@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useRef } from 'react';
+import React, { useCallback, useEffect, useRef, useState } from 'react';
 import styled from 'styled-components';
 import { useBoardContext } from '../components/BoardContext';
 import Settings from '../components/Settings/Settings';
@@ -7,6 +7,7 @@ import { getMatrixInitValue, updateMatrixRows, updateMatrixCols, Algorithm, Back
 import Board from './Board';
 import { DelayType, State } from '../interfaces/BoardManager.interface';
 import CardManager from './Metrics/CardManager';
+import Actions from './Settings/Actions';
 
 const MainPage = styled.div`
   position:fixed;
@@ -194,6 +195,8 @@ function reducer(state: State, action: any) {
 
 
 function BoardManager() {
+    const [isVisible, setIsVisible] = useState(false);
+
     const INITIAL_SIZE = 15;
     const INITIAL_TIMEOUT_MILLISECONDS = 80;
     const MIN_SIZE = 15;
@@ -225,6 +228,16 @@ function BoardManager() {
         return new Promise(resolve => setTimeout(resolve, delay.current));
     }, [delay.current]);
 
+    useEffect(() => {
+        const mediaQuery = window.matchMedia('(max-width: 600px)');
+        setIsVisible(mediaQuery.matches);
+        const handleMediaChange = () => setIsVisible(mediaQuery.matches);
+        window.addEventListener("resize", handleMediaChange);
+        return () => {
+            window.removeEventListener("resize", handleMediaChange);
+        };
+      }, []);
+
 
     useEffect(() => {
         if(Object.keys(boardContext.boards).length){
@@ -254,6 +267,7 @@ function BoardManager() {
                         />
                     )}
             </VisualizationContainer>
+            {isVisible ? <Actions />:null }
         </MainPage>
     );
 };
