@@ -1,6 +1,6 @@
 import React from 'react'
 import styled from 'styled-components';
-import { TextColorType } from '../../global';
+import { CardLabels, TextColorType } from '../../global';
 import { DelayType, StatusType } from '../../interfaces/BoardManager.interface';
 import { CardManagerProps } from '../../interfaces/CardManager.interface';
 import { BoardData } from '../../interfaces/Context.interface';
@@ -29,14 +29,14 @@ function CardManager({ rows, cols, wallNodes, delay }: CardManagerProps) {
     };
     return (
         <CardWrapper>
-            <BasicCard title="rows count" data={rows} textColor={TextColorType.DarkGray}></BasicCard>
-            <BasicCard title="cols count" data={cols} textColor={TextColorType.DarkGray}></BasicCard>
+            <BasicCard label={CardLabels.row} data={rows} textColor={TextColorType.DarkGray}></BasicCard>
+            <BasicCard label={CardLabels.col} data={cols} textColor={TextColorType.DarkGray}></BasicCard>
             <BasicCard
-                title="walls count"
+                label={CardLabels.wall}
                 data={wallNodes.reduce((curr, row) => curr + row.filter(node => node == true).length, 0)}
                 textColor={TextColorType.DarkGray}></BasicCard>
             <BasicCard
-                title="delay"
+                label={CardLabels.delay}
                 data={delay}
                 textColor={delay == DelayType[DelayType.small]
                     ? TextColorType.Green
@@ -44,7 +44,7 @@ function CardManager({ rows, cols, wallNodes, delay }: CardManagerProps) {
                         ? TextColorType.Red
                         : TextColorType.DarkGray} />
             <BasicCard
-                title="status"
+                label={CardLabels.status}
                 data={getCurrentStatus()}
                 textColor={getCurrentStatus() == StatusType[StatusType.done]
                     ? TextColorType.Green
@@ -54,7 +54,7 @@ function CardManager({ rows, cols, wallNodes, delay }: CardManagerProps) {
             />
             {Object.values(boardContext.boards).filter((board: any) => board.isCompleted == true).length > 0 &&
                 <BasicCard
-                    title="found path"
+                    label={CardLabels.path}
                     data={boardContext.isFoundPath ? 'yes' : 'no'}
                     textColor={boardContext.isFoundPath == true
                         ? TextColorType.Green

@@ -9,7 +9,7 @@ import { useBoardContext, useBoardUpdateContext } from '../BoardContext';
 const FreeNode = styled.div<any>`
   ${NodeBase};
   ${NodeText};
-  max-height:${(props: FreeProps)=>props.sideLength};
+  flex-basis:${(props: FreeProps)=>props.sideLength};
   aspect-ratio:1;
   /* resize:none; */
   background-color:${(props: FreeProps) => props.isVisited

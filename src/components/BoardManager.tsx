@@ -239,8 +239,8 @@ function BoardManager() {
             <Settings boardManagerDispatch={dispatch} delayState={state.delay} delayFunc={delayFunc} delayRef={delay} getDelayTypeFunc={getDelayType} />
             <VisualizationContainer>
                 <CardManager rows={state.boardRows} cols={state.boardCols} wallNodes={state.wallNodes} delay={state.delay} />
-                {Object.keys(boardContext.boards).length>0 && <BoardsContainer >
-                    {Object.keys(boardContext.boards).map((key: string) =>
+                {Object.keys(boardContext.boards).length>0 && 
+                    Object.keys(boardContext.boards).map((key: string) =>
                         <Board  
                             key={`board-${key}`}
                             boardRows={state.boardRows}
@@ -253,7 +253,6 @@ function BoardManager() {
                             delayFunc={delayFunc}
                         />
                     )}
-                </BoardsContainer>}
             </VisualizationContainer>
         </MainPage>
     );

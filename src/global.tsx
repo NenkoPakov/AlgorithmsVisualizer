@@ -37,6 +37,37 @@ export const Algorithm = {
     'TEST2': greedyBestFirstSearch,
 }
 
+export const CardLabels = {
+    row: {
+        short:'Rows',
+        long:'Rows Count'
+    },
+    col: {
+        short:'Cols',
+        long:'Cols Count'
+    },
+    wall: {
+        short:'Walls',
+        long:'Walls Count'
+    },
+    delay: {
+        short:'Delay',
+        long:'Delay Type'
+    },
+    status: {
+        short:'Status',
+        long:'Status'
+    },
+    path: {
+        short:'Path',
+        long:'Found Path'
+    },
+    progress: {
+        short:'Progress',
+        long:'Progress'
+    },
+};
+
 export enum ButtonType {
     Start = 'startButton',
     Pause = 'pauseButton',

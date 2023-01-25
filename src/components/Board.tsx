@@ -33,14 +33,17 @@ const AlgorithmName = styled.h2`
 `;
 
 const Duration = styled.h3`
-    position:absolute;
-    left:50%;
+    /* position:absolute;
+    left:50%; */
+    justify-content:center;
     margin:0;
 `;
 
 const Rank = styled.h2`
-    position:absolute;
-    right:0;
+    /* position:absolute;
+    right:0; */
+    
+    justify-content:flex-end;
     margin:0;
 `;
 
@@ -48,6 +51,7 @@ const BoardWrapper = styled.div`
     position:relative;
     display: flex;
     flex-basis:100%;
+    align-content:flex-start;
     width:100%;
     flex-direction:column;
     /* border:solid 5px gray; */
@@ -200,12 +204,14 @@ const Board = ({ boardRows, boardCols, wallNodes, startNode, finishNode, algorit
     useEffect(() => {
         const handleResize = () => {
             if (boardRef.current) {
-                let cellSideHeight = boardRef.current.offsetHeight / boardRows;
-                let cellSideWidth = boardRef.current.offsetWidth / boardCols;
+                // (boardRows-1)*1 is because of the gaps between the cells which are always with 1 less then the cells and they are multiplied by 1 because the gap is 1px
+                let cellSideHeight = (boardRef.current.offsetHeight-(boardRows-1)*1) / boardRows;
+                // (boardCols-1)*1 is because of the gaps between the cells which are always with 1 less then the cells and they are multiplied by 1 because the gap is 1px
+                let cellSideWidth = (boardRef.current.offsetWidth -(boardCols-1)*1)/ boardCols;
 
                 setCellSideLength(Math.min(cellSideHeight, cellSideWidth));
                 
-                // console.log('H: '+cellSideHeight);
+                console.log('H: '+cellSideHeight);
                 console.log('W: '+boardRef.current.offsetWidth);
                 console.log('MIN: '+Math.min(cellSideHeight, cellSideWidth));
                 console.log('-----------');

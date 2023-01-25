@@ -6,7 +6,7 @@ import { ActionTypes } from './../BoardManager';
 
 const StartNode = styled.div<any>`
   ${NodeBase};
-  max-height:${(props: BaseProps)=>props.sideLength};
+  flex-basis:${(props: BaseProps)=>props.sideLength};
   aspect-ratio:1;
   cursor:move;
   background-color:${BackgroundColorType.Green};

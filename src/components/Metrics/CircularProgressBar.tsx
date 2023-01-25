@@ -8,6 +8,14 @@ const SvgCommonParams = css`
     r: 35px;
     fill: transparent;
     stroke-width: 5px;
+
+    @media (max-width: 600px){
+        cx: 20px;
+        cy: 20px;
+        r: 17.5px;
+        fill: transparent;
+        stroke-width: 2.5px;
+    }
 `;
 
 const SvgProgressBar = styled.svg`
@@ -18,6 +26,13 @@ const SvgProgressBar = styled.svg`
     min-width:80px;
     min-height:80px;
     transform:rotateZ(-90deg);
+    
+    @media (max-width: 600px){
+        width:40px;
+        height:40px;
+        min-width:40px;
+        min-height:40px;
+    }
 `;
 
 const SvgTrack = styled.circle`
@@ -37,9 +52,14 @@ const PercentageIndicator = styled.text`
     font-weight: 500;
     fill: ${BackgroundColorType.White};
     font-size: 1.5em;
-    transform:rotateZ(90deg);
-    text-align: center;
-    text-anchor:middle;
+    transform: translateX(40%) translateY(25%) rotate(90deg);
+
+    
+    @media (max-width: 600px){
+    font-weight: 400;
+    font-size: 0.75em;
+    transform: translateX(40%) translateY(20%) rotate(90deg);
+    }
 `;
 
 
@@ -56,7 +76,7 @@ function CircularProgressBar({ progressInPercentages }: { progressInPercentages:
             <g>
                 <SvgTrack />
                 <SvgIndication arcLength={ARC_LENGTH} arcOffset={calcArcOffset(progressInPercentages)} />
-                <PercentageIndicator x="40" y="-32">{progressInPercentages ? progressInPercentages : 0}%</PercentageIndicator>
+                <PercentageIndicator>{progressInPercentages ? progressInPercentages : 0}%</PercentageIndicator>
             </g>
         </SvgProgressBar>
     );

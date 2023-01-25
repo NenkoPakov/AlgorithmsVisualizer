@@ -15,6 +15,11 @@ const CardContainer = styled.section`
   background-color: ${BackgroundColorType.Purple};
   border-radius:20px;
   gap:10px;
+
+    @media (max-width: 600px){
+      padding:2.5px 10px 2.5px 10px;
+      border-radius:10px;
+    }
 `;
 
 const LightBubble = styled.div`
@@ -27,6 +32,14 @@ const LightBubble = styled.div`
   height:80px;
   background-color: ${BackgroundColorType.TransparentWhite};
   z-index: 1;
+
+    
+  @media (max-width: 600px){
+      clip-path: circle(20px at 17.5px 12.5px);
+      border-top-left-radius:10px;
+      width:40px;
+      height:40px;
+    }
 `;
 
 const DataContainer = styled.div`
@@ -46,11 +59,19 @@ const Title = styled.h4`
 
 const Current = styled.h2`
   margin:0;
+
+  @media (max-width: 600px){
+  display:none;
+  }
 `;
 
 const Target = styled.h5`
   margin:0;
   font-weight:400;
+
+  @media (max-width: 600px){
+  display:none;
+  }
 `;
 
 function ProgressCard() {

@@ -2,29 +2,22 @@ import React from 'react'
 import styled from 'styled-components'
 
 const Parent = styled.div`
-position:relative;
-width:100%;
-height:100%;
-background-color:lightcoral;
+width: 500px;
+height: 600px;
+background-color: green;
 `;
 
 const Child = styled.div`
-position: relative;
-width:40%;
-height:30%;
-/* --width:var(--width);
---height:var(--height); */
-background-color:green;
-
+max-width: 300px;
+max-height: 300px;
+aspect-ratio:1;
+background-color: red;
 `;
 
 const GrandChild = styled.div`
-position:relative;
-/* height:50%;
-width:50%; */
---height:calc(width/2);
---width:calc(height/2);
-background-color:red;
+width: 10%;
+height: 10%;
+background-color: green;
 `;
 
 const GrandGrandChild = styled.div`
@@ -36,15 +29,28 @@ background-color:white;
 
 function Test() {
   return (
-    <Parent>
-      <Child>
-        <GrandChild>
-          <GrandGrandChild>
-
-          </GrandGrandChild>
-        </GrandChild>
-      </Child>
-    </Parent>
+      <Parent>
+        <Child />
+        {/* <GrandChild />
+        <GrandChild />
+        <GrandChild />
+        <GrandChild />
+        <GrandChild />
+        <GrandChild />
+        <GrandChild />
+        <GrandChild />
+        <GrandChild />
+        <GrandChild />
+        <GrandChild />
+        <GrandChild />
+        <GrandChild />
+        <GrandChild />
+        <GrandChild />
+        <GrandChild />
+        <GrandChild />
+        <GrandChild />
+        <GrandChild /> */}
+      </Parent>
   )
 }
 
